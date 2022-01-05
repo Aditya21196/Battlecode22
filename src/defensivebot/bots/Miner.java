@@ -74,18 +74,21 @@ public class Miner extends Robot{
     		//move away from nearest visible enemy watchtower
     		if(localInfo.nearestRobots[RobotType.WATCHTOWER.ordinal()] != null) {
     			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.WATCHTOWER.ordinal()].location.directionTo(currentLocation));
+    			rc.setIndicatorString("Trying to run from Watchtower.");
     			headingIndex = -1;
     		}
     		
     		//move away from nearest visible enemy soldier
     		else if(localInfo.nearestRobots[RobotType.SOLDIER.ordinal()] != null) {
     			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.SOLDIER.ordinal()].location.directionTo(currentLocation));
+    			rc.setIndicatorString("Trying to run from Soldier.");
     			headingIndex = -1;
     		}
     		
     		//move away from nearest visible enemy sage
     		else if(localInfo.nearestRobots[RobotType.SAGE.ordinal()] != null) {
     			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.SAGE.ordinal()].location.directionTo(currentLocation));
+    			rc.setIndicatorString("Trying to run from Sage.");
     			headingIndex = -1;
     		}
     		
@@ -94,6 +97,7 @@ public class Miner extends Robot{
     		//move toward nearest visible lead
     		else if(localInfo.nearestLead != null) {
     			bestDirection = getBestValidDirection(currentLocation.directionTo(localInfo.nearestLead));
+    			rc.setIndicatorString("Trying to get to lead.");
     			headingIndex = -1;
     		}
     		
@@ -101,14 +105,18 @@ public class Miner extends Robot{
     		else if(headingIndex == -1){
 				headingIndex = (int)(Math.random()*directions.length);
 				bestDirection = directions[headingIndex];
+				rc.setIndicatorString("Picking new direction to run.");
 			}else {
 				bestDirection = directions[headingIndex];
+				rc.setIndicatorString("Running straight.");
 			}
     		
     		
     		//Finally, make move in best direction
     		if(bestDirection != null && rc.canMove(bestDirection)) {
 				rc.move(bestDirection);
+			}else {
+				headingIndex = -1;
 			}
     		
     	}
@@ -144,6 +152,7 @@ public class Miner extends Robot{
                 	MapLocation mineLocation = new MapLocation(me.x + dx, me.y + dy);
                     while(rc.canMineLead(mineLocation)) {
                         rc.mineLead(mineLocation);
+                        rc.setIndicatorString("Mining Lead.");
                     }
                     
                 }
@@ -161,6 +170,7 @@ public class Miner extends Robot{
             	MapLocation mineLocation = new MapLocation(x, y);
                 while(rc.canMineLead(mineLocation) && --localInfo.lead2d[x][y] >= 1) {
                     rc.mineLead(mineLocation);
+                    rc.setIndicatorString("Mining Lead.");
                 }
                 
             }
