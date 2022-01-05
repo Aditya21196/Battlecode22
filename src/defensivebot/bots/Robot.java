@@ -53,11 +53,10 @@ public abstract class Robot {
     public void runRobot() throws GameActionException{
         // common code for all robots
         turnCount++;
-		sense();
+		//sense();
         roundNum = rc.getRoundNum();
         sensedRobots = rc.senseNearbyRobots();
         currentLocation = rc.getLocation();
-
         executeRole();
         verbose("bytecode remaining: "+ Clock.getBytecodesLeft());
     }
