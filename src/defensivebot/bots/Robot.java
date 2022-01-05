@@ -1,9 +1,16 @@
 package defensivebot.bots;
 
+import battlecode.common.Clock;
+import battlecode.common.GameActionException;
+import battlecode.common.RobotController;
 import battlecode.common.*;
+import defensivebot.strategies.Comms;
+import defensivebot.strategies.LocalInfo;
 import defensivebot.utils.*;
 
+
 import static defensivebot.utils.LogUtils.printDebugLog;
+import static defensivebot.utils.LogUtils.printVerboseLog;
 
 public abstract class Robot {
 
@@ -15,17 +22,22 @@ public abstract class Robot {
     public int roundNum;
     public MapLocation currentLocation;
     public int turnCount = 0;
+	protected LocalInfo localInfo;
+	protected Comms comms;
     
-    public Robot(RobotController rc){
+
+    public Robot(RobotController rc) throws GameActionException{
         this.rc = rc;
         team = rc.getTeam();
 		enemyTeam = team.opponent();
 		type = rc.getType();
         //get and store anomaly schedule
+		comms = new Comms(rc);
+		localInfo = new LocalInfo(rc,comms);
     }
 
     // factory method for robots
-    public static Robot getRobot(RobotController rc){
+    public static Robot getRobot(RobotController rc) throws GameActionException {
         switch (rc.getType()){
             case SAGE:return new Sage(rc);
             case MINER:return new Miner(rc);
@@ -41,11 +53,20 @@ public abstract class Robot {
     public void runRobot() throws GameActionException{
         // common code for all robots
         turnCount++;
+		sense();
         roundNum = rc.getRoundNum();
         sensedRobots = rc.senseNearbyRobots();
         currentLocation = rc.getLocation();
+
         executeRole();
+        verbose("bytecode remaining: "+ Clock.getBytecodesLeft());
     }
+
+	// sensing
+	public void sense() throws GameActionException{
+		localInfo.senseRobots();
+		localInfo.senseTerrain();
+	}
     
     /*
      * returns MapLocation which is closest to this robot and null if MapLocations are not valid.
@@ -161,8 +182,14 @@ public abstract class Robot {
 		
 	}
 
-    private void debug(String msg){
+    protected void debug(String msg){
         printDebugLog(rc,turnCount,msg);
+    }
+
+
+
+    protected void verbose(String msg){
+        printVerboseLog(rc,turnCount,msg);
     }
 
     public abstract void executeRole() throws GameActionException;
