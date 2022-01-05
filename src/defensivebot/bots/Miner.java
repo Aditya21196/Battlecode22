@@ -22,29 +22,19 @@ public class Miner extends Robot{
     
     @Override
     public void sense() throws GameActionException{
-        localInfo.senseTerrain();
+		//sense
+		localInfo.senseRobots();
+		localInfo.senseTerrain();
     }
 
+	/*
+	 * current strat mine lead
+	 */
     @Override
     public void executeRole() throws GameActionException {
-
-    	//sense
-    	localInfo.senseRobots();
-    	localInfo.senseTerrain();
-    	verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
-    	
-    	//take action
-    	act();
-    	verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft()); 
-    	
-    	
-    	//move
-    	move();
-    	verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
-    	
-    	//distribute information
-    	
-    	
+		if(rc.isActionReady()) {
+			mineLead();
+		}
     }
     
     /*
@@ -66,70 +56,61 @@ public class Miner extends Robot{
 	 * 
 	 */
     public void move() throws GameActionException {
-    	
-    	if(rc.isMovementReady()) {
+    	if(!rc.isMovementReady())return;
+
+		Direction bestDirection = null;
+
+		//move away from nearest visible enemy watchtower
+		if(localInfo.nearestRobots[RobotType.WATCHTOWER.ordinal()] != null) {
+			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.WATCHTOWER.ordinal()].location.directionTo(currentLocation));
+			rc.setIndicatorString("Trying to run from Watchtower.");
+			headingIndex = -1;
+		}
+
+		//move away from nearest visible enemy soldier
+		else if(localInfo.nearestRobots[RobotType.SOLDIER.ordinal()] != null) {
+			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.SOLDIER.ordinal()].location.directionTo(currentLocation));
+			rc.setIndicatorString("Trying to run from Soldier.");
+			headingIndex = -1;
+		}
+
+		//move away from nearest visible enemy sage
+		else if(localInfo.nearestRobots[RobotType.SAGE.ordinal()] != null) {
+			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.SAGE.ordinal()].location.directionTo(currentLocation));
+			rc.setIndicatorString("Trying to run from Sage.");
+			headingIndex = -1;
+		}
+
+		//move toward gold would be nice, but currently not being sensed
+
+		//move toward nearest visible lead
+		else if(localInfo.nearestLead != null) {
+			bestDirection = getBestValidDirection(currentLocation.directionTo(localInfo.nearestLead));
+			rc.setIndicatorString("Trying to get to lead.");
+			headingIndex = -1;
+		}
+
+		//move in random heading
+		else if(headingIndex == -1){
+			headingIndex = (int)(Math.random()*directions.length);
+			bestDirection = directions[headingIndex];
+			rc.setIndicatorString("Picking new direction to run.");
+		}else {
+			bestDirection = directions[headingIndex];
+			rc.setIndicatorString("Running straight.");
+		}
+
+
+		//Finally, make move in best direction
+		if(bestDirection != null && rc.canMove(bestDirection)) {
+			rc.move(bestDirection);
+		}else {
+			headingIndex = -1;
+		}
     		
-    		Direction bestDirection = null;
-    		
-    		//move away from nearest visible enemy watchtower
-    		if(localInfo.nearestRobots[RobotType.WATCHTOWER.ordinal()] != null) {
-    			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.WATCHTOWER.ordinal()].location.directionTo(currentLocation));
-    			rc.setIndicatorString("Trying to run from Watchtower.");
-    			headingIndex = -1;
-    		}
-    		
-    		//move away from nearest visible enemy soldier
-    		else if(localInfo.nearestRobots[RobotType.SOLDIER.ordinal()] != null) {
-    			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.SOLDIER.ordinal()].location.directionTo(currentLocation));
-    			rc.setIndicatorString("Trying to run from Soldier.");
-    			headingIndex = -1;
-    		}
-    		
-    		//move away from nearest visible enemy sage
-    		else if(localInfo.nearestRobots[RobotType.SAGE.ordinal()] != null) {
-    			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.SAGE.ordinal()].location.directionTo(currentLocation));
-    			rc.setIndicatorString("Trying to run from Sage.");
-    			headingIndex = -1;
-    		}
-    		
-    		//move toward gold would be nice, but currently not being sensed
-    		
-    		//move toward nearest visible lead
-    		else if(localInfo.nearestLead != null) {
-    			bestDirection = getBestValidDirection(currentLocation.directionTo(localInfo.nearestLead));
-    			rc.setIndicatorString("Trying to get to lead.");
-    			headingIndex = -1;
-    		}
-    		
-    		//move in random heading
-    		else if(headingIndex == -1){
-				headingIndex = (int)(Math.random()*directions.length);
-				bestDirection = directions[headingIndex];
-				rc.setIndicatorString("Picking new direction to run.");
-			}else {
-				bestDirection = directions[headingIndex];
-				rc.setIndicatorString("Running straight.");
-			}
-    		
-    		
-    		//Finally, make move in best direction
-    		if(bestDirection != null && rc.canMove(bestDirection)) {
-				rc.move(bestDirection);
-			}else {
-				headingIndex = -1;
-			}
-    		
-    	}
+
     }
-    
-    /*
-     * current strat mine lead
-     */
-    public void act() throws GameActionException {
-    	if(rc.isActionReady()) {
-	    	mineLead();
-    	}
-    }
+
     
     /*
      * 

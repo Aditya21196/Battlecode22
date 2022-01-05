@@ -9,6 +9,16 @@ public class Sage extends Robot{
     }
 
     @Override
+    public void sense() throws GameActionException {
+
+    }
+
+    @Override
+    public void move() throws GameActionException {
+
+    }
+
+    @Override
     public void executeRole() throws GameActionException {
 
     }

@@ -10,7 +10,18 @@ public class Builder extends Robot{
     }
 
     @Override
+    public void sense() throws GameActionException {
+
+    }
+
+    @Override
     public void executeRole() throws GameActionException {
 
     }
+
+    @Override
+    public void move() throws GameActionException {
+
+    }
+
 }

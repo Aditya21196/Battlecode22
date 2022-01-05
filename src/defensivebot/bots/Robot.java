@@ -21,7 +21,7 @@ public abstract class Robot {
 	public RobotInfo[] sensedRobots;
     public int roundNum;
     public MapLocation currentLocation;
-    public int turnCount = 0;
+    public int turnCount;
 	protected LocalInfo localInfo;
 	protected Comms comms;
     
@@ -31,9 +31,10 @@ public abstract class Robot {
         team = rc.getTeam();
 		enemyTeam = team.opponent();
 		type = rc.getType();
-        //get and store anomaly schedule
+        //TODO: get and store anomaly schedule
 		comms = new Comms(rc);
 		localInfo = new LocalInfo(rc,comms);
+		turnCount = 0;
     }
 
     // factory method for robots
@@ -53,19 +54,25 @@ public abstract class Robot {
     public void runRobot() throws GameActionException{
         // common code for all robots
         turnCount++;
-		//sense();
+
         roundNum = rc.getRoundNum();
         sensedRobots = rc.senseNearbyRobots();
         currentLocation = rc.getLocation();
+
+		sense();
+		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+
         executeRole();
-        verbose("bytecode remaining: "+ Clock.getBytecodesLeft());
+		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
+
+		move();
+		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
     }
 
 	// sensing
-	public void sense() throws GameActionException{
-		localInfo.senseRobots();
-		localInfo.senseTerrain();
-	}
+	abstract public void sense() throws GameActionException;
+
+	abstract public void move() throws GameActionException;
     
     /*
      * returns MapLocation which is closest to this robot and null if MapLocations are not valid.
