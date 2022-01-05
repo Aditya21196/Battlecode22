@@ -102,14 +102,16 @@ public class LocalInfo {
         nearestLeadDist = Integer.MAX_VALUE;
         nearestLead = null;
         MapLocation loc = rc.getLocation();
+
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
+
         for(MapLocation location:locations){
         	//lead: probably worth doing most if not every turn
             int lead = rc.senseLead(location);
             // queue bulk update for lead in Comms
             if(lead > 0){
-                int val=1;
-                if(lead>20)val = 2;
-                comms.queueDenseMatrixUpdate(location.x, location.y, val, CommInfoBlock.LEAD_MAP);
+
+                if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(location.x, location.y, lead, CommInfoBlock.LEAD_MAP);
                 
                 int distToMe = loc.distanceSquaredTo(location);
                 if(distToMe < nearestLeadDist) {
@@ -129,7 +131,7 @@ public class LocalInfo {
             
         }
 
-        comms.processUpdateQueue();
+        if(isDenseUpdateAllowed)comms.processUpdateQueues();
 
     }
 

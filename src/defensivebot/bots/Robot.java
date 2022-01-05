@@ -21,7 +21,7 @@ public abstract class Robot {
 	public RobotInfo[] sensedRobots;
     public int roundNum;
     public MapLocation currentLocation;
-    public int turnCount;
+    public static int turnCount;
 	protected LocalInfo localInfo;
 	protected Comms comms;
     

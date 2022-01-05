@@ -19,6 +19,7 @@ public class Archon extends Robot{
 
     @Override
     public void sense() throws GameActionException {
+        // TODO: check bytecode. This should not be required all the time
         localInfo.senseRobots();
         localInfo.senseTerrain();
     }
