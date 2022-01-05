@@ -25,7 +25,7 @@ public class Miner extends Robot{
 	private int headingIndex = -1; // index in Constants.directions for heading
 	private boolean parked = false;
 	
-	public Miner(RobotController rc) {
+	public Miner(RobotController rc) throws GameActionException  {
         super(rc);
         leadLocationsFromVision = new HashSet<MapLocation>();
         leadAmountAtLocation = new HashMap<MapLocation, Integer>();
@@ -34,8 +34,13 @@ public class Miner extends Robot{
     
     
     @Override
+    public void sense() throws GameActionException{
+        localInfo.senseTerrain();
+    }
+
+    @Override
     public void executeRole() throws GameActionException {
-    	
+
     	//collect information
     	collectInformation();
     	
@@ -191,5 +196,4 @@ public class Miner extends Robot{
             	}
             }
 		}
-    }
 }

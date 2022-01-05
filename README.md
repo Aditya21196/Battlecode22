@@ -33,3 +33,7 @@ This is the Battlecode 2022 scaffold, containing an `examplefuncsplayer`. Read h
 - `./gradlew update`
     Update to the newest version! Run every so often
 
+### TODOs:
+
+- Create Comms class (will encapsulate sector map or at least hold a reference to it). 
+- I am going to experiment with static variables for this
