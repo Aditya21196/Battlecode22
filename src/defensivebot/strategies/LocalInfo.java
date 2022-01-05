@@ -20,6 +20,7 @@ public class LocalInfo {
 
     public LocalInfo(RobotController rc,Comms comms){
         this.rc=rc;
+        this.comms=comms;
     }
 
     private void reset(){

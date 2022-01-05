@@ -66,6 +66,7 @@ public class Comms {
     }
 
     public Comms(RobotController rc) throws GameActionException {
+        this.rc = rc;
         int w = rc.getMapWidth(),h = rc.getMapHeight();
         xSectorSize = getBestSectorSize(w);
         ySectorSize = getBestSectorSize(h);
