@@ -12,8 +12,8 @@ import static defensivebot.utils.Constants.UNITS_AVAILABLE;
 
 public class LocalInfo {
 
-    private RobotController rc;
-    private Comms comms;
+    private final RobotController rc;
+    private final Comms comms;
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
     public int nearestEnemyDist,nearestFriendDist;
@@ -24,6 +24,7 @@ public class LocalInfo {
     public int[][] rubble2d;
     public MapLocation nearestLead;
     public int nearestLeadDist;
+    public RobotInfo homeArchon;
     
     public LocalInfo(RobotController rc,Comms comms){
         this.rc=rc;
@@ -34,7 +35,6 @@ public class LocalInfo {
         for(int i = rubble2d.length; --i>=0;)
         	for(int j = rubble2d[0].length; --j>=0;)
         		rubble2d[i][j] = GameConstants.MAX_RUBBLE;
-        
     }
 
     private void reset(){
@@ -48,14 +48,13 @@ public class LocalInfo {
         nearestFriendDist = Integer.MAX_VALUE;
         nearestEnemy = null;
         nearestFriend = null;
-        
+
+        // TODO: separate out into 2 different arrays
         nearestRobots = new RobotInfo[UNITS_AVAILABLE*2];
         nearestDist = new int[UNITS_AVAILABLE*2];
         for(int i = nearestDist.length; --i>=0;) nearestDist[i] = Integer.MAX_VALUE;
         
-        
-        
-        
+
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         MapLocation loc = rc.getLocation();
         for(RobotInfo robot: nearbyRobots){
@@ -64,7 +63,10 @@ public class LocalInfo {
             int distToMe = loc.distanceSquaredTo(robLoc);
             int typeOrdinal = robot.getType().ordinal();
             if(robot.getTeam() == rc.getTeam()){
-                friendlyUnitCounts[robot.getType().ordinal()]++;
+                friendlyUnitCounts[typeOrdinal]++;
+
+                // find home archon upon spawning
+                if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal())homeArchon = robot;
 
                 if(distToMe<nearestFriendDist){
                     nearestFriendDist = distToMe;
