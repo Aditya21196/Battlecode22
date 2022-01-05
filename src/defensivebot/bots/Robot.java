@@ -53,11 +53,10 @@ public abstract class Robot {
     public void runRobot() throws GameActionException{
         // common code for all robots
         turnCount++;
-		sense();
+		//sense();
         roundNum = rc.getRoundNum();
         sensedRobots = rc.senseNearbyRobots();
         currentLocation = rc.getLocation();
-
         executeRole();
         verbose("bytecode remaining: "+ Clock.getBytecodesLeft());
     }
@@ -94,6 +93,7 @@ public abstract class Robot {
      * returns a Direction with lowest rubble that moves this robot toward
      * 
      * TODO improve path-finding here
+     * could calculate moves/round of each path and prefer center by about 1.4
      */
     public Direction getBestValidDirection(Direction toward) throws GameActionException{
 		MapLocation ac = currentLocation.add(toward);

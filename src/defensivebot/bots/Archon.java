@@ -14,7 +14,7 @@ public class Archon extends Robot{
     static final Random rng = new Random(6147);
     @Override
     public void executeRole() throws GameActionException {
-    	localInfo.senseTerrain();
+    	//localInfo.senseTerrain();
     	//for testing miners
     	//build miners in random direction whenever possible
     	Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
