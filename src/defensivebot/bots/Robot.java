@@ -53,6 +53,7 @@ public abstract class Robot {
     public void runRobot() throws GameActionException{
         // common code for all robots
         turnCount++;
+		sense();
         roundNum = rc.getRoundNum();
         sensedRobots = rc.senseNearbyRobots();
         currentLocation = rc.getLocation();
@@ -60,6 +61,12 @@ public abstract class Robot {
         executeRole();
         verbose("bytecode remaining: "+ Clock.getBytecodesLeft());
     }
+
+	// sensing
+	public void sense() throws GameActionException{
+		localInfo.senseRobots();
+		localInfo.senseTerrain();
+	}
     
     /*
      * returns MapLocation which is closest to this robot and null if MapLocations are not valid.

@@ -68,10 +68,11 @@ public class LocalInfo {
 
             int lead = rc.senseLead(location);
             // queue bulk update for lead in Comms
-            int val=1;
-            if(lead>20)val = 2;
-            comms.queueDenseMatrixUpdate(location.x, location.y, val, CommInfoBlock.LEAD_MAP);
-
+            if(lead > 0){
+                int val=1;
+                if(lead>20)val = 2;
+                comms.queueDenseMatrixUpdate(location.x, location.y, val, CommInfoBlock.LEAD_MAP);
+            }
             // can also sense other things
         }
 

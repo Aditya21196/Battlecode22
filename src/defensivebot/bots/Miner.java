@@ -9,7 +9,13 @@ public class Miner extends Robot{
     }
 
     @Override
+    public void sense() throws GameActionException{
+        localInfo.senseTerrain();
+    }
+
+    @Override
     public void executeRole() throws GameActionException {
+            // signal
 
     }
 }

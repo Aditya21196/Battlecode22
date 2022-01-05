@@ -5,10 +5,8 @@ import battlecode.common.RobotController;
 import defensivebot.datasturctures.LinkedList;
 import defensivebot.enums.CommInfoBlock;
 
-import java.util.HashMap;
-import java.util.Map;
+import static defensivebot.utils.CustomMath.ceilDivision;
 
-// testing out static objects
 public class Comms {
 
 
@@ -22,6 +20,7 @@ public class Comms {
             this.val=val;
             this.commInfoBlock=commInfoBlock;
         }
+
     }
 
     private int xSectorSize,ySectorSize,xSectors,ySectors,blockOffset, sparseSignalOffset;
@@ -31,18 +30,20 @@ public class Comms {
     private RobotController rc;
 
     public void processUpdateQueue() throws GameActionException{
-        // we need offset within info block
+        // we need offset within info block // TODO: Increment lead for all x,y in same sector
+        // TODO: Impose update restriction
         readSharedData();
         int[] updatedCommsValues = new int[64];
         for(int i=64;--i>=0;)updatedCommsValues[i]=data[i];
         while(commUpdateLinkedList.size>0){
             CommDenseMatrixUpdate update = commUpdateLinkedList.dequeue().val;
-            int offset = blockOffset*update.commInfoBlock.offset + update.x/xSectorSize + update.y/ySectorSize;
+            // TODO: put this entire thing in a function in a function
+            int offset = blockOffset*update.commInfoBlock.offset + getPositionOffset(update.x, update.y)*update.commInfoBlock.blockSize;
 
-            for(int j=update.commInfoBlock.blockSize-1;--j>=0;){
+            for(int j=update.commInfoBlock.blockSize;--j>=0;){
                 int updateIdx = (offset+j)/16;
                 int bitIdx = (offset+j)%16;
-                int updateVal = (update.val | 1<<j) > 0? 1: 0;
+                int updateVal = (update.val & 1<<j) > 0? 1: 0;
                 updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
             }
         }
@@ -71,8 +72,8 @@ public class Comms {
         xSectorSize = getBestSectorSize(w);
         ySectorSize = getBestSectorSize(h);
 
-        xSectors = (w+xSectorSize-1)/xSectorSize;
-        ySectors = (w+ySectorSize-1)/ySectorSize;
+        xSectors = ceilDivision(w,xSectorSize);
+        ySectors = ceilDivision(h,ySectorSize);
         blockOffset = xSectors * ySectors;
 
         CommInfoBlock[] enumValues = CommInfoBlock.values();
@@ -82,13 +83,13 @@ public class Comms {
 
     }
 
-    public void populateSharedArray(){
-        // add lead info to sector
-
+    public int getPositionOffset(int x,int y){
+        int sectorX = x/xSectorSize,sectorY = y/ySectorSize;
+        return sectorX*ySectors + sectorY;
     }
 
     private void readSharedData() throws GameActionException {
-        for(int i=63;--i >= 0;)data[i] = rc.readSharedArray(i);
+        for(int i=64;--i >= 0;)data[i] = rc.readSharedArray(i);
     }
 
     private static int getBestSectorSize(int dimension){
@@ -98,10 +99,6 @@ public class Comms {
         // more bits saved if we choose 8
         return 8;
     }
-
-    // list out functionality
-
-
 
 
 }
