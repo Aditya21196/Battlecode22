@@ -1,14 +1,16 @@
 package defensivebot.bots;
 
+import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 
 import static defensivebot.utils.LogUtils.printDebugLog;
+import static defensivebot.utils.LogUtils.printVerboseLog;
 
 public abstract class Robot {
 
     private final RobotController rc;
-    private int turnCount=0;
+    public static int turnCount=0;
 
     public Robot(RobotController rc){
         this.rc = rc;
@@ -32,10 +34,17 @@ public abstract class Robot {
         // common code for all robots
         turnCount++;
         executeRole();
+        verbose("bytecode remaining: "+ Clock.getBytecodesLeft());
     }
 
-    private void debug(String msg){
+    protected void debug(String msg){
         printDebugLog(rc,turnCount,msg);
+    }
+
+
+
+    protected void verbose(String msg){
+        printVerboseLog(rc,turnCount,msg);
     }
 
     public abstract void executeRole() throws GameActionException;
