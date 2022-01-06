@@ -45,6 +45,26 @@ public class Comms {
 
     private int readDataTime=-1,querySignalDataTime=-1;
 
+    public Comms(RobotController rc) throws GameActionException {
+        this.rc = rc;
+        int w = rc.getMapWidth(),h = rc.getMapHeight();
+        xSectorSize = getBestSectorSize(w);
+        ySectorSize = getBestSectorSize(h);
+
+        xSectors = ceilDivision(w,xSectorSize);
+        ySectors = ceilDivision(h,ySectorSize);
+        blockOffset = xSectors * ySectors;
+
+        CommInfoBlockType[] enumValues = CommInfoBlockType.values();
+        CommInfoBlockType lastBlock = enumValues[enumValues.length-1];
+
+        numBitsSingleSectorInfo = findClosestGreaterOrEqualPowerOf2(blockOffset);
+        unitTypeSpareSignalOffset = numBitsSingleSectorInfo + UNIT_TYPE_SIGNAL_BITS;
+        // single sector takes number of bits required to represent 0 ... blockOffset-1
+        unitTypeSignalOffset = (lastBlock.offset + lastBlock.blockSize)*blockOffset;
+        sparseSignalOffset = unitTypeSignalOffset + rc.getArchonCount() * unitTypeSpareSignalOffset;
+    }
+
     public void processUpdateQueues() throws GameActionException{
         // 8 adjacent sectors and current sector are only possibilities so total 9
         int[][][] valMap = new int[3][3][CommInfoBlockType.values().length];
@@ -225,24 +245,8 @@ public class Comms {
         commUpdateLinkedList.add(new CommDenseMatrixUpdate(x, y, val, commInfoBlockType));
     }
 
-    public Comms(RobotController rc) throws GameActionException {
-        this.rc = rc;
-        int w = rc.getMapWidth(),h = rc.getMapHeight();
-        xSectorSize = getBestSectorSize(w);
-        ySectorSize = getBestSectorSize(h);
-
-        xSectors = ceilDivision(w,xSectorSize);
-        ySectors = ceilDivision(h,ySectorSize);
-        blockOffset = xSectors * ySectors;
-
-        CommInfoBlockType[] enumValues = CommInfoBlockType.values();
-        CommInfoBlockType lastBlock = enumValues[enumValues.length-1];
-
-        numBitsSingleSectorInfo = findClosestGreaterOrEqualPowerOf2(blockOffset);
-        unitTypeSpareSignalOffset = numBitsSingleSectorInfo + UNIT_TYPE_SIGNAL_BITS;
-        // single sector takes number of bits required to represent 0 ... blockOffset-1
-        unitTypeSignalOffset = (lastBlock.offset + lastBlock.blockSize)*blockOffset;
-        sparseSignalOffset = unitTypeSignalOffset + rc.getArchonCount() * unitTypeSpareSignalOffset;
+    public void queueSparseSignalUpdate(SparseSignal sparseSignal){
+        sparseSignalUpdates.add(sparseSignal);
     }
 
     public int findClosestGreaterOrEqualPowerOf2(int num){
@@ -279,10 +283,6 @@ public class Comms {
             // if droid is away from sector border by a factor of 2, it probably doesn't see enough of this sector
             return xSectorRef+ySectorRef>=2 && (xSectorSize-xSectorRef)+(ySectorSize-ySectorRef)>=2;
         } else return true;
-    }
-
-    public void queueSparseSignalUpdate(SparseSignal sparseSignal){
-        sparseSignalUpdates.add(sparseSignal);
     }
 
     /*
