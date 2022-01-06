@@ -17,11 +17,18 @@ public class LocalInfo {
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
     public int nearestEnemyDist,nearestFriendDist;
-    public RobotInfo nearestEnemy,nearestFriend;
-    public RobotInfo[] nearestRobots; //nearest robots of each type and on each team
-    public int[] nearestDist; //nearest robots' distances to this rc (of each type and team)
+    public RobotInfo nearestEnemy, nearestFriend;
+    public RobotInfo[] nearestFR; //nearest friendly robots of each type
+    public int[] nearestFRDist; //nearest friendly robots' distances(of each type)
+    public RobotInfo[] nearestER; //nearest enemy robots of each type
+    public int[] nearestERDist; //nearest enemy robots' distances(of each type)
     public int[][] lead2d;
     public int[][] rubble2d;
+    
+    public int[][] enemy2d;
+    public int[][] friend2d;
+    public int[][] robot2d;
+    
     public MapLocation nearestLead;
     public int nearestLeadDist;
     public RobotInfo homeArchon;
@@ -49,11 +56,17 @@ public class LocalInfo {
         nearestEnemy = null;
         nearestFriend = null;
 
-        // TODO: separate out into 2 different arrays
-        nearestRobots = new RobotInfo[UNITS_AVAILABLE*2];
-        nearestDist = new int[UNITS_AVAILABLE*2];
-        for(int i = nearestDist.length; --i>=0;) nearestDist[i] = Integer.MAX_VALUE;
-        
+        nearestFR = new RobotInfo[UNITS_AVAILABLE];
+        nearestFRDist = new int[UNITS_AVAILABLE];
+        nearestER = new RobotInfo[UNITS_AVAILABLE];
+        nearestERDist = new int[UNITS_AVAILABLE];
+        for(int i = nearestFRDist.length; --i>=0;) {
+        	nearestFRDist[i] = Integer.MAX_VALUE;
+        	nearestERDist[i] = Integer.MAX_VALUE;
+        }
+        enemy2d = new int[rc.getMapWidth()][rc.getMapHeight()];
+        friend2d = new int[rc.getMapWidth()][rc.getMapHeight()];
+        robot2d = new int[rc.getMapWidth()][rc.getMapHeight()];
 
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         MapLocation loc = rc.getLocation();
@@ -62,9 +75,10 @@ public class LocalInfo {
             MapLocation robLoc = robot.getLocation();
             int distToMe = loc.distanceSquaredTo(robLoc);
             int typeOrdinal = robot.getType().ordinal();
+            robot2d[robLoc.x][robLoc.y] = typeOrdinal+1;
             if(robot.getTeam() == rc.getTeam()){
                 friendlyUnitCounts[typeOrdinal]++;
-
+                friend2d[robLoc.x][robLoc.y] = typeOrdinal+1;
                 // find home archon upon spawning
                 if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal())homeArchon = robot;
 
@@ -73,25 +87,25 @@ public class LocalInfo {
                     nearestFriend = robot;
                 }
                 
-                if(distToMe < nearestDist[typeOrdinal + UNITS_AVAILABLE]) {
-                	nearestRobots[typeOrdinal + UNITS_AVAILABLE] = robot;
-                	nearestDist[typeOrdinal + UNITS_AVAILABLE] = distToMe;
+                if(distToMe < nearestFRDist[typeOrdinal]) {
+                	nearestFR[typeOrdinal] = robot;
+                	nearestFRDist[typeOrdinal] = distToMe;
                 }
                 
             }else{
                 enemyUnitCounts[robot.getType().ordinal()]++;
-
+                enemy2d[robLoc.x][robLoc.y] = typeOrdinal+1;
                 if(distToMe<nearestEnemyDist){
                     nearestEnemyDist = distToMe;
                     nearestEnemy = robot;
                 }
                 
-                if(distToMe < nearestDist[typeOrdinal]) {
-                	nearestRobots[typeOrdinal] = robot;
-                	nearestDist[typeOrdinal] = distToMe;
+                if(distToMe < nearestERDist[typeOrdinal]) {
+                	nearestER[typeOrdinal] = robot;
+                	nearestERDist[typeOrdinal] = distToMe;
                 }
             }
-
+            
 
         }
     }
@@ -101,10 +115,12 @@ public class LocalInfo {
         MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(),rc.getType().visionRadiusSquared);
         nearestLeadDist = Integer.MAX_VALUE;
         nearestLead = null;
+        
         MapLocation loc = rc.getLocation();
         for(MapLocation location:locations){
         	//lead: probably worth doing most if not every turn
             int lead = rc.senseLead(location);
+            lead2d[location.x][location.y] = lead;
             // queue bulk update for lead in Comms
             if(lead > 0){
                 int val=1;
@@ -116,7 +132,7 @@ public class LocalInfo {
                 	nearestLead = location;
                 	nearestLeadDist = distToMe;
                 }
-                lead2d[location.x][location.y] = lead;
+                
             }
             // can also sense other things
             

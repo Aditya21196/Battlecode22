@@ -67,6 +67,8 @@ public abstract class Robot {
 
 		move();
 		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
+		
+		//TODO: consider a actionsWhenThereIsExtraBytecode() for extra computing, comms or maybe to try and attack or mine after moving
     }
 
 	// sensing
