@@ -1,49 +1,53 @@
 package defensivebot.strategies;
 
 import battlecode.common.*;
+import defensivebot.datasturctures.CustomSet;
 import defensivebot.datasturctures.LinkedList;
-import defensivebot.enums.CommInfoBlock;
-import defensivebot.enums.SparseSignal;
+import defensivebot.enums.CommInfoBlockType;
+import defensivebot.enums.SparseSignalType;
+import defensivebot.models.SparseSignal;
+
 
 import static defensivebot.bots.Robot.turnCount;
-import static defensivebot.utils.Constants.BFS2;
-import static defensivebot.utils.Constants.bitMasks;
+import static defensivebot.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
+import static defensivebot.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
+import static defensivebot.utils.Constants.*;
 import static defensivebot.utils.CustomMath.ceilDivision;
 
 public class Comms {
 
     static class CommDenseMatrixUpdate{
         int x,y,val;
-        CommInfoBlock commInfoBlock;
-        CommDenseMatrixUpdate(int x,int y,int val,CommInfoBlock commInfoBlock){
+        CommInfoBlockType commInfoBlockType;
+        CommDenseMatrixUpdate(int x, int y, int val, CommInfoBlockType commInfoBlockType){
             this.x=x;
             this.y=y;
             this.val=val;
-            this.commInfoBlock=commInfoBlock;
+            this.commInfoBlockType = commInfoBlockType;
         }
     }
 
-    static class CommSparseMatrixUpdate{
-        int x,y;
-        SparseSignal sparseSignal;
-        CommSparseMatrixUpdate(int x,int y,SparseSignal sparseSignal){
-            this.x=x;
-            this.y=y;
-            this.sparseSignal=sparseSignal;
-        }
-    }
 
     private final RobotController rc;
-    private final int xSectorSize,ySectorSize,xSectors,ySectors,blockOffset, sparseSignalOffset,unitTypeSpareSignalOffset,unitTypeSignalOffset;
+    private final int xSectorSize,ySectorSize,xSectors,
+            ySectors,blockOffset, sparseSignalOffset,
+            unitTypeSpareSignalOffset,unitTypeSignalOffset,numBitsSingleSectorInfo;
     private int[] data = new int[64];
     private LinkedList<CommDenseMatrixUpdate> commUpdateLinkedList = new LinkedList<>();
-    private LinkedList<CommSparseMatrixUpdate> sparseSignalLinkedList = new LinkedList<>();
+    private LinkedList<SparseSignal> sparseSignalUpdates = new LinkedList<>();
+    private CustomSet<SparseSignal> sparseSignals;
+    private LinkedList<SparseSignal> orderedSparseSignals;
 
-    private int readDataTime=-1;
+    public boolean isSignalArrayFull = false;
+
+    // usage: This is a bit hacky but while reading sparse signal array, I am recording index of last signal
+    private int lastSignalBeginsHere;
+
+    private int readDataTime=-1,querySignalDataTime=-1;
 
     public void processUpdateQueues() throws GameActionException{
         // 8 adjacent sectors and current sector are only possibilities so total 9
-        int[][][] valMap = new int[3][3][CommInfoBlock.values().length];
+        int[][][] valMap = new int[3][3][CommInfoBlockType.values().length];
         int valMapOffset = 1;
         MapLocation loc = rc.getLocation();
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
@@ -56,7 +60,7 @@ public class Comms {
             // TODO: think about removing this as this should never happen
             if(Math.abs(curSectorX-sectorX)>1 || Math.abs(curSectorY-sectorY)>1)continue;
             // need to adjust relative sector by offset for 0 indexing
-            valMap[curSectorX-sectorX+valMapOffset][curSectorY-sectorY+valMapOffset][update.commInfoBlock.ordinal()] += update.val;
+            valMap[curSectorX-sectorX+valMapOffset][curSectorY-sectorY+valMapOffset][update.commInfoBlockType.ordinal()] += update.val;
         }
 
         // read shared data
@@ -71,38 +75,88 @@ public class Comms {
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
 
-            for(CommInfoBlock commInfoBlock:CommInfoBlock.values()){
-                int val = valMap[BFS2[i][0]+valMapOffset][BFS2[i][1]+valMapOffset][commInfoBlock.ordinal()];
+            for(CommInfoBlockType commInfoBlockType : CommInfoBlockType.values()){
+                int val = valMap[BFS2[i][0]+valMapOffset][BFS2[i][1]+valMapOffset][commInfoBlockType.ordinal()];
                 if(val>0){
-                    // convert val to requisite level. For now, we only use 1
+                    // TODO: convert val to requisite level. For now, we only use 1
                     val = 1;
-                    int offset = getCommOffset(commInfoBlock,checkX,checkY);
-                    for(int j=commInfoBlock.blockSize;--j>=0;){
-                        int updateIdx = (offset+j)/16;
-                        int bitIdx = (offset+j)%16;
-                        int updateVal = (val & 1<<j) > 0? 1: 0;
-                        updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
-                    }
+                }else val = 0;
+                int offset = getCommOffset(commInfoBlockType,checkX,checkY);
+                for(int j = commInfoBlockType.blockSize; --j>=0;){
+                    int updateIdx = offset/16;
+                    int bitIdx = offset%16;
+                    int updateVal = (val & 1<<j) > 0? 1: 0;
+                    updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
+                    offset++;
                 }
-
             }
-
             // we check adjacent sectors only for Archon and only on turn 1
             if(turnCount>1 || rc.getType() != RobotType.ARCHON)break;
         }
 
-        // process sparse signal updates
+        // process sparse updates
+        processSparseSignalUpdates(updatedCommsValues);
+        updateSharedArray(updatedCommsValues);
+    }
 
+    private int processSparseSignalUpdates(int[] updatedCommsValues){
+        int offset = sparseSignalOffset;
+        isSignalArrayFull = false;
+        while(sparseSignalUpdates.size>0){
+            SparseSignal signal = sparseSignalUpdates.dequeue().val;
+            int numBits = signal.type.numBits + signal.type.positionSlots*numBitsSingleSectorInfo+signal.type.fixedBits;
+
+            // not enough bits to write signal
+            if(offset+numBits>=1024){
+                isSignalArrayFull = true;
+                break;
+            }
+
+            int val = signalToCommsValue(signal);
+
+            // TODO: make a function for this
+            for(int j = numBits; --j>=0;){
+                int updateIdx = offset/16;
+                int bitIdx = offset%16;
+                int updateVal = (val & 1<<j) > 0? 1: 0;
+                updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
+                offset++;
+            }
+        }
+
+        return offset;
+    }
+
+    private int signalToCommsValue(SparseSignal signal){
+        int val = signal.type.code;
+        if(signal.type.positionSlots>0){
+            // TODO: For more than 1 location signal, handle this
+            val <<= numBitsSingleSectorInfo;
+            int curSectorX = signal.target.x/xSectorSize,curSectorY = signal.target.y/ySectorSize;
+            val |= ( curSectorX*ySectors + curSectorY );
+        }
+        if(signal.fixedBitsVal > 0){
+            val <<= signal.fixedBitsVal;
+            val |= signal.fixedBitsVal;
+        }
+        return val;
+    }
+
+    private void updateSharedArray(int[] updatedCommsValues) throws GameActionException {
         for(int i=64;--i>=0;){
             if(updatedCommsValues[i]!=data[i]){
                 rc.writeSharedArray(i,updatedCommsValues[i]);
             }
         }
+        data = updatedCommsValues;
     }
 
-    private int getCommOffset(CommInfoBlock commInfoBlock,int sectorX,int sectorY){
-        return blockOffset*commInfoBlock.offset + sectorX*ySectors + sectorY;
+
+    private int getCommOffset(CommInfoBlockType commInfoBlockType, int sectorX, int sectorY){
+        return blockOffset* commInfoBlockType.offset + sectorX*ySectors + sectorY;
     }
+
+
 
     /*
     * Read Shared array to check whether if nearby sectors have high density of queried droid/resource
@@ -112,7 +166,7 @@ public class Comms {
     * For that, we need to find a direction which runs from all high density enemy sectors and towards high density friends sector
     * TODO: prioritise location with less rubble
     * */
-    public MapLocation readNearbyInfo(CommInfoBlock commInfoBlock,int threshold) throws GameActionException {
+    public MapLocation readNearbyInfo(CommInfoBlockType commInfoBlockType, int threshold) throws GameActionException {
         MapLocation loc = rc.getLocation();
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
 
@@ -123,7 +177,7 @@ public class Comms {
 
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
-            int val = readInfo(commInfoBlock,checkX,checkY);
+            int val = readInfo(commInfoBlockType,checkX,checkY);
             if(val>maxVal){
                 maxVal = val;
                 output = getCenterOfSector(checkX,checkY);
@@ -140,8 +194,8 @@ public class Comms {
         return new MapLocation(xSectorRef+xSectorSize/2,ySectorRef+ySectorSize/2);
     }
 
-    private int readInfo(CommInfoBlock commInfoBlock, int sectorX, int sectorY) throws GameActionException {
-        return readBits(getCommOffset(commInfoBlock,sectorX,sectorY),commInfoBlock.blockSize);
+    private int readInfo(CommInfoBlockType commInfoBlockType, int sectorX, int sectorY) throws GameActionException {
+        return readBits(getCommOffset(commInfoBlockType,sectorX,sectorY), commInfoBlockType.blockSize);
     }
 
     private int readBits(int offset,int num) throws GameActionException {
@@ -167,8 +221,8 @@ public class Comms {
         return (original & ~mask) | ((val << pos) & mask);
     }
 
-    public void queueDenseMatrixUpdate(int x,int y,int val,CommInfoBlock commInfoBlock){
-        commUpdateLinkedList.add(new CommDenseMatrixUpdate(x, y, val, commInfoBlock));
+    public void queueDenseMatrixUpdate(int x, int y, int val, CommInfoBlockType commInfoBlockType){
+        commUpdateLinkedList.add(new CommDenseMatrixUpdate(x, y, val, commInfoBlockType));
     }
 
     public Comms(RobotController rc) throws GameActionException {
@@ -181,10 +235,11 @@ public class Comms {
         ySectors = ceilDivision(h,ySectorSize);
         blockOffset = xSectors * ySectors;
 
-        CommInfoBlock[] enumValues = CommInfoBlock.values();
-        CommInfoBlock lastBlock = enumValues[enumValues.length-1];
+        CommInfoBlockType[] enumValues = CommInfoBlockType.values();
+        CommInfoBlockType lastBlock = enumValues[enumValues.length-1];
 
-        unitTypeSpareSignalOffset = findClosestGreaterOrEqualPowerOf2(blockOffset);
+        numBitsSingleSectorInfo = findClosestGreaterOrEqualPowerOf2(blockOffset);
+        unitTypeSpareSignalOffset = numBitsSingleSectorInfo + UNIT_TYPE_SIGNAL_BITS;
         // single sector takes number of bits required to represent 0 ... blockOffset-1
         unitTypeSignalOffset = (lastBlock.offset + lastBlock.blockSize)*blockOffset;
         sparseSignalOffset = unitTypeSignalOffset + rc.getArchonCount() * unitTypeSpareSignalOffset;
@@ -194,11 +249,6 @@ public class Comms {
         for(int i=7;--i>=0;)if(num<=bitMasks[i])return i;
         // TODO: throw exception here
         return -1;
-    }
-
-    public int getPositionOffset(int x,int y){
-        int sectorX = x/xSectorSize,sectorY = y/ySectorSize;
-        return sectorX*ySectors + sectorY;
     }
 
     private void readSharedData() throws GameActionException {
@@ -231,9 +281,83 @@ public class Comms {
         } else return true;
     }
 
-    public void queueSparseSignalUpdate(int x,int y,SparseSignal signal){
-        sparseSignalLinkedList.add(new CommSparseMatrixUpdate(x,y,signal));
+    public void queueSparseSignalUpdate(SparseSignal sparseSignal){
+        sparseSignalUpdates.add(sparseSignal);
     }
 
+    /*
+    * Option A: Rewrite all signals while removing sparse signals (This is easier). Write back some signals
+    * Option B: Handle contiguous segments. This is extremely complicated. Not going with this
+    * */
+    public CustomSet<SparseSignal> querySparseSignals() throws GameActionException {
+        // TODO: figure out how to minimize this
+        readSharedData();
+
+        if(querySignalDataTime == turnCount)return sparseSignals;
+        else querySignalDataTime = turnCount;
+
+        int offset = sparseSignalOffset;
+        sparseSignals = new CustomSet<>(30);
+        orderedSparseSignals = new LinkedList<>();
+        int val = 0;
+        int bitCount = 0;
+        while(offset<1024){
+            if(bitCount == 0)lastSignalBeginsHere = offset;
+            bitCount++;
+            val |= readBits(offset,1);
+            offset++;
+            if(ALL_SPARSE_SIGNAL_CODES.contains(val)){
+                SparseSignalType signal = CODE_TO_SPARSE_SIGNAL[val];
+                if(signal == SparseSignalType.TERMINATE_SIGNAL_ARRAY)break;
+                SparseSignal sparseSignal = new SparseSignal(signal,null,lastSignalBeginsHere);
+
+                // next few bits might be part of signal
+                // TODO: handle multiple location reads if necessary
+                if(signal.positionSlots>0){
+                    // if not enough bits, this is not a signal
+                    if(offset+numBitsSingleSectorInfo>=1024)break;
+                    int mapSector = readBits(offset,numBitsSingleSectorInfo);
+                    sparseSignal.target = getCenterOfSector(mapSector/ySectors,mapSector%ySectors);
+                    offset += numBitsSingleSectorInfo;
+                }
+
+                // parsing fixed bits
+                if(signal.fixedBits>0){
+                    if(offset+signal.fixedBits>=1024)break;
+                    sparseSignal.fixedBitsVal = readBits(offset,signal.fixedBits);
+                    offset += signal.fixedBits;
+                }
+
+                sparseSignals.add(sparseSignal);
+                // need to store in ordered fashion for cleanup
+                orderedSparseSignals.add(sparseSignal);
+                bitCount = 0;
+                val = 0;
+
+            }else val <<= 1;
+        }
+        if(offset == 1024)lastSignalBeginsHere = 1024;
+        return sparseSignals;
+    }
+
+    /*
+    * Do this when enough bytecode is left
+    * */
+    public void cleanComms() throws GameActionException {
+        querySparseSignals();
+        int lenRemaining = orderedSparseSignals.size/INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE;
+        while(orderedSparseSignals.size>lenRemaining)orderedSparseSignals.dequeue();
+        // only these messages should remain now
+        int[] updatedCommsValues = new int[64];
+        for(int i=64;--i>=0;)updatedCommsValues[i] = data[i];
+        int offset = processSparseSignalUpdates(updatedCommsValues);
+        // set all bits to 0
+        int updateIdx = offset/16;
+        int bitIdx = offset%16;
+        // TODO: improve this?
+        for(int i=16;--i>=bitIdx;)updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],i,0);
+        for(int i=16;--i>updateIdx;)updatedCommsValues[i] = 0;
+        updateSharedArray(updatedCommsValues);
+    }
 
 }
