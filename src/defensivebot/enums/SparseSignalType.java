@@ -4,17 +4,17 @@ package defensivebot.enums;
 public enum SparseSignalType {
 
     // binary: 1
-    ATTACK_POSITION(0,1,0,10,1),
+    ATTACK_POSITION(1,1,0,10,1),
     // binary: 00 =>If signal terminates at 00 then we don't have to handle signal termination. It will be automatic
-    TERMINATE_SIGNAL_ARRAY(2,1,0,20,2), // highest priority. This can't change.
+    TERMINATE_SIGNAL_ARRAY(0,1,0,20,2), // highest priority. This can't change.
     // binary: 010
-    SPREAD(6,0,0,10,3), // If a sage detects a charge anomaly in some x turns, it puts up a SPREAD flag
+    SPREAD(2,0,0,10,3), // If a sage detects a charge anomaly in some x turns, it puts up a SPREAD flag
     // binary notation: 0110
-    GOLD_SPOTTED(14,1,0,5,4),
+    GOLD_SPOTTED(6,1,0,5,4),
     // binary: 01110
-    SURROUND(30,1,0,5,5),
+    SURROUND(14,1,0,5,5),
     // binary: 01111
-    DEFEND(31,0,0,10,5);
+    DEFEND(15,0,0,10,5);
 
     // consider: EVACUATE, VORTEX_SIGNAL
 

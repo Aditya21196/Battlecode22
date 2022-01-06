@@ -3,6 +3,8 @@ package defensivebot.bots;
 import java.util.Random;
 
 import battlecode.common.*;
+import defensivebot.enums.SparseSignalType;
+import defensivebot.models.SparseSignal;
 import defensivebot.utils.*;
 
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
@@ -27,6 +29,8 @@ public class Archon extends Robot{
     @Override
     public void executeRole() throws GameActionException {
 
+        if(rc.getRoundNum()>20)rc.resign();
+
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.SAGE;
         switch (turnCount%2){
@@ -37,6 +41,9 @@ public class Archon extends Robot{
                 toBuild = RobotType.MINER;
                 break;
         }
+
+        SparseSignal test = new SparseSignal(SparseSignalType.ATTACK_POSITION, currentLocation, -1);
+        comms.queueSparseSignalUpdate(test);
 
         if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
 //        if(unitCounts[RobotType.SOLDIER.ordinal()] > 30)toBuild = RobotType.SAGE;

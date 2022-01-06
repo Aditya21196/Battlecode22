@@ -128,9 +128,6 @@ public class LocalInfo {
             //rubble2d[location.x][location.y] = rubble;
 
         }
-
-        if(isDenseUpdateAllowed)comms.processUpdateQueues();
-
     }
 
 }

@@ -13,6 +13,7 @@ import static defensivebot.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
 import static defensivebot.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
 import static defensivebot.utils.Constants.*;
 import static defensivebot.utils.CustomMath.ceilDivision;
+import static defensivebot.utils.LogUtils.printDebugLog;
 
 public class Comms {
 
@@ -37,13 +38,14 @@ public class Comms {
     private LinkedList<SparseSignal> sparseSignalUpdates = new LinkedList<>();
     private CustomSet<SparseSignal> sparseSignals;
     private LinkedList<SparseSignal> orderedSparseSignals;
+    boolean denseUpdateAllowed=false;
 
     public boolean isSignalArrayFull = false;
 
     // usage: This is a bit hacky but while reading sparse signal array, I am recording index of last signal
     private int lastSignalBeginsHere;
 
-    private int readDataTime=-1,querySignalDataTime=-1;
+    private int readDataTime=-1,querySignalDataTime=-1,readDenseUpdateAllowedTime=-1;
 
     public Comms(RobotController rc) throws GameActionException {
         this.rc = rc;
@@ -63,10 +65,29 @@ public class Comms {
         // single sector takes number of bits required to represent 0 ... blockOffset-1
         unitTypeSignalOffset = (lastBlock.offset + lastBlock.blockSize)*blockOffset;
         sparseSignalOffset = unitTypeSignalOffset + rc.getArchonCount() * unitTypeSpareSignalOffset;
+        lastSignalBeginsHere = sparseSignalOffset;
     }
 
     public void processUpdateQueues() throws GameActionException{
+
+        // read shared data
+        readSharedData();
+        int[] updatedCommsValues = new int[64];
+        for(int i=64;--i>=0;)updatedCommsValues[i]=data[i];
+
+        // process dense signal updates
+        if(denseUpdateAllowed)processDenseSignalUpdates(updatedCommsValues);
+
+        // process sparse updates
+        processSparseSignalUpdates(updatedCommsValues);
+
+        // update shared array
+        updateSharedArray(updatedCommsValues);
+    }
+
+    private void processDenseSignalUpdates(int[] updatedCommsValues){
         // 8 adjacent sectors and current sector are only possibilities so total 9
+        // TODO: Replace by hash map
         int[][][] valMap = new int[3][3][CommInfoBlockType.values().length];
         int valMapOffset = 1;
         MapLocation loc = rc.getLocation();
@@ -83,12 +104,10 @@ public class Comms {
             valMap[curSectorX-sectorX+valMapOffset][curSectorY-sectorY+valMapOffset][update.commInfoBlockType.ordinal()] += update.val;
         }
 
-        // read shared data
-        readSharedData();
-        int[] updatedCommsValues = new int[64];
-        for(int i=64;--i>=0;)updatedCommsValues[i]=data[i];
+
 
         // only check adjacent sectors. Starting with 0,0 (current sector)
+        // TODO: Improve bytecode footprint
         for(int i=BFS2.length;--i>=0;){
             int checkX = BFS2[i][0]+curSectorX,checkY = BFS2[i][1]+curSectorY;
 
@@ -98,11 +117,11 @@ public class Comms {
             for(CommInfoBlockType commInfoBlockType : CommInfoBlockType.values()){
                 int val = valMap[BFS2[i][0]+valMapOffset][BFS2[i][1]+valMapOffset][commInfoBlockType.ordinal()];
                 if(val>0){
-                    // TODO: convert val to requisite level. For now, we only use 1
-                    val = 1;
+                    // TODO: convert val to requisite level. For now, we only use 1/2
+                    val = commInfoBlockType.blockSize;
                 }else val = 0;
                 int offset = getCommOffset(commInfoBlockType,checkX,checkY);
-                for(int j = commInfoBlockType.blockSize; --j>=0;){
+                for(int j = 0; j<commInfoBlockType.blockSize;j++){
                     int updateIdx = offset/16;
                     int bitIdx = offset%16;
                     int updateVal = (val & 1<<j) > 0? 1: 0;
@@ -113,14 +132,11 @@ public class Comms {
             // we check adjacent sectors only for Archon and only on turn 1
             if(turnCount>1 || rc.getType() != RobotType.ARCHON)break;
         }
-
-        // process sparse updates
-        processSparseSignalUpdates(updatedCommsValues);
-        updateSharedArray(updatedCommsValues);
     }
 
-    private int processSparseSignalUpdates(int[] updatedCommsValues){
-        int offset = sparseSignalOffset;
+    private int processSparseSignalUpdates(int[] updatedCommsValues) throws GameActionException {
+        querySparseSignals();
+        int offset = lastSignalBeginsHere;
         isSignalArrayFull = false;
         while(sparseSignalUpdates.size>0){
             SparseSignal signal = sparseSignalUpdates.dequeue().val;
@@ -135,13 +151,14 @@ public class Comms {
             int val = signalToCommsValue(signal);
 
             // TODO: make a function for this
-            for(int j = numBits; --j>=0;){
+            for(int j = 0; j<numBits;j++){
                 int updateIdx = offset/16;
                 int bitIdx = offset%16;
                 int updateVal = (val & 1<<j) > 0? 1: 0;
                 updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
                 offset++;
             }
+            lastSignalBeginsHere = offset;
         }
 
         return offset;
@@ -151,13 +168,12 @@ public class Comms {
         int val = signal.type.code;
         if(signal.type.positionSlots>0){
             // TODO: For more than 1 location signal, handle this
-            val <<= numBitsSingleSectorInfo;
             int curSectorX = signal.target.x/xSectorSize,curSectorY = signal.target.y/ySectorSize;
-            val |= ( curSectorX*ySectors + curSectorY );
+            int sectorInfo = curSectorX*ySectors + curSectorY;
+            val |= (sectorInfo << signal.type.numBits);
         }
         if(signal.fixedBitsVal > 0){
-            val <<= signal.fixedBitsVal;
-            val |= signal.fixedBitsVal;
+            val |= (signal.type.numBits + numBitsSingleSectorInfo*signal.type.positionSlots);
         }
         return val;
     }
@@ -166,6 +182,7 @@ public class Comms {
         for(int i=64;--i>=0;){
             if(updatedCommsValues[i]!=data[i]){
                 rc.writeSharedArray(i,updatedCommsValues[i]);
+                printDebugLog("updated index: "+i);
             }
         }
         data = updatedCommsValues;
@@ -173,7 +190,7 @@ public class Comms {
 
 
     private int getCommOffset(CommInfoBlockType commInfoBlockType, int sectorX, int sectorY){
-        return blockOffset* commInfoBlockType.offset + sectorX*ySectors + sectorY;
+        return blockOffset* commInfoBlockType.offset + (sectorX*ySectors + sectorY)*commInfoBlockType.blockSize;
     }
 
 
@@ -228,7 +245,7 @@ public class Comms {
             int updateIdx = (offset+j)/16;
             int bitIdx = (offset+j)%16;
             // update jth bit of val
-            if((data[updateIdx] | bitMasks[bitIdx])>0){
+            if((data[updateIdx] & bitMasks[bitIdx])>0){
                 val |= 1<<j;
             }
         }
@@ -258,7 +275,9 @@ public class Comms {
     private void readSharedData() throws GameActionException {
         if(readDataTime == turnCount)return;
         else readDataTime = turnCount;
-        for(int i=64;--i >= 0;)data[i] = rc.readSharedArray(i);
+        for(int i=64;--i >= 0;){
+            data[i] = rc.readSharedArray(i);
+        }
     }
 
     private static int getBestSectorSize(int dimension){
@@ -270,19 +289,26 @@ public class Comms {
     }
 
     public boolean isDenseUpdateAllowed(MapLocation curLoc){
+        if(readDenseUpdateAllowedTime == turnCount)return denseUpdateAllowed;
+        else readDenseUpdateAllowedTime = turnCount;
         // Archon needs to see everything in its first turn, no matter what
-        if(rc.getType() == RobotType.ARCHON && turnCount == 1)return true;
+        if(rc.getType() == RobotType.ARCHON && turnCount == 1){
+            denseUpdateAllowed = true;
+        }
 
         int xSectorRef = curLoc.x - curLoc.x%xSectorSize;
         int ySectorRef = curLoc.y - curLoc.y%ySectorSize;
 
         // only allow update of own sector
-        if(xSectorRef<0 || xSectorRef>=xSectorSize || ySectorRef<0 || ySectorRef>=ySectorSize)return false;
+        if(xSectorRef<0 || xSectorRef>=xSectorSize || ySectorRef<0 || ySectorRef>=ySectorSize){
+            denseUpdateAllowed = false;
+        }
 
         if(rc.getMode() == RobotMode.DROID){
             // if droid is away from sector border by a factor of 2, it probably doesn't see enough of this sector
-            return xSectorRef+ySectorRef>=2 && (xSectorSize-xSectorRef)+(ySectorSize-ySectorRef)>=2;
-        } else return true;
+            denseUpdateAllowed = xSectorRef+ySectorRef>=2 && (xSectorSize-xSectorRef)+(ySectorSize-ySectorRef)>=2;
+        } else denseUpdateAllowed = true;
+        return denseUpdateAllowed;
     }
 
     /*
@@ -306,7 +332,7 @@ public class Comms {
             bitCount++;
             val |= readBits(offset,1);
             offset++;
-            if(ALL_SPARSE_SIGNAL_CODES.contains(val)){
+            if(ALL_SPARSE_SIGNAL_CODES.contains(val) && CODE_TO_SPARSE_SIGNAL[val].numBits == bitCount){
                 SparseSignalType signal = CODE_TO_SPARSE_SIGNAL[val];
                 if(signal == SparseSignalType.TERMINATE_SIGNAL_ARRAY)break;
                 SparseSignal sparseSignal = new SparseSignal(signal,null,lastSignalBeginsHere);

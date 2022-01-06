@@ -18,9 +18,9 @@ public class SparseSignal {
         int maxCode = 0;
         for(SparseSignalType sparseSignalType:SparseSignalType.values()){
             ALL_SPARSE_SIGNAL_CODES.add(sparseSignalType.code);
-            maxCode = Math.max(sparseSignalType.code,maxCode+1);
+            maxCode = Math.max(sparseSignalType.code,maxCode);
         }
-        CODE_TO_SPARSE_SIGNAL = new SparseSignalType[maxCode];
+        CODE_TO_SPARSE_SIGNAL = new SparseSignalType[maxCode+1];
         // TODO: REMOVE THIS. This is bad code
         for(SparseSignalType sparseSignalType:SparseSignalType.values())
             CODE_TO_SPARSE_SIGNAL[sparseSignalType.code] = sparseSignalType;
