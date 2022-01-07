@@ -88,7 +88,7 @@ public class LocalInfo {
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
         	if(lead > 0){
-                if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(location.x, location.y, lead, CommInfoBlockType.LEAD_MAP);
+                if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(locations[i].x, locations[i].y, lead, CommInfoBlockType.LEAD_MAP);
         		    int distToMe = loc.distanceSquaredTo(locations[i]);
 
                 if(distToMe < nearestLeadDist) {
