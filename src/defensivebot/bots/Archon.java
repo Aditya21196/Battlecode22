@@ -3,6 +3,8 @@ package defensivebot.bots;
 import java.util.Random;
 
 import battlecode.common.*;
+import defensivebot.enums.SparseSignalType;
+import defensivebot.models.SparseSignal;
 import defensivebot.utils.*;
 
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
@@ -19,12 +21,16 @@ public class Archon extends Robot{
 
     @Override
     public void sense() throws GameActionException {
-        //localInfo.senseRobots();
-        //localInfo.senseTerrain();
+        // TODO: check bytecode. This should not be required all the time
+        localInfo.senseRobots();
+        localInfo.senseTerrain();
     }
 
     @Override
     public void executeRole() throws GameActionException {
+
+        // for debugging
+        if(rc.getRoundNum()>20)rc.resign();
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.SAGE;
@@ -36,6 +42,9 @@ public class Archon extends Robot{
                 toBuild = RobotType.MINER;
                 break;
         }
+
+        // for testing
+        //comms.queueSparseSignalUpdate(test);
 
         if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
 //        if(unitCounts[RobotType.SOLDIER.ordinal()] > 30)toBuild = RobotType.SAGE;

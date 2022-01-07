@@ -6,7 +6,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
-import defensivebot.enums.CommInfoBlock;
+import defensivebot.enums.CommInfoBlockType;
 
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
 
@@ -82,28 +82,20 @@ public class LocalInfo {
     // need to be careful while sensing terrain. the way I see it, we don't need to sense terrain again and again
     public void senseTerrain() throws GameActionException {
     	nearestLeadDist = Integer.MAX_VALUE;
-        MapLocation loc = rc.getLocation();
+      MapLocation loc = rc.getLocation();
+      boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
         MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(),rc.getType().visionRadiusSquared);
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
         	if(lead > 0){
-        		int val=1;
-                if(lead>20)val = 2;
-                //comms.queueDenseMatrixUpdate(locations[i].x, locations[i].y, val, CommInfoBlock.LEAD_MAP);
-        		int distToMe = loc.distanceSquaredTo(locations[i]);
+                if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(location.x, location.y, lead, CommInfoBlockType.LEAD_MAP);
+        		    int distToMe = loc.distanceSquaredTo(locations[i]);
+
                 if(distToMe < nearestLeadDist) {
                 	nearestLead = locations[i];
                 	nearestLeadDist = distToMe;
                 }
-                
-            }
-        }
-        // can also sense other things
-           
-
-        //comms.processUpdateQueue();
-
+          }
+       }
     }
-
-
 }
