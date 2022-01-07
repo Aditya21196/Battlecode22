@@ -34,7 +34,7 @@ public class Archon extends Robot{
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.SAGE;
-        switch (turnCount%2){
+        switch (0/*turnCount%2*/){
             case 1:
                 toBuild = RobotType.SOLDIER;
                 break;

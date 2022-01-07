@@ -1,11 +1,5 @@
 package defensivebot.bots;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-
-//import com.sun.tools.javac.util.List;
 
 import battlecode.common.*;
 import static defensivebot.utils.Constants.directions;
@@ -61,22 +55,22 @@ public class Miner extends Robot{
 		Direction bestDirection = null;
 
 		//move away from nearest visible enemy watchtower
-		if(localInfo.nearestRobots[RobotType.WATCHTOWER.ordinal()] != null) {
-			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.WATCHTOWER.ordinal()].location.directionTo(currentLocation));
+		if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
+			bestDirection = getBestValidDirection(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].location.directionTo(currentLocation));
 			rc.setIndicatorString("Trying to run from Watchtower.");
 			headingIndex = -1;
 		}
 
 		//move away from nearest visible enemy soldier
-		else if(localInfo.nearestRobots[RobotType.SOLDIER.ordinal()] != null) {
-			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.SOLDIER.ordinal()].location.directionTo(currentLocation));
+		else if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
+			bestDirection = getBestValidDirection(localInfo.nearestER[RobotType.SOLDIER.ordinal()].location.directionTo(currentLocation));
 			rc.setIndicatorString("Trying to run from Soldier.");
 			headingIndex = -1;
 		}
 
 		//move away from nearest visible enemy sage
-		else if(localInfo.nearestRobots[RobotType.SAGE.ordinal()] != null) {
-			bestDirection = getBestValidDirection(localInfo.nearestRobots[RobotType.SAGE.ordinal()].location.directionTo(currentLocation));
+		else if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
+			bestDirection = getBestValidDirection(localInfo.nearestER[RobotType.SAGE.ordinal()].location.directionTo(currentLocation));
 			rc.setIndicatorString("Trying to run from Sage.");
 			headingIndex = -1;
 		}
@@ -140,21 +134,24 @@ public class Miner extends Robot{
             }
     		return;
     	}
-    	
-    	//otherwise mine conservatively and let lead regenerate
-    	MapLocation me = rc.getLocation();
-        for(int dx = 1; --dx >= -1;){
-            for(int dy = 1; --dy >= -1;){
-            	if(!rc.isActionReady())
-            		return;
-            	int x = me.x + dx, y = me.y + dy;
-            	MapLocation mineLocation = new MapLocation(x, y);
-                while(rc.canMineLead(mineLocation) && --localInfo.lead2d[x][y] >= 1) {
-                    rc.mineLead(mineLocation);
-                    rc.setIndicatorString("Mining Lead.");
-                }
-                
-            }
-        }
+//    	
+//    	//otherwise mine conservatively and let lead regenerate
+//    	MapLocation me = rc.getLocation();
+//        for(int dx = 1; --dx >= -1;){
+//            for(int dy = 1; --dy >= -1;){
+//            	if(!rc.isActionReady())
+//            		return;
+//            	int x = me.x + dx, y = me.y + dy;
+//            	MapLocation mineLocation = new MapLocation(x, y);
+//                while(rc.canMineLead(mineLocation) && --localInfo.lead2d[x][y] >= 1) {
+//                    rc.mineLead(mineLocation);
+//                    rc.setIndicatorString("Mining Lead.");
+//                }
+//                
+//            }
+//        }
     }
+    
+    
+    
 }

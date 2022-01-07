@@ -23,21 +23,21 @@ public class Soldier extends Robot{
     }
 
     public void attack() throws GameActionException{
-        if(localInfo.nearestEnemyDist <= RobotType.SOLDIER.actionRadiusSquared)
-            rc.attack(localInfo.nearestEnemy.getLocation());
+        //if(localInfo.nearestEnemyDist <= RobotType.SOLDIER.actionRadiusSquared)
+           // rc.attack(localInfo.nearestEnemy.getLocation());
     }
 
     @Override
     public void move() throws GameActionException {
         // basic soldier: go to enemy, run from home archon
         Direction bestDirection = null;
-        if(localInfo.nearestEnemy != null){
-            bestDirection = getBestValidDirection(currentLocation.directionTo(localInfo.nearestEnemy.getLocation()));
-        } else if(localInfo.homeArchon != null){
-            bestDirection = getBestValidDirection(localInfo.homeArchon.getLocation().directionTo(currentLocation));
-            rc.setIndicatorString("Trying to run from home archon.");
-
-        }
+//        if(localInfo.nearestEnemy != null){
+//            bestDirection = getBestValidDirection(currentLocation.directionTo(localInfo.nearestEnemy.getLocation()));
+//        } else if(localInfo.homeArchon != null){
+//            bestDirection = getBestValidDirection(localInfo.homeArchon.getLocation().directionTo(currentLocation));
+//            rc.setIndicatorString("Trying to run from home archon.");
+//
+//        }
 
         if(bestDirection != null && rc.canMove(bestDirection)) {
             rc.move(bestDirection);

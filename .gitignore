@@ -21,6 +21,7 @@ build/*
 *.iws
 /.idea/
 
+/src/testbot
 
 # User-specific stuff:
 battlecode-scaffold.iws
