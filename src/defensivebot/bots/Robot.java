@@ -18,10 +18,9 @@ public abstract class Robot {
     public Team team;
 	public Team enemyTeam;
 	public RobotType type;
-	public RobotInfo[] sensedRobots;
     public int roundNum;
     public MapLocation currentLocation;
-    public int turnCount;
+    public static int turnCount;
 	protected LocalInfo localInfo;
 	protected Comms comms;
     
@@ -54,9 +53,7 @@ public abstract class Robot {
     public void runRobot() throws GameActionException{
         // common code for all robots
         turnCount++;
-
         roundNum = rc.getRoundNum();
-        sensedRobots = rc.senseNearbyRobots();
         currentLocation = rc.getLocation();
 
 		sense();
@@ -67,6 +64,9 @@ public abstract class Robot {
 
 		move();
 		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
+
+		comms.processUpdateQueues();
+
     }
 
 	// sensing
@@ -189,14 +189,8 @@ public abstract class Robot {
 		
 	}
 
-    protected void debug(String msg){
-        printDebugLog(rc,turnCount,msg);
-    }
-
-
-
     protected void verbose(String msg){
-        printVerboseLog(rc,turnCount,msg);
+        printVerboseLog(msg);
     }
 
     public abstract void executeRole() throws GameActionException;

@@ -6,7 +6,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
-import defensivebot.enums.CommInfoBlock;
+import defensivebot.enums.CommInfoBlockType;
 
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
 
@@ -102,14 +102,16 @@ public class LocalInfo {
         nearestLeadDist = Integer.MAX_VALUE;
         nearestLead = null;
         MapLocation loc = rc.getLocation();
+
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
+
         for(MapLocation location:locations){
         	//lead: probably worth doing most if not every turn
             int lead = rc.senseLead(location);
             // queue bulk update for lead in Comms
             if(lead > 0){
-                int val=1;
-                if(lead>20)val = 2;
-                comms.queueDenseMatrixUpdate(location.x, location.y, val, CommInfoBlock.LEAD_MAP);
+
+                if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(location.x, location.y, lead, CommInfoBlockType.LEAD_MAP);
                 
                 int distToMe = loc.distanceSquaredTo(location);
                 if(distToMe < nearestLeadDist) {
@@ -124,14 +126,8 @@ public class LocalInfo {
             //(should probably reduce frequency of this sensing to at most after this robot moves)
             //int rubble = rc.senseRubble(location);
             //rubble2d[location.x][location.y] = rubble;
-            
-            
-            
+
         }
-
-        comms.processUpdateQueue();
-
     }
-
 
 }

@@ -1,6 +1,6 @@
 package defensivebot.enums;
 
-public enum CommInfoBlock {
+public enum CommInfoBlockType {
 
     LEAD_MAP(0,2), // cumulative offset - 2
     RUBBLE_MAP(2,2), // cumulative offset - 4
@@ -14,7 +14,7 @@ public enum CommInfoBlock {
     public final int blockSize;
 
 
-    CommInfoBlock(int offset, int blockSize) {
+    CommInfoBlockType(int offset, int blockSize) {
         this.offset=offset;
         this.blockSize=blockSize;
     }
