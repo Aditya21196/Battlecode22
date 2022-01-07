@@ -116,7 +116,6 @@ public class LocalInfo {
 	        }
 	        */
         }
-        
     }
     
     public void senseGold() throws GameActionException {
