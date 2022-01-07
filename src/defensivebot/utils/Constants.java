@@ -21,5 +21,6 @@ public class Constants {
 
     public static final int MAX_MAP_SIZE=60;
     public static final int UNITS_AVAILABLE=7;
+    
 
 }

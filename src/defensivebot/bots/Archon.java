@@ -19,8 +19,8 @@ public class Archon extends Robot{
 
     @Override
     public void sense() throws GameActionException {
-        localInfo.senseRobots();
-        localInfo.senseTerrain();
+        //localInfo.senseRobots();
+        //localInfo.senseTerrain();
     }
 
     @Override
