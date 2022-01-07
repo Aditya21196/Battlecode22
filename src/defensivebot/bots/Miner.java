@@ -14,11 +14,10 @@ public class Miner extends Robot{
     
     
     
-    @Override
     public void sense() throws GameActionException{
 		//sense
 		localInfo.senseRobots();
-		localInfo.senseTerrain();
+		localInfo.senseLead();
     }
 
 	/*
@@ -26,9 +25,11 @@ public class Miner extends Robot{
 	 */
     @Override
     public void executeRole() throws GameActionException {
+    	sense();
 		if(rc.isActionReady()) {
 			mineLead();
 		}
+		move();
     }
     
     /*
@@ -53,7 +54,7 @@ public class Miner extends Robot{
     	if(!rc.isMovementReady())return;
 
 		Direction bestDirection = null;
-
+		
 		//move away from nearest visible enemy watchtower
 		if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
 			bestDirection = getBestValidDirection(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].location.directionTo(currentLocation));
@@ -78,8 +79,8 @@ public class Miner extends Robot{
 		//move toward gold would be nice, but currently not being sensed
 
 		//move toward nearest visible lead
-		else if(localInfo.nearestLead != null) {
-			bestDirection = getBestValidDirection(currentLocation.directionTo(localInfo.nearestLead));
+		else if(localInfo.nearestLeadLoc != null) {
+			bestDirection = getBestValidDirection(currentLocation.directionTo(localInfo.nearestLeadLoc));
 			rc.setIndicatorString("Trying to get to lead.");
 			headingIndex = -1;
 		}

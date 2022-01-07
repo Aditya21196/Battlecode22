@@ -15,29 +15,36 @@ public class LocalInfo {
     private final RobotController rc;
     private final Comms comms;
     
+    //Robot Info gathered
     public RobotInfo[] nearestFR; //nearest friendly robots of each type
     public int[] nearestFRDist; //nearest friendly robots' distances(of each type)s
     public RobotInfo[] nearestER; //nearest enemy robots of each type
     public int[] nearestERDist; //nearest enemy robots' distances(of each type)
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
-    
-    public int[][] lead2d;
-    
-    public MapLocation nearestLead;
-    public int nearestLeadDist;
-    
     public RobotInfo homeArchon;
+    
+    //Lead Info gathered
+    public MapLocation nearestLeadLoc;
+    public MapLocation passiveMiningLoc;
+    public int nearestLeadDist;
+    public int totalLead;
+    public int totalLeadDeposits;
+    
+    //Gold Info gathered
+    public MapLocation nearestGoldLoc;
+    public int nearestGoldDist;
+    public int totalGoldDeposits;
+    
+    //Rubble Info gathered
+    public MapLocation lowestRubbleLoc;
+    public int lowestRubble;
+    
+    
     
     public LocalInfo(RobotController rc,Comms comms){
         this.rc=rc;
         this.comms=comms;
-        
-        //initialize once to save bytecode
-        nearestFR = new RobotInfo[UNITS_AVAILABLE];
-        nearestFRDist = new int[UNITS_AVAILABLE];
-        nearestER = new RobotInfo[UNITS_AVAILABLE];
-        nearestERDist = new int[UNITS_AVAILABLE];
     }
 
     private void reset(){
@@ -48,7 +55,10 @@ public class LocalInfo {
     	//overhead = 250 bytecode
         friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
-
+        nearestFR = new RobotInfo[UNITS_AVAILABLE];
+        nearestFRDist = new int[UNITS_AVAILABLE];
+        nearestER = new RobotInfo[UNITS_AVAILABLE];
+        nearestERDist = new int[UNITS_AVAILABLE];
         for(int i = nearestFRDist.length; --i>=0;) {
         	nearestFRDist[i] = Integer.MAX_VALUE;
         	nearestERDist[i] = Integer.MAX_VALUE;
@@ -63,10 +73,12 @@ public class LocalInfo {
             int typeOrdinal = nearbyRobots[i].getType().ordinal();
             if(nearbyRobots[i].getTeam() == rc.getTeam()){
                 friendlyUnitCounts[typeOrdinal]++;
-                if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal())homeArchon = nearbyRobots[i];
                 if(distToMe < nearestFRDist[typeOrdinal]) {
                 	nearestFR[typeOrdinal] = nearbyRobots[i];
                 	nearestFRDist[typeOrdinal] = distToMe;
+                }
+                if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal()) {
+                	homeArchon = nearbyRobots[i];
                 }
                 
             }else{
@@ -79,23 +91,73 @@ public class LocalInfo {
         }
     }
 
-    // need to be careful while sensing terrain. the way I see it, we don't need to sense terrain again and again
-    public void senseTerrain() throws GameActionException {
+    public void senseLead() throws GameActionException {
     	nearestLeadDist = Integer.MAX_VALUE;
-      MapLocation loc = rc.getLocation();
-      boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
-        MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(),rc.getType().visionRadiusSquared);
+    	nearestLeadLoc = null;
+    	passiveMiningLoc = null;
+    	totalLead=0;
+	    MapLocation loc = rc.getLocation();
+	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
-        	if(lead > 0){
-                if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(locations[i].x, locations[i].y, lead, CommInfoBlockType.LEAD_MAP);
-        		    int distToMe = loc.distanceSquaredTo(locations[i]);
-
-                if(distToMe < nearestLeadDist) {
-                	nearestLead = locations[i];
-                	nearestLeadDist = distToMe;
-                }
-          }
-       }
+        	totalLead += lead;
+        	int distToMe = loc.distanceSquaredTo(locations[i]);
+        	if(distToMe < nearestLeadDist) {
+            	nearestLeadLoc = locations[i];
+            	nearestLeadDist = distToMe;
+            	if(passiveMiningLoc != null && locations[i].isWithinDistanceSquared(loc, 2) && lead > 5) {
+            		passiveMiningLoc = locations[i];
+            	}
+            }
+        	/*
+	        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
+	        if(isDenseUpdateAllowed) {
+	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
+	        }
+	        */
+        }
+        
     }
+    
+    public void senseGold() throws GameActionException {
+    	nearestGoldDist = Integer.MAX_VALUE;
+    	nearestGoldLoc = null;
+	    MapLocation loc = rc.getLocation();
+	    MapLocation[] locations = rc.senseNearbyLocationsWithGold(rc.getType().visionRadiusSquared);
+        for(int i = locations.length; --i >= 0;){
+        	//int gold = rc.senseGold(locations[i]);
+        	int distToMe = loc.distanceSquaredTo(locations[i]);
+        	if(distToMe < nearestGoldDist) {
+            	nearestGoldLoc = locations[i];
+            	nearestGoldDist = distToMe;
+            }
+        }
+        /*
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
+        if(isDenseUpdateAllowed && locations.length > 1) {
+        	comms.queueDenseMatrixUpdate(loc.x, loc.y, locations.length, CommInfoBlockType.GOLD_MAP);
+        }
+        */
+    }
+    
+    //We can change this later, but for now 
+    public void senseRubble(MapLocation location) throws GameActionException {
+    	lowestRubble = Integer.MAX_VALUE;
+    	lowestRubbleLoc = null;
+	    MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(location, 2);
+        for(int i = locations.length; --i >= 0;){
+        	int rubble = rc.senseRubble(locations[i]);
+        	if(rubble < lowestRubble) {
+            	lowestRubble = rubble;
+            	lowestRubbleLoc = locations[i];
+            }
+        }
+        /*
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
+        if(isDenseUpdateAllowed) {
+        	comms.queueDenseMatrixUpdate(loc.x, loc.y, locations.length, CommInfoBlockType.GOLD_MAP);
+        }
+        */
+    }
+    
 }
