@@ -56,8 +56,6 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 
-		printDebugLog("data at index 0 before: "+rc.readSharedArray(0)+" bytecode: "+Clock.getBytecodesLeft());
-
 		sense();
 		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 
@@ -68,7 +66,7 @@ public abstract class Robot {
 		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
 
 		comms.processUpdateQueues();
-		printDebugLog("data at index 0 after: "+rc.readSharedArray(0)+" bytecode: "+Clock.getBytecodesLeft());
+
     }
 
 	// sensing
@@ -190,12 +188,6 @@ public abstract class Robot {
 		return getBestValidDirection(currentLocation.directionTo(target));
 		
 	}
-
-    protected void debug(String msg){
-        printDebugLog(msg);
-    }
-
-
 
     protected void verbose(String msg){
         printVerboseLog(msg);

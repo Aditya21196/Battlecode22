@@ -1,5 +1,5 @@
 package defensivebot.datasturctures;
-// using this as node values, we can compare keys and store values still as linkedlist contain method uses .equals
+// TODO: change var names
 public class HashMapNodeVal<K,V> {
     public K key;
     public V val;

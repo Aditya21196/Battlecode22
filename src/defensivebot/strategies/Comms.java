@@ -1,12 +1,16 @@
 package defensivebot.strategies;
 
 import battlecode.common.*;
+import defensivebot.datasturctures.CustomHashMap;
 import defensivebot.datasturctures.CustomSet;
+import defensivebot.datasturctures.HashMapNodeVal;
 import defensivebot.datasturctures.LinkedList;
 import defensivebot.enums.CommInfoBlockType;
 import defensivebot.enums.SparseSignalType;
 import defensivebot.models.SparseSignal;
 
+
+import java.util.HashMap;
 
 import static defensivebot.bots.Robot.turnCount;
 import static defensivebot.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
@@ -18,11 +22,11 @@ import static defensivebot.utils.LogUtils.printDebugLog;
 public class Comms {
 
     static class CommDenseMatrixUpdate{
-        int x,y,val;
+        int xSector,ySector,val;
         CommInfoBlockType commInfoBlockType;
-        CommDenseMatrixUpdate(int x, int y, int val, CommInfoBlockType commInfoBlockType){
-            this.x=x;
-            this.y=y;
+        CommDenseMatrixUpdate(int xSector, int ySector, int val, CommInfoBlockType commInfoBlockType){
+            this.xSector=xSector;
+            this.ySector=ySector;
             this.val=val;
             this.commInfoBlockType = commInfoBlockType;
         }
@@ -88,49 +92,31 @@ public class Comms {
     private void processDenseSignalUpdates(int[] updatedCommsValues){
         // 8 adjacent sectors and current sector are only possibilities so total 9
         // TODO: Replace by hash map
-        int[][][] valMap = new int[3][3][CommInfoBlockType.values().length];
-        int valMapOffset = 1;
-        MapLocation loc = rc.getLocation();
-        int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
+        CustomHashMap<Integer,Integer> map = new CustomHashMap<>(5);
 
-        // aggregate updates in valMap
         while(commUpdateLinkedList.size>0){
-            CommDenseMatrixUpdate update = commUpdateLinkedList.dequeue().val;
-            int sectorX = update.x/xSectorSize,sectorY = update.y/ySectorSize;
-
-            // TODO: think about removing this as this should never happen
-            if(Math.abs(curSectorX-sectorX)>1 || Math.abs(curSectorY-sectorY)>1)continue;
-            // need to adjust relative sector by offset for 0 indexing
-            valMap[curSectorX-sectorX+valMapOffset][curSectorY-sectorY+valMapOffset][update.commInfoBlockType.ordinal()] += update.val;
+            CommDenseMatrixUpdate commDenseMatrixUpdate = commUpdateLinkedList.dequeue().val;
+            int hash = commDenseMatrixUpdate.commInfoBlockType.ordinal()*blockOffset+commDenseMatrixUpdate.xSector*ySectorSize + commDenseMatrixUpdate.ySector;
+            Integer freq = map.get(hash);
+            if(freq == null)map.put(hash,commDenseMatrixUpdate.val);
+            else map.setAlreadyContainedValue(hash,freq+commDenseMatrixUpdate.val);
         }
 
-
-
-        // only check adjacent sectors. Starting with 0,0 (current sector)
-        // TODO: Improve bytecode footprint
-        for(int i=BFS2.length;--i>=0;){
-            int checkX = BFS2[i][0]+curSectorX,checkY = BFS2[i][1]+curSectorY;
-
-            // check if sector is valid
-            if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
-
-            for(CommInfoBlockType commInfoBlockType : CommInfoBlockType.values()){
-                int val = valMap[BFS2[i][0]+valMapOffset][BFS2[i][1]+valMapOffset][commInfoBlockType.ordinal()];
-                if(val>0){
-                    // TODO: convert val to requisite level. For now, we only use 1/2
-                    val = commInfoBlockType.blockSize;
-                }else val = 0;
-                int offset = getCommOffset(commInfoBlockType,checkX,checkY);
-                for(int j = 0; j<commInfoBlockType.blockSize;j++){
-                    int updateIdx = offset/16;
-                    int bitIdx = offset%16;
-                    int updateVal = (val & 1<<j) > 0? 1: 0;
-                    updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
-                    offset++;
-                }
+        map.resetIterator();
+        HashMapNodeVal<Integer, Integer> next = map.next();
+        while(next!=null){
+            CommInfoBlockType[] commVals = CommInfoBlockType.values();
+            CommInfoBlockType commInfoBlockType = commVals[next.key/3600];
+            // can directly use the key to calculate offset
+            int offset = blockOffset* commInfoBlockType.offset + (next.key%blockOffset)*commInfoBlockType.blockSize;
+            for(int j = 0; j<commInfoBlockType.blockSize;j++){
+                int updateIdx = offset/16;
+                int bitIdx = offset%16;
+                int updateVal = (next.val & 1<<j) > 0? 1: 0;
+                updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
+                offset++;
             }
-            // we check adjacent sectors only for Archon and only on turn 1
-            if(turnCount>1 || rc.getType() != RobotType.ARCHON)break;
+            next = map.next();
         }
     }
 
@@ -182,7 +168,6 @@ public class Comms {
         for(int i=64;--i>=0;){
             if(updatedCommsValues[i]!=data[i]){
                 rc.writeSharedArray(i,updatedCommsValues[i]);
-                printDebugLog("updated index: "+i);
             }
         }
         data = updatedCommsValues;
@@ -259,7 +244,12 @@ public class Comms {
     }
 
     public void queueDenseMatrixUpdate(int x, int y, int val, CommInfoBlockType commInfoBlockType){
-        commUpdateLinkedList.add(new CommDenseMatrixUpdate(x, y, val, commInfoBlockType));
+        int xSector = x/xSectorSize,ySector = y/ySectorSize;
+        MapLocation loc = rc.getLocation();
+        if(xSector != loc.x/xSectorSize || ySector != loc.y/ySectorSize){
+            if(turnCount > 1 || rc.getType() != RobotType.ARCHON)return;
+        }
+        commUpdateLinkedList.add(new CommDenseMatrixUpdate(xSector,ySector , val, commInfoBlockType));
     }
 
     public void queueSparseSignalUpdate(SparseSignal sparseSignal){

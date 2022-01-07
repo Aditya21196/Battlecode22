@@ -29,6 +29,7 @@ public class Archon extends Robot{
     @Override
     public void executeRole() throws GameActionException {
 
+        // for debugging
         if(rc.getRoundNum()>20)rc.resign();
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
@@ -42,8 +43,8 @@ public class Archon extends Robot{
                 break;
         }
 
-        SparseSignal test = new SparseSignal(SparseSignalType.ATTACK_POSITION, currentLocation, -1);
-        comms.queueSparseSignalUpdate(test);
+        // for testing
+        //comms.queueSparseSignalUpdate(test);
 
         if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
 //        if(unitCounts[RobotType.SOLDIER.ordinal()] > 30)toBuild = RobotType.SAGE;
