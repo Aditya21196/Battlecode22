@@ -84,9 +84,8 @@ public class Archon extends Robot{
         if(rc.getTeamLeadAmount(team)>250){
             if(unitCounts[RobotType.BUILDER.ordinal()]<2){
                 toBuild = RobotType.BUILDER;
-            }
-            if(unitCounts[RobotType.WATCHTOWER.ordinal()]<2)
                 comms.signalUnitSubType(DroidSubType.BUILDER_FOR_WATCHTOWER,rc.getLocation());
+            }
         }
 
         // testing this strat
@@ -110,7 +109,7 @@ public class Archon extends Robot{
         // testing
 //        comms.signalUnitSubType(DroidSubType.MINER_ECO,rc.getLocation());
 
-        rc.setIndicatorString("Trying to build a: "+toBuild);
+        rc.setIndicatorString("archon index "+comms.archonIndex);
         if (toBuild!=null && rc.canBuildRobot(toBuild, dir)) {
             rc.buildRobot(toBuild, dir);
             unitCounts[toBuild.ordinal()]++;

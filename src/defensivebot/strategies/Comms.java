@@ -41,7 +41,7 @@ public class Comms {
     private int lastSignalBeginsHere;
 
     private int readDataTime=-1,querySignalDataTime=-1,readDenseUpdateAllowedTime=-1;
-    private int archonIndex = -1;
+    public int archonIndex = -1;
 
     public Comms(RobotController rc) throws GameActionException {
         this.rc = rc;
