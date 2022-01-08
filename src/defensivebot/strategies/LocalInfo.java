@@ -20,6 +20,10 @@ public class LocalInfo {
     public int[] nearestERDist; //nearest enemy robots' distances(of each type)
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
+
+    // just for debugging
+    public RobotInfo nearestEnemy;
+    public int nearestEnemyDist;
     
     public int[][] lead2d;
     
@@ -48,6 +52,10 @@ public class LocalInfo {
         friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
 
+        // for debugging
+        nearestEnemy = null;
+        nearestEnemyDist = Integer.MAX_VALUE;
+
         for(int i = nearestFRDist.length; --i>=0;) {
         	nearestFRDist[i] = Integer.MAX_VALUE;
         	nearestERDist[i] = Integer.MAX_VALUE;
@@ -69,6 +77,13 @@ public class LocalInfo {
                 }
                 
             }else{
+
+                // for debugging
+                if(nearestEnemyDist<distToMe){
+                    nearestEnemyDist = distToMe;
+                    nearestEnemy = nearbyRobots[i];
+                }
+
                 enemyUnitCounts[typeOrdinal]++;
                 if(distToMe < nearestERDist[typeOrdinal]) {
                 	nearestER[typeOrdinal] = nearbyRobots[i];

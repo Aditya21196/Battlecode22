@@ -2,11 +2,7 @@ package defensivebot.bots;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
-import defensivebot.datasturctures.CustomSet;
 import defensivebot.enums.DroidSubType;
-import defensivebot.models.SparseSignal;
-
-import static defensivebot.utils.LogUtils.printDebugLog;
 
 public class Builder extends Robot{
 

@@ -32,6 +32,7 @@ public class Comms {
     boolean denseUpdateAllowed=false;
     private DroidSubType droidSubType=null;
     private MapLocation droidTarget=null;
+    private final int sectorIsolationMask;
 
 
     public boolean isSignalArrayFull = false;
@@ -58,6 +59,7 @@ public class Comms {
 
         numBitsSingleSectorInfo = findClosestGreaterOrEqualPowerOf2(blockOffset);
         unitTypeSpareSignalOffset = numBitsSingleSectorInfo + UNIT_TYPE_SIGNAL_BITS;
+        sectorIsolationMask = (1 << numBitsSingleSectorInfo) - 1;
         // single sector takes number of bits required to represent 0 ... blockOffset-1
         unitTypeSignalOffset = (lastBlock.offset + lastBlock.blockSize)*blockOffset;
         // using max archon count and leaving rest of the bits as empty. This is to avoid confusion when an Archon dies
@@ -67,32 +69,35 @@ public class Comms {
     }
 
     public DroidSubType getSubtypeFromSignal(RobotInfo homeArchon) throws GameActionException{
+        readSharedData();
         int homeArchonSectorX = homeArchon.location.x/xSectorSize, homeArchonSectorY = homeArchon.location.y/ySectorSize;
         int offset = unitTypeSignalOffset;
         for(int i=4;--i>0;){
-            int sectorInfo = readBits(offset+2,numBitsSingleSectorInfo);
-            if(sectorInfo/ySectors == homeArchonSectorX && sectorInfo%ySectors == homeArchonSectorY)
-                return getSubType(rc.getType(),readBits(offset,2));
+            int info = readBits(data,offset,unitTypeSpareSignalOffset);
+            int code = info >> numBitsSingleSectorInfo;
+            info &= sectorIsolationMask;
+            if(info/ySectors == homeArchonSectorX && info%ySectors == homeArchonSectorY)
+                return getSubType(rc.getType(),code);
             offset += unitTypeSpareSignalOffset;
         }
         return null;
     }
 
-    public void signalUnitSubType(DroidSubType droidSubType,MapLocation target) {
-        this.droidSubType = droidSubType;
+    public void signalUnitSubType(DroidSubType type,MapLocation target) {
+        this.droidSubType = type;
         droidTarget = target;
     }
 
     public int claimArchonIndex() throws GameActionException{
         readSharedData();
         int offset = unitTypeSignalOffset;
-        int val = readBits(offset,unitTypeSpareSignalOffset);
+        int val = readBits(data,offset,unitTypeSpareSignalOffset);
         if(val == 0)return 0;
         offset+=unitTypeSpareSignalOffset;
-        val = readBits(offset,unitTypeSpareSignalOffset);
+        val = readBits(data,offset,unitTypeSpareSignalOffset);
         if(val == 0)return 1;
         offset+=unitTypeSpareSignalOffset;
-        val = readBits(offset,unitTypeSpareSignalOffset);
+        val = readBits(data,offset,unitTypeSpareSignalOffset);
         if(val == 0)return 2;
         return 3;
     }
@@ -107,7 +112,12 @@ public class Comms {
         for(int i=64;--i>=0;)updatedCommsValues[i]=data[i];
 
         // claim an Archon index if it hasn't already been claimed
-        if(rc.getType() == RobotType.ARCHON && archonIndex == -1)archonIndex = claimArchonIndex();
+        if(rc.getType() == RobotType.ARCHON && archonIndex == -1){
+            archonIndex = claimArchonIndex();
+            if(droidSubType == null){
+                writeBits(updatedCommsValues,unitTypeSignalOffset+archonIndex*unitTypeSpareSignalOffset,1,1);
+            }
+        }
 
         // process unit type signal first
         if(droidSubType != null){
@@ -185,6 +195,9 @@ public class Comms {
 
     public int writeBits(int[] updatedCommsValues,int offset,int val,int numBits){
         for(int j = 0; j<numBits;j++){
+            if(offset >= 512 && offset < 512+unitTypeSpareSignalOffset){
+                printDebugLog("hello");
+            }
             int updateIdx = offset/16;
             int bitIdx = offset%16;
             int updateVal = (val & 1<<j) > 0? 1: 0;
@@ -261,10 +274,10 @@ public class Comms {
     }
 
     private int readInfo(CommInfoBlockType commInfoBlockType, int sectorX, int sectorY) throws GameActionException {
-        return readBits(getCommOffset(commInfoBlockType,sectorX,sectorY), commInfoBlockType.blockSize);
+        return readBits(data,getCommOffset(commInfoBlockType,sectorX,sectorY), commInfoBlockType.blockSize);
     }
 
-    private int readBits(int offset,int num) throws GameActionException {
+    private int readBits(int[] arr,int offset,int num) throws GameActionException {
         // TODO: Remove this from here when it becomes unnecessary
         readSharedData();
 
@@ -274,7 +287,7 @@ public class Comms {
             int updateIdx = (offset+j)/16;
             int bitIdx = (offset+j)%16;
             // update jth bit of val
-            if((data[updateIdx] & bitMasks[bitIdx])>0){
+            if((arr[updateIdx] & bitMasks[bitIdx])>0){
                 val |= 1<<j;
             }
         }
@@ -364,7 +377,7 @@ public class Comms {
         while(offset<1024){
             if(bitCount == 0)lastSignalBeginsHere = offset;
             bitCount++;
-            val |= readBits(offset,1);
+            val |= readBits(data,offset,1);
             offset++;
             if(ALL_SPARSE_SIGNAL_CODES.contains(val) && CODE_TO_SPARSE_SIGNAL[val].numBits == bitCount){
                 SparseSignalType signal = CODE_TO_SPARSE_SIGNAL[val];
@@ -376,7 +389,7 @@ public class Comms {
                 if(signal.positionSlots>0){
                     // if not enough bits, this is not a signal
                     if(offset+numBitsSingleSectorInfo>=1024)break;
-                    int mapSector = readBits(offset,numBitsSingleSectorInfo);
+                    int mapSector = readBits(data,offset,numBitsSingleSectorInfo);
                     sparseSignal.target = getCenterOfSector(mapSector/ySectors,mapSector%ySectors);
                     offset += numBitsSingleSectorInfo;
                 }
@@ -384,7 +397,7 @@ public class Comms {
                 // parsing fixed bits
                 if(signal.fixedBits>0){
                     if(offset+signal.fixedBits>=1024)break;
-                    sparseSignal.fixedBitsVal = readBits(offset,signal.fixedBits);
+                    sparseSignal.fixedBitsVal = readBits(data,offset,signal.fixedBits);
                     offset += signal.fixedBits;
                 }
 
