@@ -30,7 +30,7 @@ public class Archon extends Robot{
     public void executeRole() throws GameActionException {
 
         // for debugging
-        //if(rc.getRoundNum()>20)rc.resign();
+        //if(rc.getRoundNum()>600)rc.resign();
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.SAGE;

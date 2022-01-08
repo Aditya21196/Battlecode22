@@ -14,6 +14,7 @@ public class LocalInfo {
 
     private final RobotController rc;
     private final Comms comms;
+    private final int MIN_LEAD_PASSIVE = 5;
     
     //Robot Info gathered
     public RobotInfo[] nearestFR; //nearest friendly robots of each type
@@ -26,7 +27,7 @@ public class LocalInfo {
     
     //Lead Info gathered
     public MapLocation nearestLeadLoc;
-    public MapLocation passiveMiningLoc;
+    //public MapLocation passiveMiningLoc;
     public int nearestLeadDist;
     public int totalLead;
     public int totalLeadDeposits;
@@ -94,7 +95,7 @@ public class LocalInfo {
     public void senseLead() throws GameActionException {
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
-    	passiveMiningLoc = null;
+    	//passiveMiningLoc = null;
     	totalLead=0;
 	    MapLocation loc = rc.getLocation();
 	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
@@ -105,9 +106,9 @@ public class LocalInfo {
         	if(distToMe < nearestLeadDist) {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
-            	if(passiveMiningLoc != null && locations[i].isWithinDistanceSquared(loc, 2) && lead > 5) {
+            	/*if(passiveMiningLoc != null && locations[i].isWithinDistanceSquared(loc, 2) && lead > 5) {
             		passiveMiningLoc = locations[i];
-            	}
+            	}*/
             }
         	/*
 	        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
@@ -115,6 +116,27 @@ public class LocalInfo {
 	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
 	        }
 	        */
+        }
+    }
+    
+    public void senseLeadForPassive() throws GameActionException {
+    	nearestLeadDist = Integer.MAX_VALUE;
+    	nearestLeadLoc = null;
+    	//passiveMiningLoc = null;
+    	totalLead=0;
+	    MapLocation loc = rc.getLocation();
+	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
+        for(int i = locations.length; --i >= 0;){
+        	int lead = rc.senseLead(locations[i]);
+        	totalLead += lead;
+        	int distToMe = loc.distanceSquaredTo(locations[i]);
+        	if(distToMe < nearestLeadDist && lead > MIN_LEAD_PASSIVE) {
+            	nearestLeadLoc = locations[i];
+            	nearestLeadDist = distToMe;
+            	//if(locations[i].isWithinDistanceSquared(loc, 2)) {
+            	//	passiveMiningLoc = locations[i];
+            	//}
+            }
         }
     }
     
@@ -145,11 +167,13 @@ public class LocalInfo {
     	lowestRubbleLoc = null;
 	    MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(location, 2);
         for(int i = locations.length; --i >= 0;){
-        	int rubble = rc.senseRubble(locations[i]);
-        	if(rubble < lowestRubble) {
-            	lowestRubble = rubble;
-            	lowestRubbleLoc = locations[i];
-            }
+        	if(rc.canSenseLocation(locations[i])) {
+        		int rubble = rc.senseRubble(locations[i]);
+	        	if(rubble < lowestRubble) {
+	            	lowestRubble = rubble;
+	            	lowestRubbleLoc = locations[i];
+	            }
+        	}
         }
         /*
         boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);

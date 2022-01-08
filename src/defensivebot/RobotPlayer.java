@@ -34,7 +34,7 @@ public strictfp class RobotPlayer {
                 System.out.println(rc.getType() + " Exception. Fix!");
                 e.printStackTrace();
             } finally {
-                System.out.println("Clock yield bytecode: "+Clock.getBytecodesLeft());
+                //System.out.println("Clock yield bytecode: "+Clock.getBytecodesLeft());
                 Clock.yield();
             }
         }
