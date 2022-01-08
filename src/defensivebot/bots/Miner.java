@@ -148,7 +148,7 @@ public class Miner extends Robot{
     
     private void moveAway(MapLocation toAvoid) throws GameActionException {
     	if(rc.isMovementReady()) {
-    		tryMove(getBestValidDirection(getBestValidDirection(toAvoid.directionTo(rc.getLocation()))));
+    		tryMove(getBestValidDirection(toAvoid.directionTo(rc.getLocation())));
     	}
 	}
     
