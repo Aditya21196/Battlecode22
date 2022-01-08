@@ -8,7 +8,7 @@ public class LogUtils {
 
     // TODO: change to false before tournament submission
     private static final boolean isDebugMode=true;
-    private static final boolean isVerboseMode=true;
+    private static final boolean isVerboseMode=false;
 
     public static void printDebugLog(String msg){
         if(!isDebugMode)return;

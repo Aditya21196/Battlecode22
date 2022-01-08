@@ -1,12 +1,10 @@
 package defensivebot.strategies;
 
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
-import defensivebot.enums.CommInfoBlockType;
 
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
 
@@ -23,7 +21,12 @@ public class LocalInfo {
     public int[] nearestERDist; //nearest enemy robots' distances(of each type)
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
+    // just for debugging
+    public RobotInfo nearestEnemy;
+    public int nearestEnemyDist;
+
     public RobotInfo homeArchon;
+
     
     //Lead Info gathered
     public MapLocation nearestLeadLoc;
@@ -48,18 +51,26 @@ public class LocalInfo {
         this.comms=comms;
     }
 
-    private void reset(){
-
-    }
+//    public RobotInfo getNearestEnemy(){
+//
+//    }
 
     public void senseRobots(){
     	//overhead = 250 bytecode
         friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
+
+
+        // for debugging
+        nearestEnemy = null;
+        nearestEnemyDist = Integer.MAX_VALUE;
+
+
         nearestFR = new RobotInfo[UNITS_AVAILABLE];
         nearestFRDist = new int[UNITS_AVAILABLE];
         nearestER = new RobotInfo[UNITS_AVAILABLE];
         nearestERDist = new int[UNITS_AVAILABLE];
+
         for(int i = nearestFRDist.length; --i>=0;) {
         	nearestFRDist[i] = Integer.MAX_VALUE;
         	nearestERDist[i] = Integer.MAX_VALUE;
@@ -83,6 +94,13 @@ public class LocalInfo {
                 }
                 
             }else{
+
+                // for debugging
+                if(nearestEnemyDist<distToMe){
+                    nearestEnemyDist = distToMe;
+                    nearestEnemy = nearbyRobots[i];
+                }
+
                 enemyUnitCounts[typeOrdinal]++;
                 if(distToMe < nearestERDist[typeOrdinal]) {
                 	nearestER[typeOrdinal] = nearbyRobots[i];
@@ -91,6 +109,7 @@ public class LocalInfo {
             }
         }
     }
+
 
     public void senseLead() throws GameActionException {
     	nearestLeadDist = Integer.MAX_VALUE;

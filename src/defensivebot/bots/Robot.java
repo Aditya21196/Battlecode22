@@ -9,7 +9,7 @@ import defensivebot.strategies.LocalInfo;
 import defensivebot.utils.*;
 
 
-import static defensivebot.utils.LogUtils.printDebugLog;
+import static defensivebot.utils.Constants.EXTRA_BYTECODE_FOR_COMMS_CLEANUP;
 import static defensivebot.utils.LogUtils.printVerboseLog;
 
 public abstract class Robot {
@@ -23,6 +23,13 @@ public abstract class Robot {
     public static int turnCount;
 	protected LocalInfo localInfo;
 	protected Comms comms;
+	MapLocation bottomLeft;
+	MapLocation bottomRight;
+	MapLocation topLeft;
+	MapLocation topRight;
+	protected int height;
+	protected int width;
+
     
 
     public Robot(RobotController rc) throws GameActionException{
@@ -34,6 +41,12 @@ public abstract class Robot {
 		comms = new Comms(rc);
 		localInfo = new LocalInfo(rc,comms);
 		turnCount = 0;
+		height = rc.getMapHeight();
+		width = rc.getMapWidth();
+		bottomLeft = new MapLocation(0,0);
+		bottomRight = new MapLocation(0,width-1);
+		topLeft = new MapLocation(height-1,0);
+		topRight = new MapLocation(height-1,width-1);
     }
 
     // factory method for robots
@@ -56,17 +69,21 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 
-		//sense();
-		//verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+		sense();
+//		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 
         executeRole();
-		//verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
+//		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
 
-		//move();
-		//verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
-		
+		move();
+//		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
+		verbose("lead count: "+rc.getTeamLeadAmount(team));
+
 		comms.processUpdateQueues();
-      
+
+		// TODO: decide byte code limit for cleaning dynamically?
+		if(comms.isSignalArrayFull && Clock.getBytecodesLeft()<EXTRA_BYTECODE_FOR_COMMS_CLEANUP)comms.cleanComms();
+      	// TODO: more stuff for spare bytecode utilization?
     }
 
 	// sensing
