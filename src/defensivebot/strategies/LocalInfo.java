@@ -1,7 +1,6 @@
 package defensivebot.strategies;
 
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -81,9 +80,10 @@ public class LocalInfo {
 
     // need to be careful while sensing terrain. the way I see it, we don't need to sense terrain again and again
     public void senseTerrain() throws GameActionException {
-    	nearestLeadDist = Integer.MAX_VALUE;
-      MapLocation loc = rc.getLocation();
-      boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
+        nearestLeadDist = Integer.MAX_VALUE;
+        MapLocation loc = rc.getLocation();
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
+        // TODO: we are only sensing lead right now but probably need to decide what to sense and when
         MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(),rc.getType().visionRadiusSquared);
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);

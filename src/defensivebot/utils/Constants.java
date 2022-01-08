@@ -24,8 +24,10 @@ public class Constants {
 
     public static final int MAX_MAP_SIZE=60;
     public static final int UNITS_AVAILABLE=7;
-    
 
     public static final int UNIT_TYPE_SIGNAL_BITS=2; // maximum 4 unit types for droid
     public static final int INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE = 3; // meaning 1/3 of messages will be removed from comms
+
+    // comms cleanup
+    public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP = 8000;
 }

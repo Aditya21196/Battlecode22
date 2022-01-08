@@ -6,13 +6,12 @@ import defensivebot.datasturctures.CustomSet;
 import defensivebot.datasturctures.HashMapNodeVal;
 import defensivebot.datasturctures.LinkedList;
 import defensivebot.enums.CommInfoBlockType;
+import defensivebot.enums.DroidSubType;
 import defensivebot.enums.SparseSignalType;
 import defensivebot.models.SparseSignal;
 
-
-import java.util.HashMap;
-
 import static defensivebot.bots.Robot.turnCount;
+import static defensivebot.enums.DroidSubType.getSubType;
 import static defensivebot.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
 import static defensivebot.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
 import static defensivebot.utils.Constants.*;
@@ -20,18 +19,6 @@ import static defensivebot.utils.CustomMath.ceilDivision;
 import static defensivebot.utils.LogUtils.printDebugLog;
 
 public class Comms {
-
-    static class CommDenseMatrixUpdate{
-        int xSector,ySector,val;
-        CommInfoBlockType commInfoBlockType;
-        CommDenseMatrixUpdate(int xSector, int ySector, int val, CommInfoBlockType commInfoBlockType){
-            this.xSector=xSector;
-            this.ySector=ySector;
-            this.val=val;
-            this.commInfoBlockType = commInfoBlockType;
-        }
-    }
-
 
     private final RobotController rc;
     private final int xSectorSize,ySectorSize,xSectors,
@@ -43,6 +30,9 @@ public class Comms {
     private CustomSet<SparseSignal> sparseSignals;
     private LinkedList<SparseSignal> orderedSparseSignals;
     boolean denseUpdateAllowed=false;
+    private DroidSubType droidSubType=null;
+    private MapLocation droidTarget=null;
+
 
     public boolean isSignalArrayFull = false;
 
@@ -50,12 +40,14 @@ public class Comms {
     private int lastSignalBeginsHere;
 
     private int readDataTime=-1,querySignalDataTime=-1,readDenseUpdateAllowedTime=-1;
+    private int archonIndex = -1;
 
     public Comms(RobotController rc) throws GameActionException {
         this.rc = rc;
         int w = rc.getMapWidth(),h = rc.getMapHeight();
         xSectorSize = getBestSectorSize(w);
         ySectorSize = getBestSectorSize(h);
+
 
         xSectors = ceilDivision(w,xSectorSize);
         ySectors = ceilDivision(h,ySectorSize);
@@ -68,16 +60,70 @@ public class Comms {
         unitTypeSpareSignalOffset = numBitsSingleSectorInfo + UNIT_TYPE_SIGNAL_BITS;
         // single sector takes number of bits required to represent 0 ... blockOffset-1
         unitTypeSignalOffset = (lastBlock.offset + lastBlock.blockSize)*blockOffset;
-        sparseSignalOffset = unitTypeSignalOffset + rc.getArchonCount() * unitTypeSpareSignalOffset;
+        // using max archon count and leaving rest of the bits as empty. This is to avoid confusion when an Archon dies
+        // This wastes a few bits. Might need to figure out a wy around this if Comms become a bottleneck
+        sparseSignalOffset = unitTypeSignalOffset + 4 * unitTypeSpareSignalOffset;
         lastSignalBeginsHere = sparseSignalOffset;
     }
 
-    public void processUpdateQueues() throws GameActionException{
+    public DroidSubType getSubtypeFromSignal(RobotInfo homeArchon) throws GameActionException{
+        int homeArchonSectorX = homeArchon.location.x/xSectorSize, homeArchonSectorY = homeArchon.location.y/ySectorSize;
+        int offset = unitTypeSignalOffset;
+        for(int i=4;--i>0;){
+            int sectorInfo = readBits(offset+2,numBitsSingleSectorInfo);
+            if(sectorInfo/ySectors == homeArchonSectorX && sectorInfo%ySectors == homeArchonSectorY)
+                return getSubType(rc.getType(),readBits(offset,2));
+            offset += unitTypeSpareSignalOffset;
+        }
+        return null;
+    }
 
+    public void signalUnitSubType(DroidSubType droidSubType,MapLocation target) {
+        this.droidSubType = droidSubType;
+        droidTarget = target;
+    }
+
+    public int claimArchonIndex() throws GameActionException{
+        readSharedData();
+        int offset = unitTypeSignalOffset;
+        int val = readBits(offset,unitTypeSpareSignalOffset);
+        if(val == 0)return 0;
+        offset+=unitTypeSpareSignalOffset;
+        val = readBits(offset,unitTypeSpareSignalOffset);
+        if(val == 0)return 1;
+        offset+=unitTypeSpareSignalOffset;
+        val = readBits(offset,unitTypeSpareSignalOffset);
+        if(val == 0)return 2;
+        return 3;
+    }
+
+    public void processUpdateQueues() throws GameActionException{
+        // if no updates are there then no need to process
+        // we have updates to process only if we need to reserve
+        if(commUpdateLinkedList.size == 0 && sparseSignalUpdates.size == 0 && droidSubType == null)return;
         // read shared data
         readSharedData();
         int[] updatedCommsValues = new int[64];
         for(int i=64;--i>=0;)updatedCommsValues[i]=data[i];
+
+        // claim an Archon index if it hasn't already been claimed
+        if(rc.getType() == RobotType.ARCHON && archonIndex == -1)archonIndex = claimArchonIndex();
+
+        // process unit type signal first
+        if(droidSubType != null){
+            int code = droidSubType.code;
+            code <<= numBitsSingleSectorInfo;
+            if(droidTarget!=null){
+                int xSector = droidTarget.x/xSectorSize,ySector = droidTarget.y/ySectorSize;
+                code |= xSector*ySectors + ySector;
+                // set null for next turn
+                droidTarget = null;
+            }
+            writeBits(updatedCommsValues,unitTypeSignalOffset + unitTypeSpareSignalOffset*archonIndex,code,unitTypeSpareSignalOffset);
+            // set null for next turn
+            droidSubType = null;
+
+        }
 
         // process dense signal updates
         if(denseUpdateAllowed)processDenseSignalUpdates(updatedCommsValues);
@@ -96,7 +142,7 @@ public class Comms {
 
         while(commUpdateLinkedList.size>0){
             CommDenseMatrixUpdate commDenseMatrixUpdate = commUpdateLinkedList.dequeue().val;
-            int hash = commDenseMatrixUpdate.commInfoBlockType.ordinal()*blockOffset+commDenseMatrixUpdate.xSector*ySectorSize + commDenseMatrixUpdate.ySector;
+            int hash = commDenseMatrixUpdate.commInfoBlockType.ordinal()*blockOffset+commDenseMatrixUpdate.xSector*ySectors + commDenseMatrixUpdate.ySector;
             Integer freq = map.get(hash);
             if(freq == null)map.put(hash,commDenseMatrixUpdate.val);
             else map.setAlreadyContainedValue(hash,freq+commDenseMatrixUpdate.val);
@@ -109,13 +155,7 @@ public class Comms {
             CommInfoBlockType commInfoBlockType = commVals[next.key/3600];
             // can directly use the key to calculate offset
             int offset = blockOffset* commInfoBlockType.offset + (next.key%blockOffset)*commInfoBlockType.blockSize;
-            for(int j = 0; j<commInfoBlockType.blockSize;j++){
-                int updateIdx = offset/16;
-                int bitIdx = offset%16;
-                int updateVal = (next.val & 1<<j) > 0? 1: 0;
-                updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
-                offset++;
-            }
+            offset = writeBits(updatedCommsValues,offset,next.val,commInfoBlockType.blockSize);
             next = map.next();
         }
     }
@@ -135,18 +175,22 @@ public class Comms {
             }
 
             int val = signalToCommsValue(signal);
+            offset = writeBits(updatedCommsValues,offset,val,numBits);
 
-            // TODO: make a function for this
-            for(int j = 0; j<numBits;j++){
-                int updateIdx = offset/16;
-                int bitIdx = offset%16;
-                int updateVal = (val & 1<<j) > 0? 1: 0;
-                updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
-                offset++;
-            }
             lastSignalBeginsHere = offset;
         }
 
+        return offset;
+    }
+
+    public int writeBits(int[] updatedCommsValues,int offset,int val,int numBits){
+        for(int j = 0; j<numBits;j++){
+            int updateIdx = offset/16;
+            int bitIdx = offset%16;
+            int updateVal = (val & 1<<j) > 0? 1: 0;
+            updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
+            offset++;
+        }
         return offset;
     }
 
@@ -358,14 +402,19 @@ public class Comms {
 
     /*
     * Do this when enough bytecode is left
+    * TODO: test this
     * */
     public void cleanComms() throws GameActionException {
         querySparseSignals();
+        printDebugLog("Comms clean up!");
         int lenRemaining = orderedSparseSignals.size/INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE;
         while(orderedSparseSignals.size>lenRemaining)orderedSparseSignals.dequeue();
         // only these messages should remain now
+        readSharedData();
         int[] updatedCommsValues = new int[64];
         for(int i=64;--i>=0;)updatedCommsValues[i] = data[i];
+
+        while(orderedSparseSignals.size>0)sparseSignalUpdates.add(orderedSparseSignals.dequeue().val);
         int offset = processSparseSignalUpdates(updatedCommsValues);
         // set all bits to 0
         int updateIdx = offset/16;
@@ -374,6 +423,17 @@ public class Comms {
         for(int i=16;--i>=bitIdx;)updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],i,0);
         for(int i=16;--i>updateIdx;)updatedCommsValues[i] = 0;
         updateSharedArray(updatedCommsValues);
+    }
+
+    static class CommDenseMatrixUpdate{
+        int xSector,ySector,val;
+        CommInfoBlockType commInfoBlockType;
+        CommDenseMatrixUpdate(int xSector, int ySector, int val, CommInfoBlockType commInfoBlockType){
+            this.xSector=xSector;
+            this.ySector=ySector;
+            this.val=val;
+            this.commInfoBlockType = commInfoBlockType;
+        }
     }
 
 }
