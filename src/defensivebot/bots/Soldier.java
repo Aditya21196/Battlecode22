@@ -12,7 +12,7 @@ public class Soldier extends Robot{
 
     @Override
     public void sense() throws GameActionException {
-        localInfo.senseTerrain();
+        //localInfo.senseTerrain();
         localInfo.senseRobots();
     }
 

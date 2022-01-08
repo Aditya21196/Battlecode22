@@ -56,17 +56,15 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 
-		sense();
-		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+		//sense();
+		//verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 
         executeRole();
-		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
+		//verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
 
-		move();
-		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
+		//move();
+		//verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
 		
-		//TODO: consider a actionsWhenThereIsExtraBytecode() for extra computing, comms or maybe to try and attack or mine after moving
-
 		comms.processUpdateQueues();
       
     }
