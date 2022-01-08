@@ -19,7 +19,7 @@ public class Builder extends Robot{
         localInfo.senseRobots();
         if(type == null){
             type = comms.getSubtypeFromSignal(localInfo.homeArchon);
-            printDebugLog("I will build a filter id: "+rc.getID());
+            printDebugLog("I will build a watchtower id: "+rc.getID());
         }
 //        CustomSet<SparseSignal> sparseSignals = comms.querySparseSignals();
 //        sparseSignals.initIteration();
