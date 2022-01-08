@@ -7,151 +7,161 @@ import static defensivebot.utils.Constants.directions;
 public class Miner extends Robot{
     
 	private int headingIndex = -1; // index in Constants.directions for heading
+	private MapLocation poi = null;
 	
 	public Miner(RobotController rc) throws GameActionException  {
         super(rc);
     }
     
-    
-    
-    @Override
-    public void sense() throws GameActionException{
-		//sense
-		localInfo.senseRobots();
-		localInfo.senseTerrain();
-    }
+    public void sense() throws GameActionException{}
+    public void move() throws GameActionException {}
 
 	/*
 	 * current strat mine lead
 	 */
     @Override
     public void executeRole() throws GameActionException {
-		if(rc.isActionReady()) {
-			mineLead();
-		}
-    }
-    
-    /*
-     * MOVEMENT STRATS/IDEAS
-     * 
-	 * 1. move away from closest enemy damager in vision
-	 * If not parked:
-	 * 2. ***move toward closest gold in vision (then park)
-	 * 3. move toward closest lead in vision (then park)
-	 * 4. move toward closest resource from comms
-	 * 5. if damaged head toward friendly archon
-	 * 6. move toward center of sector with little comm info
-	 * 7. move with random heading
-	 * 
-	 * If Parked:
-	 * 2. move toward best available square in vision
-	 * 3. leave if two or more miners are parked at lead with <= 6 
-	 * 3. otherwise stay still
-	 * 
-	 */
-    public void move() throws GameActionException {
-    	if(!rc.isMovementReady())return;
-
-		Direction bestDirection = null;
-
-		//move away from nearest visible enemy watchtower
-		if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
-			bestDirection = getBestValidDirection(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].location.directionTo(currentLocation));
-			rc.setIndicatorString("Trying to run from Watchtower.");
-			headingIndex = -1;
-		}
-
-		//move away from nearest visible enemy soldier
-		else if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
-			bestDirection = getBestValidDirection(localInfo.nearestER[RobotType.SOLDIER.ordinal()].location.directionTo(currentLocation));
-			rc.setIndicatorString("Trying to run from Soldier.");
-			headingIndex = -1;
-		}
-
-		//move away from nearest visible enemy sage
-		else if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
-			bestDirection = getBestValidDirection(localInfo.nearestER[RobotType.SAGE.ordinal()].location.directionTo(currentLocation));
-			rc.setIndicatorString("Trying to run from Sage.");
-			headingIndex = -1;
-		}
-
-		//move toward gold would be nice, but currently not being sensed
-
-		//move toward nearest visible lead
-		else if(localInfo.nearestLead != null) {
-			bestDirection = getBestValidDirection(currentLocation.directionTo(localInfo.nearestLead));
-			rc.setIndicatorString("Trying to get to lead.");
-			headingIndex = -1;
-		}
-
-		//move in random heading
-		else if(headingIndex == -1){
-			headingIndex = (int)(Math.random()*directions.length);
-			bestDirection = directions[headingIndex];
-			rc.setIndicatorString("Picking new direction to run.");
-		}else {
-			bestDirection = directions[headingIndex];
-			rc.setIndicatorString("Running straight.");
-		}
-
-
-		//Finally, make move in best direction
-		if(bestDirection != null && rc.canMove(bestDirection)) {
-			rc.move(bestDirection);
-		}else {
-			headingIndex = -1;
-		}
-    		
-
-    }
-
-    
-    /*
-     * 
-     */
-    public void mineLead() throws GameActionException {
-    	/*
-    	 * set this boolean to true based on factors such as ... 
-    	 * if enemy miners are present and no friendly damage units are nearby (prevent them from mining too)
-    	 * if enemy damage units are nearby (pack up and leave)
-    	 * if enemy archons are closer then friendly archons (destroy this resource which is on their side of map)
-    	 */
-    	boolean mineGreedy = true;
+    	//sense robots
+    	localInfo.senseRobots();
     	
-    	if(mineGreedy) {
-    		MapLocation me = rc.getLocation();
-            for(int dx = 1; --dx >= -1;){
-                for(int dy = 1; --dy >= -1;){
-                	if(!rc.isActionReady())
-                		return;
-                	MapLocation mineLocation = new MapLocation(me.x + dx, me.y + dy);
-                    while(rc.canMineLead(mineLocation)) {
-                        rc.mineLead(mineLocation);
-                        rc.setIndicatorString("Mining Lead.");
-                    }
-                    
-                }
-            }
+    	//enemies that deal damage nearby?
+    	if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
+    		poi = localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].location;
+    		enemyDamagerNearby();
+    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
+    		rc.setIndicatorString("avoiding enemy watchtower");
+    		return;
+    	}else if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
+    		poi = localInfo.nearestER[RobotType.SOLDIER.ordinal()].location;
+    		enemyDamagerNearby();
+    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
+    		rc.setIndicatorString("avoiding enemy soldier");
+    		return;
+    	}else if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
+    		poi = localInfo.nearestER[RobotType.SAGE.ordinal()].location;
+    		enemyDamagerNearby();
+    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
+    		rc.setIndicatorString("avoiding enemy sage");
     		return;
     	}
-//    	
-//    	//otherwise mine conservatively and let lead regenerate
-//    	MapLocation me = rc.getLocation();
-//        for(int dx = 1; --dx >= -1;){
-//            for(int dy = 1; --dy >= -1;){
-//            	if(!rc.isActionReady())
-//            		return;
-//            	int x = me.x + dx, y = me.y + dy;
-//            	MapLocation mineLocation = new MapLocation(x, y);
-//                while(rc.canMineLead(mineLocation) && --localInfo.lead2d[x][y] >= 1) {
-//                    rc.mineLead(mineLocation);
-//                    rc.setIndicatorString("Mining Lead.");
-//                }
-//                
-//            }
-//        }
+    	
+    	//no enemy damager nearby
+    	localInfo.senseGold();
+    	
+    	//found gold?
+    	if(localInfo.nearestGoldLoc != null) {
+    		localInfo.senseRubble(localInfo.nearestGoldLoc);
+    		//move toward low rubble near gold
+    		moveToward(localInfo.lowestRubbleLoc);
+    		//mine gold
+    		mineGold();
+    		rc.setIndicatorLine(rc.getLocation(), localInfo.lowestRubbleLoc, 0, 255, 0);
+    		rc.setIndicatorString("found gold, best mining loc identified.");
+    		return;
+    	}
+    	
+    	//no gold
+    	//enemy miner or archon nearby
+    	if(localInfo.nearestER[RobotType.MINER.ordinal()] != null || localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
+    		localInfo.senseLead();
+    		//found lead?
+    		if(localInfo.nearestLeadLoc != null) {
+    			localInfo.senseRubble(localInfo.nearestLeadLoc);
+    			moveToward(localInfo.lowestRubbleLoc);
+    			mineLead();
+    			rc.setIndicatorLine(rc.getLocation(), localInfo.lowestRubbleLoc, 0, 255, 0);
+        		rc.setIndicatorString("enemy miner/archon near. Mine all lead found best mining loc.");
+    			return;
+    		}
+    		
+    		//TODO: scan comms for a target location to go toward
+    		
+    		//heading
+    		moveHeading();
+    		rc.setIndicatorString("heading. enemy miner/archon near .. whatever");
+    		return;
+    	}
+    	
+    	//no enemy miner or archon nearby
+    	localInfo.senseLeadForPassive();
+    	//found Lead for passive mining?
+    	if(localInfo.nearestLeadLoc != null) {
+    		localInfo.senseRubble(localInfo.nearestLeadLoc);
+			moveToward(localInfo.lowestRubbleLoc);
+			mineLead();
+			rc.setIndicatorLine(rc.getLocation(), localInfo.lowestRubbleLoc, 0, 255, 0);
+    		rc.setIndicatorString("mining passively cuz noone is around. found the best loc.");
+			return;
+    	}
+    	
+    	//no lead for passive mining
+    	//TODO: scan comms for a target location to go toward
+		
+		//heading
+		moveHeading();
+		rc.setIndicatorString("heading. no one is around");
+		return;
     }
     
+    private void enemyDamagerNearby() throws GameActionException {
+		localInfo.senseGold();
+		//found gold?
+		if(localInfo.nearestGoldLoc != null) {
+    		mineGold();
+    		moveAway(poi); //move away from enemy that deals damage
+    		return;
+    	}
+		//no gold
+		localInfo.senseLead();
+		//found lead?
+		if(localInfo.nearestLeadLoc != null) {
+			mineLead();
+			moveAway(poi); //move away from enemy that deals damage
+    		return;
+		}
+		//no lead
+		moveAway(poi); //move away from enemy that deals damage
+		return;
+	}
     
+    private void tryMove(Direction dir) throws GameActionException {
+    	if(dir!=null && rc.canMove(dir)) {
+			rc.move(dir);
+		}else {
+			headingIndex = -1;
+		}
+    }
     
+    private void moveHeading() throws GameActionException {
+		if(!rc.isMovementReady()) return;
+    	if(headingIndex == -1) {
+			headingIndex = (int)(Math.random()*directions.length);
+		}
+    	tryMove(getBestValidDirection(directions[headingIndex]));
+	}
+
+    private void moveToward(MapLocation target) throws GameActionException {
+    	if(rc.isMovementReady() && !rc.getLocation().equals(target)) {
+    		tryMove(getBestValidDirection(target));
+		}
+    }
+    
+    private void moveAway(MapLocation toAvoid) throws GameActionException {
+    	if(rc.isMovementReady()) {
+    		tryMove(getBestValidDirection(getBestValidDirection(toAvoid.directionTo(rc.getLocation()))));
+    	}
+	}
+    
+	
+    private void mineLead() throws GameActionException {
+    	while(rc.canMineLead(localInfo.nearestLeadLoc)) {
+    		rc.mineLead(localInfo.nearestLeadLoc);
+    	}
+    }
+    
+    private void mineGold() throws GameActionException {
+    	while(rc.canMineGold(localInfo.nearestGoldLoc)) {
+    		rc.mineGold(localInfo.nearestGoldLoc);
+    	}
+	}
 }

@@ -52,8 +52,7 @@ public class Archon extends Robot{
     public void sense() throws GameActionException {
         // TODO: check bytecode. This should not be required all the time
         localInfo.senseRobots();
-        localInfo.senseTerrain();
-
+//        localInfo.senseTerrain();
     }
 
     @Override
@@ -61,6 +60,7 @@ public class Archon extends Robot{
 
         // for debugging
         if(rc.getRoundNum()>1000)rc.resign();
+
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.SAGE;
