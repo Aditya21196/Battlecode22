@@ -4,8 +4,6 @@ import java.util.Random;
 
 import battlecode.common.*;
 import defensivebot.enums.DroidSubType;
-import defensivebot.enums.SparseSignalType;
-import defensivebot.models.SparseSignal;
 import defensivebot.utils.*;
 
 
@@ -29,6 +27,10 @@ public class Archon extends Robot{
         // TODO: decide based on map dimensions?
         INITIAL_MINERS_TO_BUILD_ROUNDS = 5;
         EARLY_GAME_ROUNDS = 50;
+
+    }
+
+    public void initNearestCorner(){
         nearestCorner = bottomLeft;
         int minDist = bottomLeft.distanceSquaredTo(currentLocation);
         int dist = bottomRight.distanceSquaredTo(currentLocation);
@@ -58,7 +60,7 @@ public class Archon extends Robot{
     public void executeRole() throws GameActionException {
 
         // for debugging
-        if(rc.getRoundNum()>20)rc.resign();
+        if(rc.getRoundNum()>1000)rc.resign();
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.SAGE;
@@ -104,7 +106,7 @@ public class Archon extends Robot{
 
     public MapLocation getLocationForWatchTower(){
         // if we know enemy Archon, act on that
-
+        if(nearestCorner == null)initNearestCorner();
         // or else
         Direction dir = currentLocation.directionTo(nearestCorner).opposite();
 

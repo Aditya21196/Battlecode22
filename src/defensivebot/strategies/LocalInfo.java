@@ -39,9 +39,9 @@ public class LocalInfo {
         nearestERDist = new int[UNITS_AVAILABLE];
     }
 
-    private void reset(){
-
-    }
+//    public RobotInfo getNearestEnemy(){
+//
+//    }
 
     public void senseRobots(){
     	//overhead = 250 bytecode
