@@ -30,11 +30,11 @@ public class Archon extends Robot{
     public void executeRole() throws GameActionException {
 
         // for debugging
-        //if(rc.getRoundNum()>600)rc.resign();
+        //if(rc.getRoundNum()>100)rc.resign();
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.SAGE;
-        switch (0/*turnCount%2*/){
+        switch (turnCount%2){
             case 1:
                 toBuild = RobotType.SOLDIER;
                 break;
@@ -46,7 +46,7 @@ public class Archon extends Robot{
         // for testing
         //comms.queueSparseSignalUpdate(test);
 
-        if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
+        //if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
 //        if(unitCounts[RobotType.SOLDIER.ordinal()] > 30)toBuild = RobotType.SAGE;
 
         rc.setIndicatorString("Trying to build a: "+toBuild);
