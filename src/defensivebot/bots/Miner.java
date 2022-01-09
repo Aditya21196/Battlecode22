@@ -80,7 +80,6 @@ public class Miner extends Robot{
     		MapLocation loc = commsBestLocforMiner();
 			if(loc != null){
 				moveToward(loc);
-				rc.setIndicatorString("unexplored area: "+loc);
 				return;
 			}
 
@@ -108,7 +107,6 @@ public class Miner extends Robot{
 		MapLocation loc = commsBestLocforMiner();
 		if(loc != null){
 			// There can be a lot of back and forth because of this if not done right
-			rc.setIndicatorString("best mining loc: "+loc);
 			moveToward(loc);
 			return;
 		}
@@ -145,7 +143,8 @@ public class Miner extends Robot{
 		MapLocation bestLoc = comms.getNearestLeadLoc();
 		if(bestLoc == null){
 			bestLoc = comms.getNearbyUnexplored();
-		}
+			if(bestLoc != null)rc.setIndicatorString("unexplored area: "+bestLoc);
+		}rc.setIndicatorString("best mining loc: "+bestLoc);
 		return bestLoc;
 	}
     

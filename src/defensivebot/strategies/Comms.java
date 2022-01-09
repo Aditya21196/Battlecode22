@@ -32,6 +32,7 @@ public class Comms {
 
 
     public boolean isSignalArrayFull = false;
+    private final int w,h;
 
     // usage: This is a bit hacky but while reading sparse signal array, I am recording index of last signal
     private int lastSignalBeginsHere;
@@ -40,7 +41,8 @@ public class Comms {
 
     public Comms(RobotController rc) throws GameActionException {
         this.rc = rc;
-        int w = rc.getMapWidth(),h = rc.getMapHeight();
+        w = rc.getMapWidth();
+        h = rc.getMapHeight();
         xSectorSize = getBestSectorSize(w);
         ySectorSize = getBestSectorSize(h);
 
@@ -213,10 +215,11 @@ public class Comms {
     }
 
     private MapLocation getCenterOfSector(int sectorX,int sectorY){
-        int xSectorRef = sectorX*xSectorSize;
-        int ySectorRef = sectorY*ySectorSize;
-
-        return new MapLocation(xSectorRef+xSectorSize/2,ySectorRef+ySectorSize/2);
+        int x = sectorX*xSectorSize+xSectorSize/2;
+        int y = sectorY*ySectorSize+ySectorSize/2;
+        if(x>=w)x = w-1;
+        if(y>=h)y = h-1;
+        return new MapLocation(x,y);
     }
 
     private int readInfo(CommInfoBlockType commInfoBlockType, int sectorX, int sectorY) throws GameActionException {
