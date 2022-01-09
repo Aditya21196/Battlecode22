@@ -19,7 +19,7 @@ public class Archon extends Robot{
     final int EARLY_GAME_ROUNDS;
 
     MapLocation nearestCorner;
-
+    private int tempCounter = 0;
 
     public Archon(RobotController rc) throws GameActionException  {
         super(rc);
@@ -58,7 +58,8 @@ public class Archon extends Robot{
     public void executeRole() throws GameActionException {
 
         // for debugging
-        if(rc.getRoundNum()>1000)rc.resign();
+
+        //if(rc.getRoundNum()>1000)rc.resign();
 
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
@@ -67,10 +68,14 @@ public class Archon extends Robot{
 //        printDebugLog("exploration index: "+comms.explorationIndex());
 
 
-        if(turnCount%2 == 0){
+        if(tempCounter%2 == 0){
             toBuild = RobotType.MINER;
+
         }
 
+
+
+        //if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
 
         // testing this strat
 //        if(turnCount<INITIAL_MINERS_TO_BUILD_ROUNDS){
@@ -88,6 +93,7 @@ public class Archon extends Robot{
 //        }
 
 //        if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
+
 //        if(unitCounts[RobotType.SOLDIER.ordinal()] > 30)toBuild = RobotType.SAGE;
 
         // testing
@@ -96,6 +102,7 @@ public class Archon extends Robot{
         if (toBuild!=null && rc.canBuildRobot(toBuild, dir)) {
             rc.buildRobot(toBuild, dir);
             unitCounts[toBuild.ordinal()]++;
+            tempCounter++;
         }
     }
 
