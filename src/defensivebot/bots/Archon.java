@@ -3,7 +3,6 @@ package defensivebot.bots;
 import java.util.Random;
 
 import battlecode.common.*;
-import defensivebot.enums.DroidSubType;
 import defensivebot.utils.*;
 
 
@@ -63,30 +62,15 @@ public class Archon extends Robot{
 
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
-        RobotType toBuild = RobotType.SAGE;
-        switch (0/*turnCount%2*/){
-            case 1:
-                toBuild = RobotType.SOLDIER;
-                break;
-            case 0:
-                toBuild = RobotType.MINER;
-                break;
+        RobotType toBuild = RobotType.SOLDIER;
+
+//        printDebugLog("exploration index: "+comms.explorationIndex());
+
+
+        if(turnCount%2 == 0){
+            toBuild = RobotType.MINER;
         }
 
-        // for testing
-        //comms.queueSparseSignalUpdate(test);
-
-        // testing this strat
-        if(unitCounts[RobotType.MINER.ordinal()]<10)toBuild = RobotType.MINER;
-//        else if(unitCounts[RobotType.SOLDIER.ordinal()]<10)toBuild = RobotType.SOLDIER;
-        else toBuild = null;
-
-        if(rc.getTeamLeadAmount(team)>250){
-            if(unitCounts[RobotType.BUILDER.ordinal()]<2){
-                toBuild = RobotType.BUILDER;
-                comms.signalUnitSubType(DroidSubType.BUILDER_FOR_WATCHTOWER,rc.getLocation());
-            }
-        }
 
         // testing this strat
 //        if(turnCount<INITIAL_MINERS_TO_BUILD_ROUNDS){
@@ -109,7 +93,6 @@ public class Archon extends Robot{
         // testing
 //        comms.signalUnitSubType(DroidSubType.MINER_ECO,rc.getLocation());
 
-        rc.setIndicatorString("archon index "+comms.archonIndex);
         if (toBuild!=null && rc.canBuildRobot(toBuild, dir)) {
             rc.buildRobot(toBuild, dir);
             unitCounts[toBuild.ordinal()]++;

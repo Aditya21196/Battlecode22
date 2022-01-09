@@ -5,6 +5,8 @@ import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
+import static defensivebot.utils.LogUtils.printDebugLog;
+
 public class Soldier extends Robot{
     public Soldier(RobotController rc) throws GameActionException  {
         super(rc);
@@ -14,6 +16,7 @@ public class Soldier extends Robot{
     public void sense() throws GameActionException {
         //localInfo.senseTerrain();
         localInfo.senseRobots();
+        localInfo.senseLead();
     }
 
     @Override

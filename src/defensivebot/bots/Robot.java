@@ -79,6 +79,7 @@ public abstract class Robot {
 //		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
 		verbose("lead count: "+rc.getTeamLeadAmount(team));
 
+		localInfo.checkExploration();
 		comms.processUpdateQueues();
 
 		// TODO: decide byte code limit for cleaning dynamically?
@@ -129,14 +130,16 @@ public abstract class Robot {
 		boolean canMoveC = rc.canMove(toward);
 		boolean canMoveL = rc.canMove(toward.rotateLeft());
 		boolean canMoveR = rc.canMove(toward.rotateRight());
+
+		// temporary fix
 		if(rc.canSenseLocation(ac)) {
-			passC = (int)(100*rc.senseRubble(ac));
+			passC = 1000/(rc.senseRubble(ac)+1);
 		}
 		if(rc.canSenseLocation(al)) {
-			passL = (int)(100*rc.senseRubble(al));
+			passL = 1000/(rc.senseRubble(al)+1);
 		}
 		if(rc.canSenseLocation(ar)) {
-			passR = (int)(100*rc.senseRubble(ar));
+			passR = 1000/(rc.senseRubble(ar)+1);
 		}
 		if(canMoveC && canMoveL && canMoveR){
 			if(passC >= passL && passC >= passR) {

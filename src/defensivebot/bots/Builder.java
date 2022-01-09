@@ -16,11 +16,7 @@ public class Builder extends Robot{
 
     @Override
     public void sense() throws GameActionException {
-        localInfo.senseRobots();
-        if(type == null){
-            type = comms.getSubtypeFromSignal(localInfo.homeArchon);
-            printDebugLog("I will build a watchtower id: "+rc.getID());
-        }
+
 //        CustomSet<SparseSignal> sparseSignals = comms.querySparseSignals();
 //        sparseSignals.initIteration();
 //        SparseSignal next = sparseSignals.next();

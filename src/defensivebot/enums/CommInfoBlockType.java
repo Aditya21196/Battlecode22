@@ -18,4 +18,18 @@ public enum CommInfoBlockType {
         this.offset=offset;
         this.blockSize=blockSize;
     }
+
+    public int getStoreVal(int val){
+        switch (this){
+            case LEAD_MAP:
+                if(val>100)return 3;
+                if(val>50)return 2;
+                return 0;
+            case EXPLORATION:
+                if(val>0)return 1;
+                return 0;
+        }
+        return 1;
+    }
+
 }
