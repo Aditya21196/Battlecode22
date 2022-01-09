@@ -3,18 +3,13 @@ package defensivebot.bots;
 
 import battlecode.common.*;
 
-import java.util.Map;
-
 import static defensivebot.utils.Constants.directions;
-import static defensivebot.utils.LogUtils.printDebugLog;
 
 public class Miner extends Robot{
     
 	private int headingIndex = -1; // index in Constants.directions for heading
 	private MapLocation poi = null;
-	private MapLocation lockedTarget = null;
-	private int lockCount = 0;
-	
+
 	public Miner(RobotController rc) throws GameActionException  {
         super(rc);
     }
@@ -67,13 +62,6 @@ public class Miner extends Robot{
     		return;
     	}
 
-		if(lockedTarget != null && lockCount>0){
-			lockCount--;
-			moveToward(lockedTarget);
-			rc.setIndicatorString("locked target: "+lockedTarget);
-			return;
-		}
-    	
     	//no gold
     	//enemy miner or archon nearby
     	if(localInfo.nearestER[RobotType.MINER.ordinal()] != null || localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
