@@ -1,13 +1,13 @@
 package defensivebot.strategies;
 
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import defensivebot.enums.CommInfoBlockType;
 
+import static defensivebot.bots.Robot.turnCount;
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
 
 public class LocalInfo {
@@ -23,12 +23,21 @@ public class LocalInfo {
     public int[] nearestERDist; //nearest enemy robots' distances(of each type)
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
+    // just for debugging
+    public RobotInfo nearestEnemy;
+    public int nearestEnemyDist;
+
     public RobotInfo homeArchon;
+
     public RobotInfo[] highestIDFR; //highest id robots of each type
     
     //additional Robot Info (for attacking)
     public RobotInfo[] weakestER; //weakest(lowest health) enemy robots of each type
     public int[] weakestERHealth; //weakest enemy robots' health (of each type)
+
+    public int leadSensedLastRound = -1;
+
+
     
     //Lead Info gathered
     public MapLocation nearestLeadLoc;
@@ -55,15 +64,28 @@ public class LocalInfo {
     private void reset(){
 
     }
-    
+
+//    public RobotInfo getNearestEnemy(){
+//
+//    }
+
     public void senseRobots(){
     	friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
+
+
+        // for debugging
+        nearestEnemy = null;
+        nearestEnemyDist = Integer.MAX_VALUE;
+
+
         nearestFR = new RobotInfo[UNITS_AVAILABLE];
         nearestFRDist = new int[UNITS_AVAILABLE];
         nearestER = new RobotInfo[UNITS_AVAILABLE];
         nearestERDist = new int[UNITS_AVAILABLE];
+
         highestIDFR = new RobotInfo[UNITS_AVAILABLE];
+
         for(int i = nearestFRDist.length; --i>=0;) {
         	nearestFRDist[i] = Integer.MAX_VALUE;
         	nearestERDist[i] = Integer.MAX_VALUE;
@@ -89,6 +111,13 @@ public class LocalInfo {
                 }
                 
             }else{
+
+                // for debugging
+                if(nearestEnemyDist<distToMe){
+                    nearestEnemyDist = distToMe;
+                    nearestEnemy = nearbyRobots[i];
+                }
+
                 enemyUnitCounts[typeOrdinal]++;
                 if(distToMe < nearestERDist[typeOrdinal]) {
                 	nearestER[typeOrdinal] = nearbyRobots[i];
@@ -150,12 +179,18 @@ public class LocalInfo {
         }
     }
 
+
     public void senseLead() throws GameActionException {
+
+        if(leadSensedLastRound == turnCount)return;
+        else leadSensedLastRound = turnCount;
+
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
     	totalLead=0;
 	    MapLocation loc = rc.getLocation();
 	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
@@ -164,6 +199,11 @@ public class LocalInfo {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
+
+	        if(isDenseUpdateAllowed) {
+	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
+	        }
+
         }
     }
     
@@ -201,8 +241,10 @@ public class LocalInfo {
     
     // 
     public void senseRubble(MapLocation location) throws GameActionException {
+
     	lowestRubble = Integer.MAX_VALUE;
     	lowestRubbleLoc = null;
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
 	    MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(location, 2);
         for(int i = locations.length; --i >= 0;){
         	if(rc.canSenseLocation(locations[i])) {
@@ -213,6 +255,17 @@ public class LocalInfo {
 	            }
         	}
         }
+
+    }
+
+    public void checkExploration(){
+        // if lead was checked, we mark as explored
+        MapLocation loc = rc.getLocation();
+        if(!comms.isDenseUpdateAllowed())return;
+        if(turnCount == leadSensedLastRound){
+            comms.queueDenseMatrixUpdate(loc.x,loc.y, 1, CommInfoBlockType.EXPLORATION);
+        }
+
     }
     
 	/*

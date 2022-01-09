@@ -28,9 +28,7 @@ public class LinkedList<T> {
         }
         return null;
     }
-    /**
-     * O(n)
-     */
+
     public boolean contains(T obj) {
         Node<T> node = head;
         while (node != null) {

@@ -9,6 +9,8 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
+import static defensivebot.utils.LogUtils.printDebugLog;
+
 public class Soldier extends Robot{
 	
 	private int headingIndex = -1; // index in Constants.directions for heading
@@ -24,10 +26,12 @@ public class Soldier extends Robot{
     }
 
     @Override
+
     public void sense() throws GameActionException {}
     @Override
     public void move() throws GameActionException {}
     
+
     @Override
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
@@ -120,6 +124,7 @@ public class Soldier extends Robot{
 	}
 
 	
+
 
 	private void enemyDamagerNearby() throws GameActionException {
 		int fdCount = localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]+
