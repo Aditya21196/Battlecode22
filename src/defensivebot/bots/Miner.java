@@ -93,7 +93,6 @@ public class Miner extends Robot{
 			if(loc != null){
 				moveToward(loc);
 				rc.setIndicatorString("unexplored area: "+loc);
-//				lockTarget(loc,10);
 				return;
 			}
 
@@ -120,9 +119,7 @@ public class Miner extends Robot{
 		//TODO: scan comms for a target location to go toward. DONE
 		MapLocation loc = commsBestLocforMiner();
 		if(loc != null){
-			// There is a lot of back and forth because of this
-			// We need to lock the movement of a miner for this to work properly
-//			lockTarget(loc,5);
+			// There can be a lot of back and forth because of this if not done right
 			rc.setIndicatorString("best mining loc: "+loc);
 			moveToward(loc);
 			return;
@@ -133,11 +130,6 @@ public class Miner extends Robot{
 		rc.setIndicatorString("heading. no one is around");
 		return;
     }
-
-	private void lockTarget(MapLocation loc, int rounds) {
-		lockedTarget = loc;
-		lockCount = rounds;
-	}
 
 	private void enemyDamagerNearby() throws GameActionException {
 		localInfo.senseGold();
