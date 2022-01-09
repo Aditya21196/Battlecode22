@@ -214,7 +214,8 @@ public class LocalInfo {
     	totalLead=0;
 	    MapLocation loc = rc.getLocation();
 	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
-        for(int i = locations.length; --i >= 0;){
+	    boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
+	    for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
         	int distToMe = loc.distanceSquaredTo(locations[i]);
@@ -222,6 +223,9 @@ public class LocalInfo {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
+        	if(isDenseUpdateAllowed) {
+	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
+	        }
         }
     }
     
@@ -244,7 +248,7 @@ public class LocalInfo {
 
     	lowestRubble = Integer.MAX_VALUE;
     	lowestRubbleLoc = null;
-        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
+        //boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
 	    MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(location, 2);
         for(int i = locations.length; --i >= 0;){
         	if(rc.canSenseLocation(locations[i])) {
@@ -258,6 +262,7 @@ public class LocalInfo {
 
     }
 
+    
     public void checkExploration(){
         // if lead was checked, we mark as explored
         MapLocation loc = rc.getLocation();

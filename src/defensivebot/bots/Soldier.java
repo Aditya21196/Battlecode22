@@ -104,6 +104,8 @@ public class Soldier extends Robot{
     		//follow him
     		moveTo(localInfo.highestIDFR[RobotType.SOLDIER.ordinal()].getLocation());
     		trySenseResources();
+    		rc.setIndicatorString("following FS");
+    		return;
     	}
     	
     	//no friendly soldier with higher id
@@ -146,25 +148,30 @@ public class Soldier extends Robot{
 					tryAttack(target);
 					return;
 				}
-				
-				localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation());
-				if(localInfo.lowestRubbleLoc != null) {
-					moveTo(localInfo.lowestRubbleLoc);
-					tryAttack(localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation());
-					return;
+				if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
+					localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation());
+					if(localInfo.lowestRubbleLoc != null) {
+						moveTo(localInfo.lowestRubbleLoc);
+						tryAttack(localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation());
+						return;
+					}
 				}
 				
-				localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation());
-				if(localInfo.lowestRubbleLoc != null) {
-					moveTo(localInfo.lowestRubbleLoc);
-					tryAttack(localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation());
-					return;
+				if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
+					localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation());
+					if(localInfo.lowestRubbleLoc != null) {
+						moveTo(localInfo.lowestRubbleLoc);
+						tryAttack(localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation());
+						return;
+					}
 				}
-				localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation());
-				if(localInfo.lowestRubbleLoc != null) {
-					moveTo(localInfo.lowestRubbleLoc);
-					tryAttack(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation());
-					return;
+				if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
+					localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation());
+					if(localInfo.lowestRubbleLoc != null) {
+						moveTo(localInfo.lowestRubbleLoc);
+						tryAttack(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation());
+						return;
+					}
 				}
 				return;
 			}

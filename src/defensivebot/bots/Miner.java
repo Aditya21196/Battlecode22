@@ -24,7 +24,8 @@ public class Miner extends Robot{
     public void executeRole() throws GameActionException {
     	//sense robots
     	localInfo.senseRobots();
-		localInfo.senseLead();
+    	//undoing from previous merge
+		//localInfo.senseLead();
     	
     	//enemies that deal damage nearby?
     	if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
@@ -65,7 +66,13 @@ public class Miner extends Robot{
     	//no gold
     	//enemy miner or archon nearby
     	if(localInfo.nearestER[RobotType.MINER.ordinal()] != null || localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
-
+    		/*reincluding to maintain parallel with decision tree and 
+    		 * prevent calling senseLead at start and then senseLeadPassive after some decisions
+    		 *we can change back to sensing at start, but I expect with the comms now occuring at senseLeadPassive 
+    		 *we will observe similar comms behavior as when lead is sensed at the beginning.
+    		 * 
+    		 */
+    		localInfo.senseLead();
     		//found lead?
     		if(localInfo.nearestLeadLoc != null) {
     			localInfo.senseRubble(localInfo.nearestLeadLoc);
