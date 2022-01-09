@@ -180,8 +180,8 @@ public class Comms {
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
 
         CommInfoBlockType commInfoBlockType = CommInfoBlockType.LEAD_MAP;
-        for(int i=1;i<BFS25.length;i++){
-            int checkX = BFS25[i][0]+curSectorX,checkY = BFS25[i][1]+curSectorY;
+        for(int i=1;i<BFS_MANHATTAN_5.length;i++){
+            int checkX = BFS_MANHATTAN_5[i][0]+curSectorX,checkY = BFS_MANHATTAN_5[i][1]+curSectorY;
 
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
