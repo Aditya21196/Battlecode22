@@ -5,7 +5,9 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import defensivebot.enums.CommInfoBlockType;
 
+import static defensivebot.bots.Robot.turnCount;
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
 
 public class LocalInfo {
@@ -26,6 +28,7 @@ public class LocalInfo {
     public int nearestEnemyDist;
 
     public RobotInfo homeArchon;
+    public int leadSensedLastRound = -1;
 
     
     //Lead Info gathered
@@ -112,12 +115,17 @@ public class LocalInfo {
 
 
     public void senseLead() throws GameActionException {
+
+        if(leadSensedLastRound == turnCount)return;
+        else leadSensedLastRound = turnCount;
+
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
     	//passiveMiningLoc = null;
     	totalLead=0;
 	    MapLocation loc = rc.getLocation();
 	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
@@ -129,12 +137,9 @@ public class LocalInfo {
             		passiveMiningLoc = locations[i];
             	}*/
             }
-        	/*
-	        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
 	        if(isDenseUpdateAllowed) {
 	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
 	        }
-	        */
         }
     }
     
@@ -182,8 +187,10 @@ public class LocalInfo {
     
     //We can change this later, but for now 
     public void senseRubble(MapLocation location) throws GameActionException {
+
     	lowestRubble = Integer.MAX_VALUE;
     	lowestRubbleLoc = null;
+        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
 	    MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(location, 2);
         for(int i = locations.length; --i >= 0;){
         	if(rc.canSenseLocation(locations[i])) {
@@ -194,12 +201,15 @@ public class LocalInfo {
 	            }
         	}
         }
-        /*
-        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed(loc);
-        if(isDenseUpdateAllowed) {
-        	comms.queueDenseMatrixUpdate(loc.x, loc.y, locations.length, CommInfoBlockType.GOLD_MAP);
+    }
+
+    public void checkExploration(){
+        // if lead was checked, we mark as explored
+        MapLocation loc = rc.getLocation();
+        if(!comms.isDenseUpdateAllowed())return;
+        if(turnCount == leadSensedLastRound){
+            comms.queueDenseMatrixUpdate(loc.x,loc.y, 1, CommInfoBlockType.EXPLORATION);
         }
-        */
     }
     
 }

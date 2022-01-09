@@ -3,10 +3,9 @@ package defensivebot.enums;
 public enum CommInfoBlockType {
 
     LEAD_MAP(0,2), // cumulative offset - 2
-    RUBBLE_MAP(2,2), // cumulative offset - 4
-    FRIENDLY_UNITS(4,1), // cumulative offset - 6. Threshold - 5 units or at least one watch tower
-    EXPLORATION(5,1), // cumulative offset - 5
-    ENEMY_UNITS(6,2); // cumulative offset - 8
+    ATTACKING_FRIENDLY_UNITS(2,1), // cumulative offset - 3. Threshold - 5 units or at least one watch tower
+    EXPLORATION(3,1), // cumulative offset - 4
+    ENEMY_UNITS(4,2); // cumulative offset - 6
 
     // we still have at least 8 blocks for sparse signals (half array)
 
@@ -19,4 +18,18 @@ public enum CommInfoBlockType {
         this.offset=offset;
         this.blockSize=blockSize;
     }
+
+    public int getStoreVal(int val){
+        switch (this){
+            case LEAD_MAP:
+                if(val>100)return 3;
+                if(val>50)return 2;
+                return 0;
+            case EXPLORATION:
+                if(val>0)return 1;
+                return 0;
+        }
+        return 1;
+    }
+
 }

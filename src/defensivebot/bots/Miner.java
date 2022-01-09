@@ -2,13 +2,14 @@ package defensivebot.bots;
 
 
 import battlecode.common.*;
+
 import static defensivebot.utils.Constants.directions;
 
 public class Miner extends Robot{
     
 	private int headingIndex = -1; // index in Constants.directions for heading
 	private MapLocation poi = null;
-	
+
 	public Miner(RobotController rc) throws GameActionException  {
         super(rc);
     }
@@ -23,6 +24,7 @@ public class Miner extends Robot{
     public void executeRole() throws GameActionException {
     	//sense robots
     	localInfo.senseRobots();
+		localInfo.senseLead();
     	
     	//enemies that deal damage nearby?
     	if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
@@ -59,11 +61,11 @@ public class Miner extends Robot{
     		rc.setIndicatorString("found gold, best mining loc identified.");
     		return;
     	}
-    	
+
     	//no gold
     	//enemy miner or archon nearby
     	if(localInfo.nearestER[RobotType.MINER.ordinal()] != null || localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
-    		localInfo.senseLead();
+
     		//found lead?
     		if(localInfo.nearestLeadLoc != null) {
     			localInfo.senseRubble(localInfo.nearestLeadLoc);
@@ -74,8 +76,15 @@ public class Miner extends Robot{
     			return;
     		}
     		
-    		//TODO: scan comms for a target location to go toward
-    		
+    		//TODO: scan comms for a target location to go toward. DONE
+    		MapLocation loc = commsBestLocforMiner();
+			if(loc != null){
+				moveToward(loc);
+				rc.setIndicatorString("unexplored area: "+loc);
+				return;
+			}
+
+
     		//heading
     		moveHeading();
     		rc.setIndicatorString("heading. enemy miner/archon near .. whatever");
@@ -95,15 +104,22 @@ public class Miner extends Robot{
     	}
     	
     	//no lead for passive mining
-    	//TODO: scan comms for a target location to go toward
+		//TODO: scan comms for a target location to go toward. DONE
+		MapLocation loc = commsBestLocforMiner();
+		if(loc != null){
+			// There can be a lot of back and forth because of this if not done right
+			rc.setIndicatorString("best mining loc: "+loc);
+			moveToward(loc);
+			return;
+		}
 		
 		//heading
 		moveHeading();
 		rc.setIndicatorString("heading. no one is around");
 		return;
     }
-    
-    private void enemyDamagerNearby() throws GameActionException {
+
+	private void enemyDamagerNearby() throws GameActionException {
 		localInfo.senseGold();
 		//found gold?
 		if(localInfo.nearestGoldLoc != null) {
@@ -122,6 +138,15 @@ public class Miner extends Robot{
 		//no lead
 		moveAway(poi); //move away from enemy that deals damage
 		return;
+	}
+
+	private MapLocation commsBestLocforMiner() throws GameActionException {
+		// for now, I am only finding unexplored locations
+		MapLocation bestLoc = comms.getNearestLeadLoc();
+		if(bestLoc == null){
+			bestLoc = comms.getNearbyUnexplored();
+		}
+		return bestLoc;
 	}
     
     private void tryMove(Direction dir) throws GameActionException {
