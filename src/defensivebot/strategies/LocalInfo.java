@@ -106,7 +106,7 @@ public class LocalInfo {
                 if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal()) {
                 	homeArchon = nearbyRobots[i];
                 }
-                if(highestIDFR[typeOrdinal] != null && nearbyRobots[i].getID() > highestIDFR[typeOrdinal].getID()) {
+                if(highestIDFR[typeOrdinal] == null || nearbyRobots[i].getID() > highestIDFR[typeOrdinal].getID()) {
                 	highestIDFR[typeOrdinal] = nearbyRobots[i];
                 }
                 
@@ -161,7 +161,7 @@ public class LocalInfo {
                 if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal()) {
                 	homeArchon = nearbyRobots[i];
                 }
-                if(highestIDFR[typeOrdinal] != null && nearbyRobots[i].getID() > highestIDFR[typeOrdinal].getID()) {
+                if(highestIDFR[typeOrdinal] == null || nearbyRobots[i].getID() > highestIDFR[typeOrdinal].getID()) {
                 	highestIDFR[typeOrdinal] = nearbyRobots[i];
                 }
             }else{

@@ -89,6 +89,7 @@ public class Soldier extends Robot{
     	//no enemy non damager nearby
     	
     	//has task and taskLocation?
+    	//currently does nothing ...
     	if(taskType == 0) {
     		//perform movement for task
     		trySenseResources();
@@ -100,13 +101,13 @@ public class Soldier extends Robot{
     	//TODO: add decision to look in comms for tasks (ie explore here, go to here, surround here)
     	
     	//friendly soldier with higher id?
-    	if(localInfo.highestIDFR[RobotType.SOLDIER.ordinal()] != null && localInfo.highestIDFR[RobotType.SOLDIER.ordinal()].getID() > rc.getID()) {
+    	/*if(localInfo.highestIDFR[RobotType.SOLDIER.ordinal()] != null && localInfo.highestIDFR[RobotType.SOLDIER.ordinal()].getID() > rc.getID()) {
     		//follow him
     		moveTo(localInfo.highestIDFR[RobotType.SOLDIER.ordinal()].getLocation());
     		trySenseResources();
     		rc.setIndicatorString("following FS");
     		return;
-    	}
+    	}*/
     	
     	//no friendly soldier with higher id
     	//heading
