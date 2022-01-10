@@ -147,7 +147,7 @@ public class LocalInfo {
     }
 
 
-    public void senseLead() throws GameActionException {
+    public void senseLead(boolean forPassive) throws GameActionException {
 
         if(leadSensedLastRound == turnCount)return;
         else leadSensedLastRound = turnCount;
@@ -167,47 +167,21 @@ public class LocalInfo {
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
-        	int distToMe = loc.distanceSquaredTo(locations[i]);
+            if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
+                totalLeadInSector += lead;
+
+            if(forPassive && lead<MIN_LEAD_PASSIVE)continue;
+
+            int distToMe = loc.distanceSquaredTo(locations[i]);
+
         	if(distToMe < nearestLeadDist) {
-            	nearestLeadLoc = locations[i];
-            	nearestLeadDist = distToMe;
-            }
-
-            if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
-                totalLeadInSector += lead;
-
-        }
-        if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLead, CommInfoBlockType.LEAD_MAP);
-    }
-    
-    //designed to only report nearest lead deposit with greater than 5 lead.
-    public void senseLeadForPassive() throws GameActionException {
-    	nearestLeadDist = Integer.MAX_VALUE;
-    	nearestLeadLoc = null;
-    	totalLead=0;
-
-        MapLocation loc = rc.getLocation();
-
-        int totalLeadInSector=0;
-        int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
-
-	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
-	    boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
-	    for(int i = locations.length; --i >= 0;){
-        	int lead = rc.senseLead(locations[i]);
-        	totalLead += lead;
-        	int distToMe = loc.distanceSquaredTo(locations[i]);
-
-            if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
-                totalLeadInSector += lead;
-
-        	if(distToMe < nearestLeadDist && lead > MIN_LEAD_PASSIVE) {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
         }
         if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
     }
+
     
     public void senseGold() throws GameActionException {
     	nearestGoldDist = Integer.MAX_VALUE;

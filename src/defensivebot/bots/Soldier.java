@@ -30,7 +30,7 @@ public class Soldier extends Robot{
     @Override
 
     public void sense() throws GameActionException {
-		localInfo.senseLead();
+		localInfo.senseLead(false);
 	}
     @Override
     public void move() throws GameActionException {}
@@ -103,7 +103,7 @@ public class Soldier extends Robot{
 
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 1000) {
-			localInfo.senseLead();
+			localInfo.senseLead(false);
 		}
 		if(Clock.getBytecodesLeft() > 1000) {
 			localInfo.senseGold();

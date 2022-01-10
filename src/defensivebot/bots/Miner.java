@@ -55,7 +55,7 @@ public class Miner extends Robot{
     		 *we will observe similar comms behavior as when lead is sensed at the beginning.
     		 * 
     		 */
-    		localInfo.senseLead();
+    		localInfo.senseLead(false);
     		//found lead?
     		if(localInfo.nearestLeadLoc != null) {
     			localInfo.senseRubble(localInfo.nearestLeadLoc);
@@ -80,7 +80,7 @@ public class Miner extends Robot{
     	}
     	
     	//no enemy miner or archon nearby
-    	localInfo.senseLeadForPassive();
+    	localInfo.senseLead(true);
     	//found Lead for passive mining?
     	if(localInfo.nearestLeadLoc != null) {
     		localInfo.senseRubble(localInfo.nearestLeadLoc);
@@ -110,7 +110,7 @@ public class Miner extends Robot{
 		localInfo.senseGold();
 		//found gold in action radius?
 		if(localInfo.nearestGoldLoc != null && localInfo.nearestGoldDist<=RobotType.MINER.actionRadiusSquared) mineGold();
-		localInfo.senseLead();
+		localInfo.senseLead(false);
 		//found lead in action radius?
 		if(localInfo.nearestLeadLoc != null && localInfo.nearestGoldDist<=RobotType.MINER.actionRadiusSquared) mineLead();
 		//move away from enemy that deals damage
