@@ -88,7 +88,7 @@ public class Archon extends Robot{
             toBuild = RobotType.SOLDIER;
         }
 
-        //if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
+        if(rc.getMapHeight() > 40 && rc.getMapWidth() > 40 && Math.random() < 0.05) toBuild = RobotType.BUILDER;
 
         // testing this strat
 //        if(turnCount<INITIAL_MINERS_TO_BUILD_ROUNDS){
