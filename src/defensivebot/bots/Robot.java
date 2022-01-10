@@ -69,6 +69,10 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 
+		if(roundNum == 16 && rc.getType() == RobotType.MINER){
+			System.out.println();
+		}
+
 
 		sense();
 //		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());

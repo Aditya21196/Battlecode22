@@ -186,8 +186,10 @@ public class Comms {
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
 
         CommInfoBlockType commInfoBlockType = CommInfoBlockType.EXPLORATION;
-        for(int i=1;i<BFS25.length;i++){
-            int checkX = BFS25[i][0]+curSectorX,checkY = BFS25[i][1]+curSectorY;
+        int randomDir = rc.getID()%4;
+        int[][] BFS = BFS25[randomDir];
+        for(int i=1;i<BFS.length;i++){
+            int checkX = BFS[i][0]+curSectorX,checkY = BFS[i][1]+curSectorY;
 
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
