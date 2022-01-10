@@ -39,6 +39,7 @@ public class CustomSet<T> {
     public T next(){
         if(itrIdx>=capacity)return null;
         if(cur == null || cur.next == null){
+            if(cur != null)itrIdx++;
             while(itrIdx<capacity && table[itrIdx].size == 0)itrIdx++;
             if(itrIdx>=capacity)return null;
             cur = table[itrIdx].head;

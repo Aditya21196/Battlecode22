@@ -84,6 +84,7 @@ public abstract class Robot {
 		verbose("lead count: "+rc.getTeamLeadAmount(team));
 
 		localInfo.checkExploration();
+		localInfo.checkEnemySpotted();
 		comms.processUpdateQueues();
 
 		// TODO: decide byte code limit for cleaning dynamically?

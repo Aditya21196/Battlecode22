@@ -6,6 +6,8 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import defensivebot.enums.CommInfoBlockType;
+import defensivebot.enums.SparseSignalType;
+import defensivebot.models.SparseSignal;
 
 import static defensivebot.bots.Robot.turnCount;
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
@@ -117,7 +119,7 @@ public class LocalInfo {
             }else{
 
                 // for debugging
-                if(nearestEnemyDist<distToMe){
+                if(nearestEnemyDist>distToMe){
                     nearestEnemyDist = distToMe;
                     nearestEnemy = nearbyRobots[i];
                 }
@@ -132,8 +134,17 @@ public class LocalInfo {
     }
     
     public void senseRobotsForAttack(){
+
+        if(robotsSensedLastRound == turnCount)return;
+        else robotsSensedLastRound = turnCount;
+
     	friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
+
+        // for debugging
+        nearestEnemy = null;
+        nearestEnemyDist = Integer.MAX_VALUE;
+
         nearestFR = new RobotInfo[UNITS_AVAILABLE];
         nearestFRDist = new int[UNITS_AVAILABLE];
         nearestER = new RobotInfo[UNITS_AVAILABLE];
@@ -169,6 +180,12 @@ public class LocalInfo {
                 	highestIDFR[typeOrdinal] = nearbyRobots[i];
                 }
             }else{
+
+                if(nearestEnemyDist>distToMe){
+                    nearestEnemyDist = distToMe;
+                    nearestEnemy = nearbyRobots[i];
+                }
+
                 enemyUnitCounts[typeOrdinal]++;
                 if(distToMe < nearestERDist[typeOrdinal]) {
                 	nearestER[typeOrdinal] = nearbyRobots[i];
@@ -285,6 +302,12 @@ public class LocalInfo {
         if(!comms.isDenseUpdateAllowed())return;
         if(turnCount == leadSensedLastRound){
             comms.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION);
+        }
+    }
+
+    public void checkEnemySpotted(){
+        if(turnCount == robotsSensedLastRound && nearestEnemy!=null){
+            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
         }
     }
     

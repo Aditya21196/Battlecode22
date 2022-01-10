@@ -32,7 +32,7 @@ public strictfp class RobotPlayer {
                 System.out.println(rc.getType() + " Exception. Fix!");
                 e.printStackTrace();
             } finally {
-                System.out.println("Bytecode: "+Clock.getBytecodesLeft()+" unit: "+rc.getType());
+//                System.out.println("Bytecode: "+Clock.getBytecodesLeft()+" unit: "+rc.getType());
                 Clock.yield();
             }
         }

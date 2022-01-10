@@ -73,7 +73,7 @@ public class Comms {
         if(denseUpdateAllowed)processDenseSignalUpdates(updatedCommsValues);
 
         // process sparse updates
-        processSparseSignalUpdates(updatedCommsValues);
+        if(sparseSignalUpdates.size>0)processSparseSignalUpdates(updatedCommsValues);
 
         // update shared array
         updateSharedArray(updatedCommsValues);
@@ -95,8 +95,8 @@ public class Comms {
         isSignalArrayFull = false;
         while(sparseSignalUpdates.size>0){
             SparseSignal signal = sparseSignalUpdates.dequeue().val;
+            if(sparseSignals.contains(signal))continue;
             int numBits = signal.type.numBits + signal.type.positionSlots*numBitsSingleSectorInfo+signal.type.fixedBits;
-
             // not enough bits to write signal
             if(offset+numBits>=1024){
                 isSignalArrayFull = true;
