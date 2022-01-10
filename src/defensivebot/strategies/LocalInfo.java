@@ -5,6 +5,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import defensivebot.datasturctures.CustomSet;
 import defensivebot.enums.CommInfoBlockType;
 import defensivebot.enums.SparseSignalType;
 import defensivebot.models.SparseSignal;
@@ -174,9 +175,7 @@ public class LocalInfo {
         	totalLead += lead;
             if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
                 totalLeadInSector += lead;
-            
-            //no longer needed
-            //if(forPassive && lead<MIN_LEAD_PASSIVE)continue;
+
 
             int distToMe = loc.distanceSquaredTo(locations[i]);
 
@@ -314,5 +313,16 @@ public class LocalInfo {
     	
 		return rc.senseNearbyLocationsWithLead(low);
     	
+    }
+
+    public void checkArchonSpotted() {
+        if(turnCount == robotsSensedLastRound && nearestER[RobotType.ARCHON.ordinal()] != null){
+            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_ARCHON_LOCATION,nearestER[RobotType.ARCHON.ordinal()].location,-1));
+        }
+    }
+
+    public MapLocation getClosestEnemyArchon() {
+        if(homeArchon!=null)return new MapLocation(rc.getMapWidth()-homeArchon.location.x,rc.getMapHeight()-homeArchon.location.y);
+        return null;
     }
 }

@@ -31,18 +31,18 @@ public class Miner extends Robot{
 			return;
 		}
 
-//		// Miner finds a new place to go if this place is congested
-//		if(localInfo.friendlyUnitCounts[RobotType.MINER.ordinal()]>5){
-//			MapLocation loc = comms.getNearbyUnexplored();
-//			if(loc != null)moveToward(loc);
-//			moveAway(localInfo.nearestFR[RobotType.MINER.ordinal()].location);
-//			rc.setIndicatorString("avoiding friendly miner");
-//			return;
-//		}else if(rc.senseLead(currentLocation)>10){
-//			// no congestion. Can we mine lead at current location?
-//			while(rc.canMineLead(currentLocation))rc.mineLead(currentLocation);
-//			return;
-//		}
+		// Miner finds a new place to go if this place is congested
+		if(localInfo.friendlyUnitCounts[RobotType.MINER.ordinal()]>5){
+			MapLocation loc = comms.getNearbyUnexplored();
+			if(loc != null)moveToward(loc);
+			moveAway(localInfo.nearestFR[RobotType.MINER.ordinal()].location);
+			rc.setIndicatorString("avoiding friendly miner");
+			return;
+		}else if(rc.senseLead(currentLocation)>10){
+			// no congestion. Can we mine lead at current location?
+			while(rc.canMineLead(currentLocation))rc.mineLead(currentLocation);
+			return;
+		}
 
     	//no enemy damager nearby
     	localInfo.senseGold();

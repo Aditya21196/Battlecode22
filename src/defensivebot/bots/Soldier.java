@@ -16,6 +16,7 @@ public class Soldier extends Robot{
 	private int taskType = -1;
 	private MapLocation taskLocation = null;
 	private MapLocation headingTarget = null;
+	private boolean randomMovementAllowed = false;
 	
 	
     public Soldier(RobotController rc) throws GameActionException  {
@@ -93,6 +94,11 @@ public class Soldier extends Robot{
 	private MapLocation commsBestLocforSoldier() throws GameActionException {
 		MapLocation bestLoc = comms.getNearbyUnexplored();
 		if(bestLoc != null)rc.setIndicatorString("unexplored area: "+bestLoc);
+		else{
+			if(randomMovementAllowed)return null;
+			bestLoc = localInfo.getClosestEnemyArchon();
+			if(currentLocation.distanceSquaredTo(bestLoc)<20)randomMovementAllowed=true;
+		}
 		return bestLoc;
 	}
 
