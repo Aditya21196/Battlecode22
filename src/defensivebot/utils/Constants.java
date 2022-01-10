@@ -47,4 +47,5 @@ public class Constants {
 
     // comms cleanup
     public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP = 8000;
+    public static final int DENSE_COMMS_UPDATE_LIMIT = 3;
 }
