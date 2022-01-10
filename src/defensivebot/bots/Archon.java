@@ -59,18 +59,12 @@ public class Archon extends Robot{
 
         // for debugging
 
-//        if(rc.getRoundNum()>80)rc.resign();
-
-
+        if(rc.getRoundNum()>80)rc.resign();
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.SOLDIER;
-
 //        printDebugLog("exploration index: "+comms.explorationIndex());
-
-
         if(tempCounter%2 == 0){
             toBuild = RobotType.MINER;
-
         }
 
 

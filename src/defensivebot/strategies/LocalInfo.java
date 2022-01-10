@@ -192,7 +192,13 @@ public class LocalInfo {
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
     	totalLead=0;
-	    MapLocation loc = rc.getLocation();
+
+        MapLocation loc = rc.getLocation();
+
+        int totalLeadInSector=0;
+        int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
+
+
 	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
         boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
         for(int i = locations.length; --i >= 0;){
@@ -203,6 +209,10 @@ public class LocalInfo {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
+
+            if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
+                totalLeadInSector += lead;
+
         }
         if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLead, CommInfoBlockType.LEAD_MAP);
     }
@@ -212,19 +222,28 @@ public class LocalInfo {
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
     	totalLead=0;
-	    MapLocation loc = rc.getLocation();
+
+        MapLocation loc = rc.getLocation();
+
+        int totalLeadInSector=0;
+        int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
+
 	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
 	    boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
 	    for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
         	int distToMe = loc.distanceSquaredTo(locations[i]);
+
+            if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
+                totalLeadInSector += lead;
+
         	if(distToMe < nearestLeadDist && lead > MIN_LEAD_PASSIVE) {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
         }
-        if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLead, CommInfoBlockType.LEAD_MAP);
+        if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
     }
     
     public void senseGold() throws GameActionException {

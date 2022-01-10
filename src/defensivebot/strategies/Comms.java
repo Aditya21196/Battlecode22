@@ -20,7 +20,7 @@ import static defensivebot.utils.LogUtils.printDebugLog;
 public class Comms {
 
     private final RobotController rc;
-    private final int xSectorSize,ySectorSize,xSectors,
+    public final int xSectorSize,ySectorSize,xSectors,
             ySectors,blockOffset, sparseSignalOffset,
             numBitsSingleSectorInfo,sectorIsolationMask;
     private int[] data = new int[64];
