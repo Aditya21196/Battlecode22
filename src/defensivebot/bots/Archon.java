@@ -10,7 +10,7 @@ import static defensivebot.utils.Constants.UNITS_AVAILABLE;
 
 public class Archon extends Robot{
 
-    static final Random rng = new Random(6147);
+    public static final Random rng = new Random(6147);
 
     static int[] unitCounts = new int[UNITS_AVAILABLE];
 
@@ -59,7 +59,7 @@ public class Archon extends Robot{
 
         // for debugging
 
-        //if(rc.getRoundNum()>1000)rc.resign();
+        if(rc.getRoundNum()>80)rc.resign();
 
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];

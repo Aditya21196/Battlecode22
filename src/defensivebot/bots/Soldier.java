@@ -1,5 +1,6 @@
 package defensivebot.bots;
 
+import static defensivebot.bots.Archon.rng;
 import static defensivebot.utils.Constants.directions;
 
 import battlecode.common.Clock;
@@ -27,7 +28,9 @@ public class Soldier extends Robot{
 
     @Override
 
-    public void sense() throws GameActionException {}
+    public void sense() throws GameActionException {
+		localInfo.senseLead();
+	}
     @Override
     public void move() throws GameActionException {}
     
@@ -38,54 +41,23 @@ public class Soldier extends Robot{
     	localInfo.senseRobotsForAttack();
     	
     	//enemies that deal damage nearby?
-    	if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].location;
-    		enemyDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("enemy watchtower");
-    		return;
-    	}else if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.SOLDIER.ordinal()].location;
-    		enemyDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("enemy soldier");
-    		return;
-    	}else if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.SAGE.ordinal()].location;
-    		enemyDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("enemy sage");
-    		return;
-    	}
+		poi = localInfo.findNearestDamager();
+		if(poi != null){
+			enemyDamagerNearby();
+			rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
+			rc.setIndicatorString("avoiding enemy");
+		}
     	
     	//no enemy damagers nearby
     	//enemy non damager nearby?
-    	if(localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.ARCHON.ordinal()].location;
-    		enemyNonDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("enemy archon");
-    		return;
-    	}else if(localInfo.nearestER[RobotType.MINER.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.MINER.ordinal()].location;
-    		enemyNonDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("enemy miner");
-    		return;
-    	}else if(localInfo.nearestER[RobotType.BUILDER.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.BUILDER.ordinal()].location;
-    		enemyNonDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("enemy builder");
-    		return;
-    	}else if(localInfo.nearestER[RobotType.LABORATORY.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.LABORATORY.ordinal()].location;
-    		enemyNonDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("enemy lab");
-    		return;
-    	}
-    	
+		poi = localInfo.findNearestNondamager();
+		if(poi != null){
+			enemyNonDamagerNearby();
+			rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
+			rc.setIndicatorString("enemy non damager");
+		}
+
+
     	//no enemy non damager nearby
     	
     	//has task and taskLocation?
@@ -99,6 +71,12 @@ public class Soldier extends Robot{
     	//no task
     	
     	//TODO: add decision to look in comms for tasks (ie explore here, go to here, surround here)
+		MapLocation loc = commsBestLocforSoldier();
+		if(loc != null){
+			// There can be a lot of back and forth because of this if not done right
+			moveTo(loc);
+			return;
+		}
     	
     	//friendly soldier with higher id?
     	/*if(localInfo.highestIDFR[RobotType.SOLDIER.ordinal()] != null && localInfo.highestIDFR[RobotType.SOLDIER.ordinal()].getID() > rc.getID()) {
@@ -111,11 +89,16 @@ public class Soldier extends Robot{
     	
     	//no friendly soldier with higher id
     	//heading
+		// TODO: We are wasting soldier potential here. We should do something
 		moveHeading();
 		rc.setIndicatorString("heading. no one is around");
-		return;
-    	
     }
+
+	private MapLocation commsBestLocforSoldier() throws GameActionException {
+		MapLocation bestLoc = comms.getNearbyUnexplored();
+		if(bestLoc != null)rc.setIndicatorString("unexplored area: "+bestLoc);
+		return bestLoc;
+	}
 
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 1000) {
@@ -311,7 +294,7 @@ public class Soldier extends Robot{
 	private void moveHeading() throws GameActionException {
 		if(!rc.isMovementReady()) return;
     	if(headingIndex == -1) {
-			headingIndex = (int)(Math.random()*directions.length);
+			headingIndex = rng.nextInt(directions.length);
 		}
     	tryMove(getBestValidDirection(directions[headingIndex]));
 	}

@@ -3,6 +3,7 @@ package defensivebot.bots;
 
 import battlecode.common.*;
 
+import static defensivebot.bots.Archon.rng;
 import static defensivebot.utils.Constants.directions;
 
 public class Miner extends Robot{
@@ -17,37 +18,19 @@ public class Miner extends Robot{
     public void sense() throws GameActionException{}
     public void move() throws GameActionException {}
 
-	/*
-	 * current strat mine lead
-	 */
     @Override
     public void executeRole() throws GameActionException {
-    	//sense robots
-    	localInfo.senseRobots();
-    	//undoing from previous merge
-		//localInfo.senseLead();
     	
     	//enemies that deal damage nearby?
-    	if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].location;
-    		enemyDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("avoiding enemy watchtower");
-    		return;
-    	}else if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.SOLDIER.ordinal()].location;
-    		enemyDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("avoiding enemy soldier");
-    		return;
-    	}else if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
-    		poi = localInfo.nearestER[RobotType.SAGE.ordinal()].location;
-    		enemyDamagerNearby();
-    		rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-    		rc.setIndicatorString("avoiding enemy sage");
-    		return;
-    	}
-    	
+		localInfo.senseRobots();
+		poi = localInfo.findNearestDamager();
+		if(poi != null){
+			enemyDamagerNearby();
+			rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
+			rc.setIndicatorString("avoiding enemy damager");
+			return;
+		}
+
     	//no enemy damager nearby
     	localInfo.senseGold();
     	
@@ -82,14 +65,13 @@ public class Miner extends Robot{
         		rc.setIndicatorString("enemy miner/archon near. Mine all lead found best mining loc.");
     			return;
     		}
-    		
-    		//TODO: scan comms for a target location to go toward. DONE
+
+    		//scan comms for a target location to go toward
     		MapLocation loc = commsBestLocforMiner();
 			if(loc != null){
 				moveToward(loc);
 				return;
 			}
-
 
     		//heading
     		moveHeading();
@@ -126,23 +108,13 @@ public class Miner extends Robot{
 
 	private void enemyDamagerNearby() throws GameActionException {
 		localInfo.senseGold();
-		//found gold?
-		if(localInfo.nearestGoldLoc != null) {
-    		mineGold();
-    		moveAway(poi); //move away from enemy that deals damage
-    		return;
-    	}
-		//no gold
+		//found gold in action radius?
+		if(localInfo.nearestGoldLoc != null && localInfo.nearestGoldDist<=RobotType.MINER.actionRadiusSquared) mineGold();
 		localInfo.senseLead();
-		//found lead?
-		if(localInfo.nearestLeadLoc != null) {
-			mineLead();
-			moveAway(poi); //move away from enemy that deals damage
-    		return;
-		}
-		//no lead
-		moveAway(poi); //move away from enemy that deals damage
-		return;
+		//found lead in action radius?
+		if(localInfo.nearestLeadLoc != null && localInfo.nearestGoldDist<=RobotType.MINER.actionRadiusSquared) mineLead();
+		//move away from enemy that deals damage
+		moveAway(poi);
 	}
 
 	private MapLocation commsBestLocforMiner() throws GameActionException {
@@ -166,7 +138,7 @@ public class Miner extends Robot{
     private void moveHeading() throws GameActionException {
 		if(!rc.isMovementReady()) return;
     	if(headingIndex == -1) {
-			headingIndex = (int)(Math.random()*directions.length);
+			headingIndex = rng.nextInt(directions.length);
 		}
     	tryMove(getBestValidDirection(directions[headingIndex]));
 	}
@@ -183,7 +155,7 @@ public class Miner extends Robot{
     	}
 	}
     
-	
+	// TODO: iterate over all directions and check lead in each direction
     private void mineLead() throws GameActionException {
     	while(rc.canMineLead(localInfo.nearestLeadLoc)) {
     		rc.mineLead(localInfo.nearestLeadLoc);

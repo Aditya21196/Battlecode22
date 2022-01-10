@@ -69,6 +69,10 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 
+		if(rc.getRoundNum() == 58 && rc.getID() == 13393){
+			System.out.println();
+		}
+
 		sense();
 //		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 

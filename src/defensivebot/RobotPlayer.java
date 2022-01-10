@@ -19,8 +19,6 @@ public strictfp class RobotPlayer {
         Robot robot = Robot.getRobot(rc);;
 
         while (true) {
-
-
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
             try {
                 robot.runRobot();
@@ -34,10 +32,9 @@ public strictfp class RobotPlayer {
                 System.out.println(rc.getType() + " Exception. Fix!");
                 e.printStackTrace();
             } finally {
+                System.out.println("Bytecode: "+Clock.getBytecodesLeft()+" unit: "+rc.getType());
                 Clock.yield();
             }
         }
     }
-
-
 }

@@ -35,7 +35,7 @@ public class LocalInfo {
     public RobotInfo[] weakestER; //weakest(lowest health) enemy robots of each type
     public int[] weakestERHealth; //weakest enemy robots' health (of each type)
 
-    public int leadSensedLastRound = -1;
+    public int leadSensedLastRound = -1,robotsSensedLastRound = -1;
 
 
     
@@ -70,6 +70,10 @@ public class LocalInfo {
 //    }
 
     public void senseRobots(){
+
+        if(robotsSensedLastRound == turnCount)return;
+        else robotsSensedLastRound = turnCount;
+
     	friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
 
@@ -292,5 +296,19 @@ public class LocalInfo {
         	}
         }
 	}
-    
+
+    public MapLocation findNearestDamager() {
+        if(nearestER[RobotType.WATCHTOWER.ordinal()] != null)return nearestER[RobotType.WATCHTOWER.ordinal()].location;
+        if(nearestER[RobotType.SOLDIER.ordinal()] != null)return nearestER[RobotType.SOLDIER.ordinal()].location;
+        if(nearestER[RobotType.SAGE.ordinal()] != null)return nearestER[RobotType.SAGE.ordinal()].location;
+        return null;
+    }
+
+    public MapLocation findNearestNondamager() {
+        if(nearestER[RobotType.ARCHON.ordinal()] != null)return nearestER[RobotType.ARCHON.ordinal()].location;
+        if(nearestER[RobotType.LABORATORY.ordinal()] != null)return nearestER[RobotType.LABORATORY.ordinal()].location;
+        if(nearestER[RobotType.MINER.ordinal()] != null)return nearestER[RobotType.MINER.ordinal()].location;
+        if(nearestER[RobotType.BUILDER.ordinal()] != null)return nearestER[RobotType.BUILDER.ordinal()].location;
+        return null;
+    }
 }
