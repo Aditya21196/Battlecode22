@@ -20,6 +20,7 @@ public class Soldier extends Robot{
 	//TODO:convert taskType to enum or try to sync with what is used in comms
 	private int taskType = -1;
 	private MapLocation taskLocation = null;
+	private MapLocation headingTarget = null;
 	
 	
     public Soldier(RobotController rc) throws GameActionException  {
@@ -293,10 +294,16 @@ public class Soldier extends Robot{
 	
 	private void moveHeading() throws GameActionException {
 		if(!rc.isMovementReady()) return;
+
+		if(headingTarget!=null){
+			if(currentLocation.distanceSquaredTo(headingTarget)>10){
+				headingTarget = new MapLocation(rng.nextInt(width),rng.nextInt(height));
+			}
+			tryMove(getBestValidDirection(directions[headingIndex]));
+		}else headingTarget = new MapLocation(rng.nextInt(width),rng.nextInt(height));
     	if(headingIndex == -1) {
 			headingIndex = rng.nextInt(directions.length);
 		}
-    	tryMove(getBestValidDirection(directions[headingIndex]));
 	}
 	
 	private MapLocation getBestTarget() {

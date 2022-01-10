@@ -280,7 +280,7 @@ public class Comms {
 
         if(rc.getMode() == RobotMode.DROID){
             // if droid is away from sector border by a factor of 2, it probably doesn't see enough of this sector
-            denseUpdateAllowed = xSectorRef+ySectorRef>=2 && (xSectorSize-xSectorRef)+(ySectorSize-ySectorRef)>=2;
+            denseUpdateAllowed = xSectorRef+ySectorRef>=DENSE_COMMS_UPDATE_LIMIT && (xSectorSize-xSectorRef)+(ySectorSize-ySectorRef)>=DENSE_COMMS_UPDATE_LIMIT;
         } else denseUpdateAllowed = true;
         return denseUpdateAllowed;
     }
@@ -364,7 +364,6 @@ public class Comms {
         // set all bits to 0
         int updateIdx = offset/16;
         int bitIdx = offset%16;
-        // TODO: improve this?
         for(int i=16;--i>=bitIdx;)updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],i,0);
         for(int i=16;--i>updateIdx;)updatedCommsValues[i] = 0;
         updateSharedArray(updatedCommsValues);

@@ -55,6 +55,7 @@ public class Archon extends Robot{
     public void sense() throws GameActionException {
         // TODO: check bytecode. This should not be required all the time
         localInfo.senseRobots();
+        localInfo.senseLead();
 //        localInfo.senseTerrain();
     }
 
@@ -79,7 +80,7 @@ public class Archon extends Robot{
         // act as if enemy is spotted
         if(roundNum > 1000)enemySpotted = true;
 
-        if(enemySpotted && tempCounter%2 == 0){
+        if(enemySpotted && tempCounter%5 != 0){
             toBuild = RobotType.SOLDIER;
         }
 
