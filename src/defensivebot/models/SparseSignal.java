@@ -34,8 +34,10 @@ public class SparseSignal {
 
     @Override
     public int hashCode(){
-        if(target == null)return -type.ordinal();
-        return target.x + target.y*60 + type.ordinal()*3600;
+        // TODO: simplify
+        int ans = type.ordinal()*3600;
+        if(target != null)ans += target.x + target.y*60;
+        return ans;
     }
 
     @Override

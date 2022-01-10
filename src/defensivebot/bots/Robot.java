@@ -18,7 +18,7 @@ public abstract class Robot {
     public Team team;
 	public Team enemyTeam;
 	public RobotType type;
-    public int roundNum;
+    public static int roundNum;
     public MapLocation currentLocation;
     public static int turnCount;
 	protected LocalInfo localInfo;
@@ -69,6 +69,7 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 
+
 		sense();
 //		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 
@@ -80,6 +81,7 @@ public abstract class Robot {
 		verbose("lead count: "+rc.getTeamLeadAmount(team));
 
 		localInfo.checkExploration();
+		localInfo.checkEnemySpotted();
 		comms.processUpdateQueues();
 
 		// TODO: decide byte code limit for cleaning dynamically?

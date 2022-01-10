@@ -6,9 +6,13 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import defensivebot.enums.CommInfoBlockType;
+import defensivebot.enums.SparseSignalType;
+import defensivebot.models.SparseSignal;
 
+import static defensivebot.bots.Robot.roundNum;
 import static defensivebot.bots.Robot.turnCount;
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
+import static defensivebot.utils.LogUtils.printDebugLog;
 
 public class LocalInfo {
 
@@ -29,13 +33,12 @@ public class LocalInfo {
 
     public RobotInfo homeArchon;
 
-    public RobotInfo[] highestIDFR; //highest id robots of each type
     
     //additional Robot Info (for attacking)
     public RobotInfo[] weakestER; //weakest(lowest health) enemy robots of each type
     public int[] weakestERHealth; //weakest enemy robots' health (of each type)
 
-    public int leadSensedLastRound = -1;
+    public int leadSensedLastRound = -1,robotsSensedLastRound = -1;
 
 
     
@@ -69,7 +72,11 @@ public class LocalInfo {
 //
 //    }
 
-    public void senseRobots(){
+    public void senseRobots(boolean forAttack){
+
+        if(robotsSensedLastRound == turnCount)return;
+        else robotsSensedLastRound = turnCount;
+
     	friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
 
@@ -84,11 +91,18 @@ public class LocalInfo {
         nearestER = new RobotInfo[UNITS_AVAILABLE];
         nearestERDist = new int[UNITS_AVAILABLE];
 
-        highestIDFR = new RobotInfo[UNITS_AVAILABLE];
+
+        if(forAttack){
+            //additional info gathered not in senseRobots()
+            weakestER = new RobotInfo[UNITS_AVAILABLE];
+            weakestERHealth = new int[UNITS_AVAILABLE];
+        }
+
 
         for(int i = nearestFRDist.length; --i>=0;) {
         	nearestFRDist[i] = Integer.MAX_VALUE;
         	nearestERDist[i] = Integer.MAX_VALUE;
+            if(forAttack)weakestERHealth[i] = Integer.MAX_VALUE;
         }
         
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
@@ -106,14 +120,12 @@ public class LocalInfo {
                 if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal()) {
                 	homeArchon = nearbyRobots[i];
                 }
-                if(highestIDFR[typeOrdinal] == null || nearbyRobots[i].getID() > highestIDFR[typeOrdinal].getID()) {
-                	highestIDFR[typeOrdinal] = nearbyRobots[i];
-                }
+
                 
             }else{
 
                 // for debugging
-                if(nearestEnemyDist<distToMe){
+                if(nearestEnemyDist>distToMe){
                     nearestEnemyDist = distToMe;
                     nearestEnemy = nearbyRobots[i];
                 }
@@ -123,64 +135,19 @@ public class LocalInfo {
                 	nearestER[typeOrdinal] = nearbyRobots[i];
                 	nearestERDist[typeOrdinal] = distToMe;
                 }
-            }
-        }
-    }
-    
-    public void senseRobotsForAttack(){
-    	friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
-        enemyUnitCounts = new int[UNITS_AVAILABLE];
-        nearestFR = new RobotInfo[UNITS_AVAILABLE];
-        nearestFRDist = new int[UNITS_AVAILABLE];
-        nearestER = new RobotInfo[UNITS_AVAILABLE];
-        nearestERDist = new int[UNITS_AVAILABLE];
-        highestIDFR = new RobotInfo[UNITS_AVAILABLE];
-        
-        //additional info gathered not in senseRobots()
-        weakestER = new RobotInfo[UNITS_AVAILABLE];
-        weakestERHealth = new int[UNITS_AVAILABLE];
-        
-        for(int i = nearestFRDist.length; --i>=0;) {
-        	nearestFRDist[i] = Integer.MAX_VALUE;
-        	nearestERDist[i] = Integer.MAX_VALUE;
-        	weakestERHealth[i] = Integer.MAX_VALUE;
-        }
-        
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        MapLocation loc = rc.getLocation();
-        for(int i = nearbyRobots.length; --i>=0;){
-        	MapLocation robLoc = nearbyRobots[i].getLocation();
-            int distToMe = loc.distanceSquaredTo(robLoc);
-            int typeOrdinal = nearbyRobots[i].getType().ordinal();
-            if(nearbyRobots[i].getTeam() == rc.getTeam()){
-                friendlyUnitCounts[typeOrdinal]++;
-                if(distToMe < nearestFRDist[typeOrdinal]) {
-                	nearestFR[typeOrdinal] = nearbyRobots[i];
-                	nearestFRDist[typeOrdinal] = distToMe;
-                }
-                if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal()) {
-                	homeArchon = nearbyRobots[i];
-                }
-                if(highestIDFR[typeOrdinal] == null || nearbyRobots[i].getID() > highestIDFR[typeOrdinal].getID()) {
-                	highestIDFR[typeOrdinal] = nearbyRobots[i];
-                }
-            }else{
-                enemyUnitCounts[typeOrdinal]++;
-                if(distToMe < nearestERDist[typeOrdinal]) {
-                	nearestER[typeOrdinal] = nearbyRobots[i];
-                	nearestERDist[typeOrdinal] = distToMe;
-                }
-                int hp = nearbyRobots[i].getHealth();
-                if(hp < weakestERHealth[typeOrdinal]) {
-                	weakestER[typeOrdinal] = nearbyRobots[i];
-                	weakestERHealth[typeOrdinal] = hp;
+                if(forAttack){
+                    int hp = nearbyRobots[i].getHealth();
+                    if(hp < weakestERHealth[typeOrdinal]) {
+                        weakestER[typeOrdinal] = nearbyRobots[i];
+                        weakestERHealth[typeOrdinal] = hp;
+                    }
                 }
             }
         }
     }
 
 
-    public void senseLead() throws GameActionException {
+    public void senseLead(boolean forPassive) throws GameActionException {
 
         if(leadSensedLastRound == turnCount)return;
         else leadSensedLastRound = turnCount;
@@ -188,46 +155,33 @@ public class LocalInfo {
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
     	totalLead=0;
-	    MapLocation loc = rc.getLocation();
+
+        MapLocation loc = rc.getLocation();
+
+        int totalLeadInSector=0;
+        int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
+
+
 	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
         boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
-        	int distToMe = loc.distanceSquaredTo(locations[i]);
+            if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
+                totalLeadInSector += lead;
+
+            if(forPassive && lead<MIN_LEAD_PASSIVE)continue;
+
+            int distToMe = loc.distanceSquaredTo(locations[i]);
+
         	if(distToMe < nearestLeadDist) {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
-
-	        if(isDenseUpdateAllowed) {
-	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
-	        }
-
         }
+        if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
     }
-    
-    //designed to only report nearest lead deposit with greater than 5 lead.
-    public void senseLeadForPassive() throws GameActionException {
-    	nearestLeadDist = Integer.MAX_VALUE;
-    	nearestLeadLoc = null;
-    	totalLead=0;
-	    MapLocation loc = rc.getLocation();
-	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(rc.getType().visionRadiusSquared);
-	    boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
-	    for(int i = locations.length; --i >= 0;){
-        	int lead = rc.senseLead(locations[i]);
-        	totalLead += lead;
-        	int distToMe = loc.distanceSquaredTo(locations[i]);
-        	if(distToMe < nearestLeadDist && lead > MIN_LEAD_PASSIVE) {
-            	nearestLeadLoc = locations[i];
-            	nearestLeadDist = distToMe;
-            }
-        	if(isDenseUpdateAllowed) {
-	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
-	        }
-        }
-    }
+
     
     public void senseGold() throws GameActionException {
     	nearestGoldDist = Integer.MAX_VALUE;
@@ -265,12 +219,16 @@ public class LocalInfo {
     
     public void checkExploration(){
         // if lead was checked, we mark as explored
-        MapLocation loc = rc.getLocation();
         if(!comms.isDenseUpdateAllowed())return;
         if(turnCount == leadSensedLastRound){
-            comms.queueDenseMatrixUpdate(loc.x,loc.y, 1, CommInfoBlockType.EXPLORATION);
+            comms.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION);
         }
+    }
 
+    public void checkEnemySpotted(){
+        if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
+            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
+        }
     }
     
 	/*
@@ -292,5 +250,19 @@ public class LocalInfo {
         	}
         }
 	}
-    
+
+    public MapLocation findNearestDamager() {
+        if(nearestER[RobotType.WATCHTOWER.ordinal()] != null)return nearestER[RobotType.WATCHTOWER.ordinal()].location;
+        if(nearestER[RobotType.SOLDIER.ordinal()] != null)return nearestER[RobotType.SOLDIER.ordinal()].location;
+        if(nearestER[RobotType.SAGE.ordinal()] != null)return nearestER[RobotType.SAGE.ordinal()].location;
+        return null;
+    }
+
+    public MapLocation findNearestNondamager() {
+        if(nearestER[RobotType.ARCHON.ordinal()] != null)return nearestER[RobotType.ARCHON.ordinal()].location;
+        if(nearestER[RobotType.LABORATORY.ordinal()] != null)return nearestER[RobotType.LABORATORY.ordinal()].location;
+        if(nearestER[RobotType.MINER.ordinal()] != null)return nearestER[RobotType.MINER.ordinal()].location;
+        if(nearestER[RobotType.BUILDER.ordinal()] != null)return nearestER[RobotType.BUILDER.ordinal()].location;
+        return null;
+    }
 }

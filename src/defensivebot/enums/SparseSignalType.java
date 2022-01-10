@@ -8,7 +8,7 @@ public enum SparseSignalType {
     // binary: 00 =>If signal terminates at 00 then we don't have to handle signal termination. It will be automatic
     TERMINATE_SIGNAL_ARRAY(0,1,0,20,2), // highest priority. This can't change.
     // binary: 010
-    SPREAD(2,0,0,10,3), // If a sage detects a charge anomaly in some x turns, it puts up a SPREAD flag
+    ENEMY_SPOTTED(2,0,0,10,3),
     // binary notation: 0110
     GOLD_SPOTTED(6,1,0,5,4),
     // binary: 01110
