@@ -75,6 +75,10 @@ public class Archon extends Robot{
             if(next.type == SparseSignalType.ENEMY_SPOTTED)enemySpotted = true;
             next = sparseSignals.next();
         }
+
+        // act as if enemy is spotted
+        if(roundNum > 1000)enemySpotted = true;
+
         if(enemySpotted && tempCounter%2 == 0){
             toBuild = RobotType.SOLDIER;
         }

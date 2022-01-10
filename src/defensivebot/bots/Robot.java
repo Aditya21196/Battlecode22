@@ -18,7 +18,7 @@ public abstract class Robot {
     public Team team;
 	public Team enemyTeam;
 	public RobotType type;
-    public int roundNum;
+    public static int roundNum;
     public MapLocation currentLocation;
     public static int turnCount;
 	protected LocalInfo localInfo;

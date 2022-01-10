@@ -9,6 +9,7 @@ import defensivebot.enums.CommInfoBlockType;
 import defensivebot.enums.SparseSignalType;
 import defensivebot.models.SparseSignal;
 
+import static defensivebot.bots.Robot.roundNum;
 import static defensivebot.bots.Robot.turnCount;
 import static defensivebot.utils.Constants.UNITS_AVAILABLE;
 
@@ -306,7 +307,7 @@ public class LocalInfo {
     }
 
     public void checkEnemySpotted(){
-        if(turnCount == robotsSensedLastRound && nearestEnemy!=null){
+        if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
             comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
         }
     }
