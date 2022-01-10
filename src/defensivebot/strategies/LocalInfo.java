@@ -203,12 +203,8 @@ public class LocalInfo {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
-
-	        if(isDenseUpdateAllowed) {
-	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
-	        }
-
         }
+        if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLead, CommInfoBlockType.LEAD_MAP);
     }
     
     //designed to only report nearest lead deposit with greater than 5 lead.
@@ -227,10 +223,8 @@ public class LocalInfo {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
-        	if(isDenseUpdateAllowed) {
-	        	comms.queueDenseMatrixUpdate(loc.x, loc.y, lead, CommInfoBlockType.LEAD_MAP);
-	        }
         }
+        if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLead, CommInfoBlockType.LEAD_MAP);
     }
     
     public void senseGold() throws GameActionException {
@@ -269,12 +263,10 @@ public class LocalInfo {
     
     public void checkExploration(){
         // if lead was checked, we mark as explored
-        MapLocation loc = rc.getLocation();
         if(!comms.isDenseUpdateAllowed())return;
         if(turnCount == leadSensedLastRound){
-            comms.queueDenseMatrixUpdate(loc.x,loc.y, 1, CommInfoBlockType.EXPLORATION);
+            comms.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION);
         }
-
     }
     
 	/*

@@ -80,27 +80,12 @@ public class Comms {
     }
 
     private void processDenseSignalUpdates(int[] updatedCommsValues){
-        // 8 adjacent sectors and current sector are only possibilities so total 9
-        CustomHashMap<Integer,Integer> map = new CustomHashMap<>(5);
-
+        MapLocation loc = rc.getLocation();
+        int xSector = loc.x/xSectorSize,ySector = loc.y/ySectorSize;
         while(commUpdateLinkedList.size>0){
-            CommDenseMatrixUpdate commDenseMatrixUpdate = commUpdateLinkedList.dequeue().val;
-            int hash = commDenseMatrixUpdate.commInfoBlockType.ordinal()*blockOffset+commDenseMatrixUpdate.xSector*ySectors + commDenseMatrixUpdate.ySector;
-            Integer freq = map.get(hash);
-            if(freq == null)map.put(hash,commDenseMatrixUpdate.val);
-            else map.setAlreadyContainedValue(hash,freq+commDenseMatrixUpdate.val);
-        }
-
-        map.resetIterator();
-        HashMapNodeVal<Integer, Integer> next = map.next();
-        while(next!=null){
-            CommInfoBlockType[] commVals = CommInfoBlockType.values();
-            CommInfoBlockType commInfoBlockType = commVals[next.key/blockOffset];
-            // can directly use the key to calculate offset
-            int offset = blockOffset* commInfoBlockType.offset + (next.key%blockOffset)*commInfoBlockType.blockSize;
-            // TODO: adjust val
-            writeBits(updatedCommsValues,offset,commInfoBlockType.getStoreVal(next.val),commInfoBlockType.blockSize);
-            next = map.next();
+            CommDenseMatrixUpdate update = commUpdateLinkedList.dequeue().val;
+            int offset = getCommOffset(update.commInfoBlockType,xSector,ySector);
+            writeBits(updatedCommsValues,offset,update.commInfoBlockType.getStoreVal(update.val),update.commInfoBlockType.blockSize);
         }
     }
 
@@ -249,13 +234,8 @@ public class Comms {
         return (original & ~mask) | ((val << pos) & mask);
     }
 
-    public void queueDenseMatrixUpdate(int x, int y, int val, CommInfoBlockType commInfoBlockType){
-        int xSector = x/xSectorSize,ySector = y/ySectorSize;
-        MapLocation loc = rc.getLocation();
-        if(xSector != loc.x/xSectorSize || ySector != loc.y/ySectorSize){
-            if(turnCount > 1 || rc.getType() != RobotType.ARCHON)return;
-        }
-        commUpdateLinkedList.add(new CommDenseMatrixUpdate(xSector,ySector , val, commInfoBlockType));
+    public void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
+        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType));
     }
 
     public void queueSparseSignalUpdate(SparseSignal sparseSignal){
@@ -391,11 +371,9 @@ public class Comms {
     }
 
     static class CommDenseMatrixUpdate{
-        int xSector,ySector,val;
+        int val;
         CommInfoBlockType commInfoBlockType;
-        CommDenseMatrixUpdate(int xSector, int ySector, int val, CommInfoBlockType commInfoBlockType){
-            this.xSector=xSector;
-            this.ySector=ySector;
+        CommDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
             this.val=val;
             this.commInfoBlockType = commInfoBlockType;
         }
