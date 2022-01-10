@@ -107,8 +107,6 @@ public class LocalInfo {
         
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
 
-        if(nearbyRobots.length>15)nearbyRobots = rc.senseNearbyRobots(10);
-
         MapLocation loc = rc.getLocation();
         for(int i = nearbyRobots.length; --i>=0;){
         	MapLocation robLoc = nearbyRobots[i].getLocation();
@@ -166,9 +164,6 @@ public class LocalInfo {
 
 
 	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(20);
-
-        if(locations.length>15)rc.senseNearbyLocationsWithLead(10);
-
         boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
         for(int i = locations.length; --i >= 0;){
         	int lead = rc.senseLead(locations[i]);
