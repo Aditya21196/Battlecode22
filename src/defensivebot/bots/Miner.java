@@ -22,7 +22,7 @@ public class Miner extends Robot{
     public void executeRole() throws GameActionException {
     	
     	//enemies that deal damage nearby?
-		localInfo.senseRobots();
+		localInfo.senseRobots(false);
 		poi = localInfo.findNearestDamager();
 		if(poi != null){
 			enemyDamagerNearby();

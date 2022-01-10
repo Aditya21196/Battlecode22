@@ -39,7 +39,7 @@ public class Soldier extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
-    	localInfo.senseRobotsForAttack();
+    	localInfo.senseRobots(true);
     	
     	//enemies that deal damage nearby?
 		poi = localInfo.findNearestDamager();
@@ -299,11 +299,14 @@ public class Soldier extends Robot{
 			if(currentLocation.distanceSquaredTo(headingTarget)>10){
 				headingTarget = new MapLocation(rng.nextInt(width),rng.nextInt(height));
 			}
+
+			if(headingIndex == -1) {
+				headingIndex = rng.nextInt(directions.length);
+			}
+
 			tryMove(getBestValidDirection(directions[headingIndex]));
 		}else headingTarget = new MapLocation(rng.nextInt(width),rng.nextInt(height));
-    	if(headingIndex == -1) {
-			headingIndex = rng.nextInt(directions.length);
-		}
+
 	}
 	
 	private MapLocation getBestTarget() {
