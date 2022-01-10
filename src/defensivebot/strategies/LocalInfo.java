@@ -8,6 +8,7 @@ import battlecode.common.RobotType;
 import defensivebot.enums.CommInfoBlockType;
 import defensivebot.enums.SparseSignalType;
 import defensivebot.models.SparseSignal;
+import defensivebot.utils.Constants;
 
 import static defensivebot.bots.Robot.roundNum;
 import static defensivebot.bots.Robot.turnCount;
@@ -18,7 +19,7 @@ public class LocalInfo {
 
     private final RobotController rc;
     private final Comms comms;
-    private final int MIN_LEAD_PASSIVE = 5;
+    private final int MIN_LEAD_PASSIVE = 6;
     
     //Robot Info gathered
     public RobotInfo[] nearestFR; //nearest friendly robots of each type
@@ -148,6 +149,8 @@ public class LocalInfo {
     }
 
 
+    
+    
     public void senseLead(boolean forPassive) throws GameActionException {
 
         if(leadSensedLastRound == turnCount)return;
@@ -158,20 +161,22 @@ public class LocalInfo {
     	totalLead=0;
 
         MapLocation loc = rc.getLocation();
-
+        
+        MapLocation[] locations = getLeadLocations(forPassive);
+        
         int totalLeadInSector=0;
         int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
-
-
-	    MapLocation[] locations = rc.senseNearbyLocationsWithLead(20);
+        
         boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
         for(int i = locations.length; --i >= 0;){
+        	//we should consider not counting lead at all
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
             if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
                 totalLeadInSector += lead;
-
-            if(forPassive && lead<MIN_LEAD_PASSIVE)continue;
+            
+            //no longer needed
+            //if(forPassive && lead<MIN_LEAD_PASSIVE)continue;
 
             int distToMe = loc.distanceSquaredTo(locations[i]);
 
@@ -265,5 +270,49 @@ public class LocalInfo {
         if(nearestER[RobotType.MINER.ordinal()] != null)return nearestER[RobotType.MINER.ordinal()].location;
         if(nearestER[RobotType.BUILDER.ordinal()] != null)return nearestER[RobotType.BUILDER.ordinal()].location;
         return null;
+    }
+    
+    private MapLocation[] getLeadLocations(boolean forPassive) throws GameActionException {
+    	
+		int high = rc.getType().visionRadiusSquared;
+    	MapLocation[] locations;
+    	if(forPassive) 
+    		locations = rc.senseNearbyLocationsWithLead(high,MIN_LEAD_PASSIVE);
+    	else
+    		locations = rc.senseNearbyLocationsWithLead(high);
+        //perform this check because most times there should be < 21 lead deposits and we should just proceed
+        if(locations.length <= Constants.LEAD_UPPER_THRESHOLD_FOR_SENSING) {
+        	return locations;
+        }
+        
+        //begin a binary search for radius with lead deposit counts within thresholds
+    	high--;
+    	int low = 0;//TODO: set low to a radius with possible squares <= min threshold to help search and save bytecode
+    	int mid = 0;
+    	while(low < high) {
+    		//sets mid to higher of two middle numbers when even number between low and high
+        	mid = low + ((high - low + 1)/2);
+        	if(forPassive) 
+        		locations = rc.senseNearbyLocationsWithLead(mid,MIN_LEAD_PASSIVE);
+        	else
+        		locations = rc.senseNearbyLocationsWithLead(mid);
+        	if(locations.length > Constants.LEAD_UPPER_THRESHOLD_FOR_SENSING) {
+        		high = mid - 1;
+        	}else if(locations.length < Constants.LEAD_LOWER_THRESHOLD_FOR_SENSING) {
+        		low = mid;
+        		continue;
+        	}
+        	//mid radius is within thresholds use these sensed locations
+        	return locations;
+        }
+
+    	if(low == mid) {
+    		return locations;
+    	}
+    	if(forPassive) 
+    		return rc.senseNearbyLocationsWithLead(low,MIN_LEAD_PASSIVE);
+    	
+		return rc.senseNearbyLocationsWithLead(low);
+    	
     }
 }

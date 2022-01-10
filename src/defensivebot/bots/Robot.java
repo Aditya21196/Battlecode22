@@ -125,6 +125,7 @@ public abstract class Robot {
      * 
      * TODO improve path-finding here
      * could calculate moves/round of each path and prefer center by about 1.4
+     * TODO: observation seems to tell me this function (or the random heading) pull units north east ...
      */
     public Direction getBestValidDirection(Direction toward) throws GameActionException{
 		MapLocation ac = currentLocation.add(toward);

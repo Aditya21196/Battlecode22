@@ -48,6 +48,9 @@ public class Constants {
             { 2, -2 }, { 1, -3 }, { 0, -4 }, { -1, -3 }, { -2, -2 }, { -3, -1 }, { -4, 0 }, { -3, 1 }, { -2, 2 },
             { -1, 3 }, { 0, 4 }, { 1, 3 }, { 2, 2 }, { 3, 1 }, { 4, -1 }, { 3, -2 }, { 2, -3 }, { 1, -4 }, { -1, -4 }};
 
+    public static final int LEAD_LOWER_THRESHOLD_FOR_SENSING = 15;
+    public static final int LEAD_UPPER_THRESHOLD_FOR_SENSING = 21;
+    
     public static final int MAX_MAP_SIZE=60;
     public static final int UNITS_AVAILABLE=7;
 
