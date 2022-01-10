@@ -3,12 +3,7 @@ package defensivebot.bots;
 import static defensivebot.bots.Archon.rng;
 import static defensivebot.utils.Constants.directions;
 
-import battlecode.common.Clock;
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
 
 import static defensivebot.utils.LogUtils.printDebugLog;
 
@@ -127,37 +122,14 @@ public class Soldier extends Robot{
 			//movement ready?
 			if(rc.isMovementReady()) {
 				MapLocation target = getBestTarget();
+				if(currentLocation.distanceSquaredTo(target)>RobotType.SOLDIER.actionRadiusSquared)
+					target = poi;
 				localInfo.senseRubbleForAttack(target);
-				if(localInfo.lowestRubbleLoc != null) {
+				int curRubble = rc.senseRubble(currentLocation);
+				if(localInfo.lowestRubbleLoc != null && curRubble - localInfo.lowestRubble>3) {
 					moveTo(localInfo.lowestRubbleLoc);
-					tryAttack(target);
-					return;
 				}
-				if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
-					localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation());
-					if(localInfo.lowestRubbleLoc != null) {
-						moveTo(localInfo.lowestRubbleLoc);
-						tryAttack(localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation());
-						return;
-					}
-				}
-				
-				if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
-					localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation());
-					if(localInfo.lowestRubbleLoc != null) {
-						moveTo(localInfo.lowestRubbleLoc);
-						tryAttack(localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation());
-						return;
-					}
-				}
-				if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
-					localInfo.senseRubbleForAttack(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation());
-					if(localInfo.lowestRubbleLoc != null) {
-						moveTo(localInfo.lowestRubbleLoc);
-						tryAttack(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation());
-						return;
-					}
-				}
+				tryAttack(target);
 				return;
 			}
 			
@@ -308,7 +280,8 @@ public class Soldier extends Robot{
 		}else headingTarget = new MapLocation(rng.nextInt(width),rng.nextInt(height));
 
 	}
-	
+
+	// TODO: this should be only for robots in attack radius, not vision radius
 	private MapLocation getBestTarget() {
 		double highestDPH = Double.MIN_VALUE;
 		int highestDPHIndex = 0;
