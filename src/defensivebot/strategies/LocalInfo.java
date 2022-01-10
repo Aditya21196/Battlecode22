@@ -107,6 +107,7 @@ public class LocalInfo {
         }
         
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+
         MapLocation loc = rc.getLocation();
         for(int i = nearbyRobots.length; --i>=0;){
         	MapLocation robLoc = nearbyRobots[i].getLocation();
@@ -166,8 +167,6 @@ public class LocalInfo {
         int totalLeadInSector=0;
         int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
         
-
-	    
         boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
         for(int i = locations.length; --i >= 0;){
         	//we should consider not counting lead at all
