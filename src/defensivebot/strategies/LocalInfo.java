@@ -322,8 +322,4 @@ public class LocalInfo {
         }
     }
 
-    public MapLocation getClosestEnemyArchon() {
-        if(homeArchon!=null)return new MapLocation(rc.getMapWidth()-1-homeArchon.location.x,rc.getMapHeight()-1-homeArchon.location.y);
-        return null;
-    }
 }
