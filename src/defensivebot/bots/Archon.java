@@ -74,10 +74,6 @@ public class Archon extends Robot{
         SparseSignal next = sparseSignals.next();
         while (next != null){
             if(next.type == SparseSignalType.ENEMY_SPOTTED)enemySpotted = true;
-            if(next.type == SparseSignalType.ENEMY_ARCHON_LOCATION){
-                // do something?
-                System.out.println();
-            }
             next = sparseSignals.next();
         }
 

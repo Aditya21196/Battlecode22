@@ -108,6 +108,7 @@ public class LocalInfo {
         }
         
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+        if(nearbyRobots.length>20)nearbyRobots = rc.senseNearbyRobots(10);
 
         MapLocation loc = rc.getLocation();
         for(int i = nearbyRobots.length; --i>=0;){
@@ -322,7 +323,7 @@ public class LocalInfo {
     }
 
     public MapLocation getClosestEnemyArchon() {
-        if(homeArchon!=null)return new MapLocation(rc.getMapWidth()-homeArchon.location.x,rc.getMapHeight()-homeArchon.location.y);
+        if(homeArchon!=null)return new MapLocation(rc.getMapWidth()-1-homeArchon.location.x,rc.getMapHeight()-1-homeArchon.location.y);
         return null;
     }
 }

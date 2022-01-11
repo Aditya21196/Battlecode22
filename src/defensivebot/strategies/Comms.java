@@ -320,10 +320,6 @@ public class Comms {
             if(ALL_SPARSE_SIGNAL_CODES.contains(val) && CODE_TO_SPARSE_SIGNAL[val].numBits == bitCount){
                 SparseSignalType signal = CODE_TO_SPARSE_SIGNAL[val];
                 if(signal == SparseSignalType.TERMINATE_SIGNAL_ARRAY)break;
-                if(signal == SparseSignalType.ENEMY_ARCHON_LOCATION){
-                    // do something?
-                    System.out.println();
-                }
                 SparseSignal sparseSignal = new SparseSignal(signal,null,lastSignalBeginsHere);
 
                 // next few bits might be part of signal
@@ -407,6 +403,27 @@ public class Comms {
             offset++;
         }
         return explorationMap;
+    }
+
+    public MapLocation getClosestEnemyArchon(CustomSet<MapLocation> discoveredArchons) throws GameActionException {
+        querySparseSignals();
+        sparseSignals.initIteration();
+        SparseSignal signal = sparseSignals.next();
+        MapLocation loc = rc.getLocation();
+        int minDist = Integer.MAX_VALUE;
+        MapLocation closestArchon = null;
+        while (signal != null){
+            if(signal.type==SparseSignalType.ENEMY_ARCHON_LOCATION && signal.target != null){
+                if(discoveredArchons.contains(signal.target))continue;
+                int d = loc.distanceSquaredTo(signal.target);
+                if(d<minDist){
+                    minDist = d;
+                    closestArchon = signal.target;
+                }
+            }
+            signal = sparseSignals.next();
+        }
+        return closestArchon;
     }
 
 }
