@@ -9,6 +9,8 @@ import defensivebot.enums.CommInfoBlockType;
 import defensivebot.enums.SparseSignalType;
 import defensivebot.models.SparseSignal;
 
+import java.util.Map;
+
 import static defensivebot.bots.Robot.turnCount;
 
 import static defensivebot.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
@@ -95,6 +97,7 @@ public class Comms {
         isSignalArrayFull = false;
         while(sparseSignalUpdates.size>0){
             SparseSignal signal = sparseSignalUpdates.dequeue().val;
+            signal.target = convertToCenterOfSector(signal.target);
             if(sparseSignals.contains(signal))continue;
             int numBits = signal.type.numBits + signal.type.positionSlots*numBitsSingleSectorInfo+signal.type.fixedBits;
             // not enough bits to write signal
@@ -110,6 +113,12 @@ public class Comms {
         }
 
         return offset;
+    }
+
+    private MapLocation convertToCenterOfSector(MapLocation target){
+        if(target == null)return null;
+        int curSectorX = target.x/xSectorSize,curSectorY = target.y/ySectorSize;
+        return getCenterOfSector(curSectorX,curSectorY);
     }
 
     public int writeBits(int[] updatedCommsValues,int offset,int val,int numBits){
@@ -394,6 +403,27 @@ public class Comms {
             offset++;
         }
         return explorationMap;
+    }
+
+    public MapLocation getClosestEnemyArchon(CustomSet<MapLocation> discoveredArchons) throws GameActionException {
+        querySparseSignals();
+        sparseSignals.initIteration();
+        SparseSignal signal = sparseSignals.next();
+        MapLocation loc = rc.getLocation();
+        int minDist = Integer.MAX_VALUE;
+        MapLocation closestArchon = null;
+        while (signal != null){
+            if(signal.type==SparseSignalType.ENEMY_ARCHON_LOCATION && signal.target != null){
+                if(discoveredArchons.contains(signal.target))continue;
+                int d = loc.distanceSquaredTo(signal.target);
+                if(d<minDist){
+                    minDist = d;
+                    closestArchon = signal.target;
+                }
+            }
+            signal = sparseSignals.next();
+        }
+        return closestArchon;
     }
 
 }

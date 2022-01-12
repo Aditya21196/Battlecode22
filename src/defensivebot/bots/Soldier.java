@@ -4,6 +4,7 @@ import static defensivebot.bots.Archon.rng;
 import static defensivebot.utils.Constants.directions;
 
 import battlecode.common.*;
+import defensivebot.datasturctures.CustomSet;
 
 import static defensivebot.utils.LogUtils.printDebugLog;
 
@@ -16,6 +17,8 @@ public class Soldier extends Robot{
 	private int taskType = -1;
 	private MapLocation taskLocation = null;
 	private MapLocation headingTarget = null;
+	private boolean randomMovementAllowed = false;
+	private CustomSet<MapLocation> discoveredArchons = new CustomSet<>(5);
 	
 	
     public Soldier(RobotController rc) throws GameActionException  {
@@ -93,6 +96,12 @@ public class Soldier extends Robot{
 	private MapLocation commsBestLocforSoldier() throws GameActionException {
 		MapLocation bestLoc = comms.getNearbyUnexplored();
 		if(bestLoc != null)rc.setIndicatorString("unexplored area: "+bestLoc);
+		else{
+			bestLoc = comms.getClosestEnemyArchon(discoveredArchons);
+			if(bestLoc!=null && currentLocation.distanceSquaredTo(bestLoc)<20){
+				discoveredArchons.add(bestLoc);
+			}
+		}
 		return bestLoc;
 	}
 

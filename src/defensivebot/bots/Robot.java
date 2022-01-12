@@ -69,11 +69,6 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 
-		if(roundNum == 16 && rc.getType() == RobotType.MINER){
-			System.out.println();
-		}
-
-
 		sense();
 //		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 
@@ -86,6 +81,7 @@ public abstract class Robot {
 
 		localInfo.checkExploration();
 		localInfo.checkEnemySpotted();
+		localInfo.checkArchonSpotted();
 		comms.processUpdateQueues();
 
 		// TODO: decide byte code limit for cleaning dynamically?
