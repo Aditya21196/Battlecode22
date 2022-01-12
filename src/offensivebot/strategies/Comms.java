@@ -1,23 +1,24 @@
-package defensivebot.strategies;
+package offensivebot.strategies;
 
 import battlecode.common.*;
-import defensivebot.datasturctures.CustomHashMap;
-import defensivebot.datasturctures.CustomSet;
-import defensivebot.datasturctures.HashMapNodeVal;
-import defensivebot.datasturctures.LinkedList;
-import defensivebot.enums.CommInfoBlockType;
-import defensivebot.enums.SparseSignalType;
-import defensivebot.models.SparseSignal;
+import offensivebot.datasturctures.CustomHashMap;
+import offensivebot.datasturctures.CustomSet;
+import offensivebot.datasturctures.HashMapNodeVal;
+import offensivebot.datasturctures.LinkedList;
+import offensivebot.enums.CommInfoBlockType;
+import offensivebot.enums.SparseSignalType;
+import offensivebot.models.SparseSignal;
 
 import java.util.Map;
 
-import static defensivebot.bots.Robot.turnCount;
+import static defensivebot.utils.Constants.DENSE_COMMS_UPDATE_LIMIT;
+import static offensivebot.bots.Robot.turnCount;
 
-import static defensivebot.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
-import static defensivebot.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
-import static defensivebot.utils.Constants.*;
-import static defensivebot.utils.CustomMath.ceilDivision;
-import static defensivebot.utils.LogUtils.printDebugLog;
+import static offensivebot.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
+import static offensivebot.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
+import static offensivebot.utils.Constants.*;
+import static offensivebot.utils.CustomMath.ceilDivision;
+import static offensivebot.utils.LogUtils.printDebugLog;
 
 public class Comms {
 

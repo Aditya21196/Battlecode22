@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ca20c4f6-88c5-434d-8f97-8f5e9e6c901c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/RobotPlayer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bots/Archon.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bots/Builder.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bots/Lab.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bots/Miner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bots/Robot.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bots/Sage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bots/Soldier.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bots/WatchTower.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/datasturctures/CustomHashMap.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/datasturctures/CustomSet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/datasturctures/HashMapNodeVal.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/datasturctures/LinkedList.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/datasturctures/Node.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/enums/CommInfoBlockType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/enums/DroidSubType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/enums/SparseSignalType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/SparseSignal.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/strategies/Comms.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/strategies/LocalInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/Constants.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/CustomMath.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/LogUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../version.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../version.txt" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectId" id="23aPSO3erxllBgYudmgMdWXeigj" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ca20c4f6-88c5-434d-8f97-8f5e9e6c901c" name="Changes" comment="" />
+      <created>1641969223791</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1641969223791</updated>
+      <workItem from="1641969226648" duration="24000" />
+      <workItem from="1641969270178" duration="42000" />
+      <workItem from="1641970396576" duration="1057000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
