@@ -1,5 +1,6 @@
 package defensivebot2.datasturctures;
 
+
 public class CustomSet<T> {
 
     private LinkedList<T>[] table;
@@ -27,6 +28,10 @@ public class CustomSet<T> {
 
     public boolean contains(T val){
         return table[val.hashCode()%capacity].contains(val);
+    }
+
+    public T get(T val){
+        return table[val.hashCode()%capacity].get(val);
     }
 
     // iteration code
