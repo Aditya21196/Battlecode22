@@ -10,7 +10,7 @@ public enum SparseSignalType {
     // binary: 010
     ENEMY_SPOTTED(2,0,0,10,3),
     // binary notation: 0110
-    ENEMY_ARCHON_LOCATION(6,1,0,5,4),
+    ENEMY_ARCHON_LOCATION(6,1,2,5,4),// first bit: enemy or friendly, 2nd bit: to attack or not to attack
     // binary: 01110
     SURROUND(14,1,0,5,5),
     // binary: 01111
