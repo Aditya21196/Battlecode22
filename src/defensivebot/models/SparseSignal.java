@@ -8,8 +8,9 @@ public class SparseSignal {
 
     public SparseSignalType type;
     public MapLocation target;
-    public int offset;
+    public int offset=-1;
     public int fixedBitsVal=0;
+    public boolean bitsModified=false;
 
     public static final CustomSet<Integer> ALL_SPARSE_SIGNAL_CODES = new CustomSet<>(10);
     public static final SparseSignalType[] CODE_TO_SPARSE_SIGNAL;
@@ -26,10 +27,28 @@ public class SparseSignal {
             CODE_TO_SPARSE_SIGNAL[sparseSignalType.code] = sparseSignalType;
     }
 
+    public void modifyBitVal(int newFixedBitsVal){
+        this.fixedBitsVal = newFixedBitsVal;
+        bitsModified = true;
+    }
+
+    public SparseSignal(SparseSignal signal){
+        this.type = signal.type;
+        this.target = signal.target;
+
+    }
+
     public SparseSignal(SparseSignalType type, MapLocation target,int offset){
         this.type=type;
         this.target=target;
         this.offset=offset;
+    }
+
+    public SparseSignal(SparseSignalType type, MapLocation target,int offset,int fixedBitsVal){
+        this.type=type;
+        this.target=target;
+        this.offset=offset;
+        this.fixedBitsVal=fixedBitsVal;
     }
 
     @Override
