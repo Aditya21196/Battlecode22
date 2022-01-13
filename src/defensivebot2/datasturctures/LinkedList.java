@@ -1,5 +1,6 @@
 package defensivebot2.datasturctures;
 
+
 public class LinkedList<T> {
     public int size = 0;
     public Node<T> head;
@@ -39,6 +40,21 @@ public class LinkedList<T> {
         }
         return false;
     }
+
+    public T get(T obj) {
+        Node<T> node = head;
+        while (node != null) {
+            if (node.val.equals(obj)) {
+                // return original object
+                return obj;
+            }
+            node = node.next;
+        }
+        return null;
+    }
+
+
+
     public void remove(Node<T> node) {
         if (node.prev != null) {
             node.prev.next = node.next;
