@@ -221,7 +221,14 @@ public class LocalInfo {
     
     public void checkArchonSpotted() {
         if(turnCount == robotsSensedLastRound && nearestER[RobotType.ARCHON.ordinal()] != null){
-            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_ARCHON_LOCATION,nearestER[RobotType.ARCHON.ordinal()].location,-1));
+            comms.queueSparseSignalUpdate(
+                    new SparseSignal(
+                            SparseSignalType.ENEMY_ARCHON_LOCATION,
+                            nearestER[RobotType.ARCHON.ordinal()].location,
+                            -1,
+                            3// first bit is on - means enemy archon. 2nd bit means its alive
+                    )
+            );
         }
     }
     

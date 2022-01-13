@@ -97,7 +97,7 @@ public class Soldier extends Robot{
 		MapLocation bestLoc = comms.getNearbyUnexplored();
 		if(bestLoc != null)rc.setIndicatorString("unexplored area: "+bestLoc);
 		else{
-			bestLoc = comms.getClosestEnemyArchon(discoveredArchons);
+			//bestLoc = comms.getClosestEnemyArchon(discoveredArchons);
 			if(bestLoc!=null && currentLocation.distanceSquaredTo(bestLoc)<20){
 				discoveredArchons.add(bestLoc);
 			}
