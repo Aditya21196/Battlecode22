@@ -80,12 +80,12 @@ public abstract class Robot {
 		verbose("lead count: "+rc.getTeamLeadAmount(team));
 
 		localInfo.checkExploration();
-		localInfo.checkEnemySpotted();
-		localInfo.checkArchonSpotted();
+		//localInfo.checkEnemySpotted();
+		//localInfo.checkArchonSpotted();
 		comms.processUpdateQueues();
 
 		// TODO: decide byte code limit for cleaning dynamically?
-		if(comms.isSignalArrayFull && Clock.getBytecodesLeft()<EXTRA_BYTECODE_FOR_COMMS_CLEANUP)comms.cleanComms();
+		//if(comms.isSignalArrayFull && Clock.getBytecodesLeft()<EXTRA_BYTECODE_FOR_COMMS_CLEANUP)comms.cleanComms();
       	// TODO: more stuff for spare bytecode utilization?
     }
 

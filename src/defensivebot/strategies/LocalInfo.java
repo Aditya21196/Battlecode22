@@ -56,9 +56,8 @@ public class LocalInfo {
     public int totalGoldDeposits;
     
     //Rubble Info gathered
-    public MapLocation lowestRubbleLoc;
-    public int lowestRubble;
-    
+    //public MapLocation lowestRubbleLoc;
+    //public int lowestRubble;
     
     
     public LocalInfo(RobotController rc,Comms comms){
@@ -203,26 +202,8 @@ public class LocalInfo {
         }
     }
     
-    // 
-    public void senseRubble(MapLocation location) throws GameActionException {
 
-    	lowestRubble = Integer.MAX_VALUE;
-    	lowestRubbleLoc = null;
-        //boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
-	    MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(location, 2);
-        for(int i = locations.length; --i >= 0;){
-        	if(rc.canSenseLocation(locations[i])) {
-        		int rubble = rc.senseRubble(locations[i]);
-	        	if(rubble < lowestRubble) {
-	            	lowestRubble = rubble;
-	            	lowestRubbleLoc = locations[i];
-	            }
-        	}
-        }
-
-    }
-
-    
+    //TODO: reduce by storing this information
     public void checkExploration(){
         // if lead was checked, we mark as explored
         if(!comms.isDenseUpdateAllowed())return;
@@ -231,30 +212,103 @@ public class LocalInfo {
         }
     }
 
+    //TODO: reduce this frequency a lot
     public void checkEnemySpotted(){
         if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
             comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
         }
     }
     
-	/*
-	 * sets lowestRubbleLoc to lowest rubble MapLocation that this robot
-	 * can move to or stay on that can still attack target
-	 * null if all are occupied or out of range of target
-	 */
-	public void senseRubbleForAttack(MapLocation target) throws GameActionException {
-		lowestRubble = Integer.MAX_VALUE;
-    	lowestRubbleLoc = null;
-    	MapLocation[] locations = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(), 2);
-        for(int i = locations.length; --i >= 0;){
-        	if(locations[i].isWithinDistanceSquared(target, rc.getType().actionRadiusSquared)){
-        		int rubble = rc.senseRubble(locations[i]);
-	        	if(rubble < lowestRubble && (rc.getLocation().equals(locations[i]) || !rc.isLocationOccupied(locations[i]))) {
-	        		lowestRubble = rubble;
-        			lowestRubbleLoc = locations[i];
-	            }
-        	}
+    public void checkArchonSpotted() {
+        if(turnCount == robotsSensedLastRound && nearestER[RobotType.ARCHON.ordinal()] != null){
+            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_ARCHON_LOCATION,nearestER[RobotType.ARCHON.ordinal()].location,-1));
         }
+    }
+    
+	/*
+	 * returns a surrounding, lowest rubble, and unoccupied location in action range of target
+	 * if rubble is tied prefer current location
+	 * returns null if all are occupied or out of range of target
+	 */
+	public MapLocation getBestLocInRange(MapLocation target) throws GameActionException {
+		int lowestRubble = Integer.MAX_VALUE;
+    	MapLocation bestLoc = null;
+    	
+    	MapLocation tempLoc = rc.getLocation();
+    	int tempRubble = Integer.MAX_VALUE;
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	tempLoc = rc.getLocation().translate(0,1);//north
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared) && rc.onTheMap(tempLoc)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble && !rc.isLocationOccupied(tempLoc)) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	tempLoc = rc.getLocation().translate(1,1);//north east
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared) && rc.onTheMap(tempLoc)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble && !rc.isLocationOccupied(tempLoc)) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	tempLoc = rc.getLocation().translate(1,0);//east
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared) && rc.onTheMap(tempLoc)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble && !rc.isLocationOccupied(tempLoc)) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	tempLoc = rc.getLocation().translate(1,-1);//south east
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared) && rc.onTheMap(tempLoc)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble && !rc.isLocationOccupied(tempLoc)) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	tempLoc = rc.getLocation().translate(0,-1);//south
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared) && rc.onTheMap(tempLoc)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble && !rc.isLocationOccupied(tempLoc)) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	tempLoc = rc.getLocation().translate(-1,-1);//south west
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared) && rc.onTheMap(tempLoc)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble && !rc.isLocationOccupied(tempLoc)) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	tempLoc = rc.getLocation().translate(-1,0);//west
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared) && rc.onTheMap(tempLoc)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble && !rc.isLocationOccupied(tempLoc)) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	tempLoc = rc.getLocation().translate(-1,1);//north west
+    	if(tempLoc.isWithinDistanceSquared(target, rc.getType().actionRadiusSquared) && rc.onTheMap(tempLoc)) {
+    		tempRubble = rc.senseRubble(tempLoc);
+    		if(tempRubble < lowestRubble && !rc.isLocationOccupied(tempLoc)) {
+    			lowestRubble = tempRubble;
+    			bestLoc = tempLoc;
+    		}
+    	}
+    	
+        return bestLoc;
 	}
 
     public MapLocation findNearestDamager() {
@@ -273,6 +327,29 @@ public class LocalInfo {
     }
     
     private MapLocation[] getLeadLocations(boolean forPassive) throws GameActionException {
+    	
+		int r = rc.getType().visionRadiusSquared;
+    	MapLocation[] locations;
+    	if(forPassive) 
+    		locations = rc.senseNearbyLocationsWithLead(r, MIN_LEAD_PASSIVE);
+    	else
+    		locations = rc.senseNearbyLocationsWithLead(r);
+        //perform this check because most times there should be < 21 lead deposits and we should just proceed
+        if(locations.length <= Constants.LEAD_UPPER_THRESHOLD_FOR_SENSING) {
+        	return locations;
+        }
+        
+        int rNew = (Constants.LEAD_UPPER_THRESHOLD_FOR_SENSING * r)/locations.length; //gets radius for finding lead upper threshold lead assuming uniform lead density
+        
+        if(forPassive) 
+    		return rc.senseNearbyLocationsWithLead(rNew, MIN_LEAD_PASSIVE);
+    	
+		return rc.senseNearbyLocationsWithLead(rNew);
+        
+    	
+    }
+    
+    private MapLocation[] getLeadLocationsBinary(boolean forPassive) throws GameActionException {
     	
 		int high = rc.getType().visionRadiusSquared;
     	MapLocation[] locations;
@@ -316,10 +393,42 @@ public class LocalInfo {
     	
     }
 
-    public void checkArchonSpotted() {
-        if(turnCount == robotsSensedLastRound && nearestER[RobotType.ARCHON.ordinal()] != null){
-            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_ARCHON_LOCATION,nearestER[RobotType.ARCHON.ordinal()].location,-1));
-        }
+    
+    
+    //returns the sum of the counts for enemy soldiers, sages, and watchtowers
+    public int getEnemyDamagerCount() {
+    	//make sure we have sensed robots at least once and therefore have initialized the enemy counts array.
+    	if(robotsSensedLastRound != -1) {
+    		return enemyUnitCounts[RobotType.WATCHTOWER.ordinal()] + enemyUnitCounts[RobotType.SOLDIER.ordinal()] + enemyUnitCounts[RobotType.SAGE.ordinal()];
+    	}
+    	return 0;
+    }
+    
+  //returns the sum of the counts for enemy archons, builders, laboratories, and miners
+    public int getEnemyNonDamagerCount() {
+    	//make sure we have sensed robots at least once and therefore have initialized the enemy counts array.
+    	if(robotsSensedLastRound != -1) {
+    		return enemyUnitCounts[RobotType.ARCHON.ordinal()] + enemyUnitCounts[RobotType.BUILDER.ordinal()] + enemyUnitCounts[RobotType.LABORATORY.ordinal()] + enemyUnitCounts[RobotType.MINER.ordinal()];
+    	}
+    	return 0;
+    }
+    
+  //returns the sum of the counts for enemy soldiers, sages, and watchtowers
+    public int getFriendlyDamagerCount() {
+    	//make sure we have sensed robots at least once and therefore have initialized the enemy counts array.
+    	if(robotsSensedLastRound != -1) {
+    		return friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()] + friendlyUnitCounts[RobotType.SOLDIER.ordinal()] + friendlyUnitCounts[RobotType.SAGE.ordinal()];
+    	}
+    	return 0;
+    }
+    
+  //returns the sum of the counts for enemy archons, builders, laboratories, and miners
+    public int getFriendlyNonDamagerCount() {
+    	//make sure we have sensed robots at least once and therefore have initialized the enemy counts array.
+    	if(robotsSensedLastRound != -1) {
+    		return friendlyUnitCounts[RobotType.ARCHON.ordinal()] + friendlyUnitCounts[RobotType.BUILDER.ordinal()] + friendlyUnitCounts[RobotType.LABORATORY.ordinal()] + friendlyUnitCounts[RobotType.MINER.ordinal()];
+    	}
+    	return 0;
     }
 
 }

@@ -133,11 +133,11 @@ public class Soldier extends Robot{
 				MapLocation target = getBestTarget();
 				if(currentLocation.distanceSquaredTo(target)>RobotType.SOLDIER.actionRadiusSquared)
 					target = poi;
-				localInfo.senseRubbleForAttack(target);
-				int curRubble = rc.senseRubble(currentLocation);
-				if(localInfo.lowestRubbleLoc != null && curRubble - localInfo.lowestRubble>3) {
-					moveTo(localInfo.lowestRubbleLoc);
-				}
+//				localInfo.senseRubbleForAttack(target);
+//				int curRubble = rc.senseRubble(currentLocation);
+//				if(localInfo.lowestRubbleLoc != null && curRubble - localInfo.lowestRubble>3) {
+//					moveTo(localInfo.lowestRubbleLoc);
+//				}
 				tryAttack(target);
 				return;
 			}
@@ -181,12 +181,12 @@ public class Soldier extends Robot{
 		//movement ready?
 		if(rc.isMovementReady()) {
 			MapLocation target = getBestTargetNonDamager();
-			localInfo.senseRubbleForAttack(target);
-			if(localInfo.lowestRubbleLoc != null) {
-				moveTo(localInfo.lowestRubbleLoc);
-				tryAttack(target);
-				return;
-			}
+//			localInfo.senseRubbleForAttack(target);
+//			if(localInfo.lowestRubbleLoc != null) {
+//				moveTo(localInfo.lowestRubbleLoc);
+//				tryAttack(target);
+//				return;
+//			}
 			
 			//location doesn't exist to attack best target.
 			//has action?

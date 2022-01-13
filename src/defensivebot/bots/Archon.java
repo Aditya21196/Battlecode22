@@ -78,13 +78,20 @@ public class Archon extends Robot{
         }
 
         // act as if enemy is spotted
-        if(roundNum > 1000)enemySpotted = true;
-
+        if(roundNum > 1000) {
+        	enemySpotted = true;
+        }
+        
+        //testing
+        if(roundNum > 250) {
+        	toBuild = null;
+        }
+        
         if(enemySpotted && tempCounter%5 != 0){
-            toBuild = RobotType.SOLDIER;
+            //toBuild = RobotType.SOLDIER;
         }
 
-        if(rc.getMapHeight() > 40 && rc.getMapWidth() > 40 && Math.random() < 0.05) toBuild = RobotType.BUILDER;
+        //if(rc.getMapHeight() > 40 && rc.getMapWidth() > 40 && Math.random() < 0.05) toBuild = RobotType.BUILDER;
 
         // testing this strat
 //        if(turnCount<INITIAL_MINERS_TO_BUILD_ROUNDS){
