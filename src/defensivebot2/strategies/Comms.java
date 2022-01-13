@@ -98,7 +98,20 @@ public class Comms {
         while(sparseSignalUpdates.size>0){
             SparseSignal signal = sparseSignalUpdates.dequeue().val;
             signal.target = convertToCenterOfSector(signal.target);
-            if(sparseSignals.contains(signal))continue;
+            
+            // check if such a signal already exists
+            SparseSignal existing = sparseSignals.get(signal);
+            // if it exists, check if it was updated
+            if(existing != null){
+                if(existing.fixedBitsVal != signal.fixedBitsVal || existing.bitsModified){
+                    int updateOffset = existing.offset+existing.type.numBits+existing.type.positionSlots*numBitsSingleSectorInfo;
+                    // update signal
+                    writeBits(updatedCommsValues,updateOffset,signal.fixedBitsVal,signal.type.fixedBits);
+                }
+                // either signal exists or if there was an update, we have made the update
+                continue;
+            }
+            
             int numBits = signal.type.numBits + signal.type.positionSlots*numBitsSingleSectorInfo+signal.type.fixedBits;
             // not enough bits to write signal
             if(offset+numBits>=1024){
@@ -140,8 +153,8 @@ public class Comms {
             int sectorInfo = curSectorX*ySectors + curSectorY;
             val |= (sectorInfo << signal.type.numBits);
         }
-        if(signal.fixedBitsVal > 0){
-            val |= (signal.type.numBits + numBitsSingleSectorInfo*signal.type.positionSlots);
+        if(signal.type.fixedBits > 0){
+            val |= signal.fixedBitsVal << (signal.type.numBits + numBitsSingleSectorInfo*signal.type.positionSlots);
         }
         return val;
     }
@@ -291,7 +304,8 @@ public class Comms {
 
         if(rc.getMode() == RobotMode.DROID){
             // if droid is away from sector border by a factor of 2, it probably doesn't see enough of this sector
-            denseUpdateAllowed = xSectorRef+ySectorRef>=DENSE_COMMS_UPDATE_LIMIT && (xSectorSize-xSectorRef)+(ySectorSize-ySectorRef)>=DENSE_COMMS_UPDATE_LIMIT;
+        	denseUpdateAllowed = xSectorRef+ySectorRef>=DENSE_COMMS_UPDATE_LIMIT && (xSectorSize-xSectorRef)+(ySectorSize-ySectorRef)>=DENSE_COMMS_UPDATE_LIMIT;
+        	//denseUpdateAllowed = curLoc.isWithinDistanceSquared(getCenterOfSector(xSectorRef,ySectorRef),10);
         } else denseUpdateAllowed = true;
         return denseUpdateAllowed;
     }
@@ -379,6 +393,11 @@ public class Comms {
         for(int i=16;--i>updateIdx;)updatedCommsValues[i] = 0;
         updateSharedArray(updatedCommsValues);
     }
+    
+    public void markArchonDead(SparseSignal signal) {
+        signal.modifyBitVal(modifyBit(signal.fixedBitsVal,1,0));
+        queueSparseSignalUpdate(signal);
+    }
 
     static class CommDenseMatrixUpdate{
         int val;
@@ -405,25 +424,30 @@ public class Comms {
         return explorationMap;
     }
 
-    public MapLocation getClosestEnemyArchon(CustomSet<MapLocation> discoveredArchons) throws GameActionException {
+    public String checkBits(int[] arr,int offset,int num) throws GameActionException {
+        int val = readBits(arr,offset,num);
+        return Integer.toBinaryString(val);
+    }
+    
+    public SparseSignal getClosestEnemyArchon() throws GameActionException {
         querySparseSignals();
         sparseSignals.initIteration();
         SparseSignal signal = sparseSignals.next();
         MapLocation loc = rc.getLocation();
         int minDist = Integer.MAX_VALUE;
-        MapLocation closestArchon = null;
+        SparseSignal closestArchonSignal = null;
         while (signal != null){
-            if(signal.type==SparseSignalType.ENEMY_ARCHON_LOCATION && signal.target != null){
-                if(discoveredArchons.contains(signal.target))continue;
+            // only read archons that are alive
+            if(signal.type==SparseSignalType.ENEMY_ARCHON_LOCATION && signal.fixedBitsVal>2){
                 int d = loc.distanceSquaredTo(signal.target);
                 if(d<minDist){
                     minDist = d;
-                    closestArchon = signal.target;
+                    closestArchonSignal = signal;
                 }
             }
             signal = sparseSignals.next();
         }
-        return closestArchon;
+        return closestArchonSignal;
     }
 
 }
