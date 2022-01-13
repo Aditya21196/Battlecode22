@@ -70,14 +70,14 @@ public abstract class Robot {
         currentLocation = rc.getLocation();
 
 		sense();
-//		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 
         move();
-//		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
+		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
 
 		act();
-//		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
-		verbose("lead count: "+rc.getTeamLeadAmount(team));
+		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
+//		verbose("lead count: "+rc.getTeamLeadAmount(team));
 
 		localInfo.checkExploration();
 		localInfo.checkEnemySpotted();

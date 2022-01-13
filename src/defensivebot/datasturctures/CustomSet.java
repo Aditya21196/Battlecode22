@@ -29,6 +29,10 @@ public class CustomSet<T> {
         return table[val.hashCode()%capacity].contains(val);
     }
 
+    public T get(T val){
+        return table[val.hashCode()%capacity].get(val);
+    }
+
     // iteration code
     public void initIteration(){
         itrIdx = 0;

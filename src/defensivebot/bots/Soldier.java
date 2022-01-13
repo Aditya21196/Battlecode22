@@ -1,10 +1,12 @@
 package defensivebot.bots;
 
 import static defensivebot.bots.Archon.rng;
+import static defensivebot.utils.Constants.ARCHON_DEATH_CONFIRMATION;
 import static defensivebot.utils.Constants.directions;
 
 import battlecode.common.*;
 import defensivebot.datasturctures.CustomSet;
+import defensivebot.models.SparseSignal;
 
 import static defensivebot.utils.LogUtils.printDebugLog;
 
@@ -17,8 +19,6 @@ public class Soldier extends Robot{
 	private int taskType = -1;
 	private MapLocation taskLocation = null;
 	private MapLocation headingTarget = null;
-	private boolean randomMovementAllowed = false;
-	private CustomSet<MapLocation> discoveredArchons = new CustomSet<>(5);
 	
 	
     public Soldier(RobotController rc) throws GameActionException  {
@@ -97,10 +97,15 @@ public class Soldier extends Robot{
 		MapLocation bestLoc = comms.getNearbyUnexplored();
 		if(bestLoc != null)rc.setIndicatorString("unexplored area: "+bestLoc);
 		else{
-			bestLoc = comms.getClosestEnemyArchon(discoveredArchons);
-			if(bestLoc!=null && currentLocation.distanceSquaredTo(bestLoc)<20){
-				discoveredArchons.add(bestLoc);
+			SparseSignal signal = comms.getClosestEnemyArchon();
+			if(signal != null){
+				if(currentLocation.distanceSquaredTo(signal.target)<=ARCHON_DEATH_CONFIRMATION && localInfo.nearestER[RobotType.ARCHON.ordinal()] == null){
+					comms.markArchonDead(signal);
+				}else bestLoc = signal.target;
 			}
+			// check if this archon is dead. If yes, mark it dead
+
+
 		}
 		return bestLoc;
 	}

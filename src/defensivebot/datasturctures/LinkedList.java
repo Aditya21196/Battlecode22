@@ -39,6 +39,21 @@ public class LinkedList<T> {
         }
         return false;
     }
+
+    public T get(T obj) {
+        Node<T> node = head;
+        while (node != null) {
+            if (node.val.equals(obj)) {
+                // return original object
+                return obj;
+            }
+            node = node.next;
+        }
+        return null;
+    }
+
+
+
     public void remove(Node<T> node) {
         if (node.prev != null) {
             node.prev.next = node.next;
