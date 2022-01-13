@@ -1,7 +1,7 @@
-package defensivebot;
+package defensivebot2;
 
 import battlecode.common.*;
-import defensivebot.bots.Robot;
+import defensivebot2.bots.Robot;
 
 
 public strictfp class RobotPlayer {

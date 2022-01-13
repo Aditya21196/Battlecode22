@@ -1,20 +1,20 @@
-package defensivebot.strategies;
+package defensivebot2.strategies;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
-import defensivebot.datasturctures.CustomSet;
-import defensivebot.enums.CommInfoBlockType;
-import defensivebot.enums.SparseSignalType;
-import defensivebot.models.SparseSignal;
-import defensivebot.utils.Constants;
+import defensivebot2.datasturctures.CustomSet;
+import defensivebot2.enums.CommInfoBlockType;
+import defensivebot2.enums.SparseSignalType;
+import defensivebot2.models.SparseSignal;
+import defensivebot2.utils.Constants;
 
-import static defensivebot.bots.Robot.roundNum;
-import static defensivebot.bots.Robot.turnCount;
-import static defensivebot.utils.Constants.UNITS_AVAILABLE;
-import static defensivebot.utils.LogUtils.printDebugLog;
+import static defensivebot2.bots.Robot.roundNum;
+import static defensivebot2.bots.Robot.turnCount;
+import static defensivebot2.utils.Constants.UNITS_AVAILABLE;
+import static defensivebot2.utils.LogUtils.printDebugLog;
 
 public class LocalInfo {
 

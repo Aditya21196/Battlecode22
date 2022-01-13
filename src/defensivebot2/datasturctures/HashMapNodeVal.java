@@ -1,4 +1,4 @@
-package defensivebot.datasturctures;
+package defensivebot2.datasturctures;
 // TODO: change var names
 public class HashMapNodeVal<K,V> {
     public K key;

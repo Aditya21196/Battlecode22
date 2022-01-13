@@ -1,8 +1,8 @@
-package defensivebot.models;
+package defensivebot2.models;
 
 import battlecode.common.MapLocation;
-import defensivebot.datasturctures.CustomSet;
-import defensivebot.enums.SparseSignalType;
+import defensivebot2.datasturctures.CustomSet;
+import defensivebot2.enums.SparseSignalType;
 
 public class SparseSignal {
 

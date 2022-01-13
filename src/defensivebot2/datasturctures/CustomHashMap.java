@@ -1,4 +1,4 @@
-package defensivebot.datasturctures;
+package defensivebot2.datasturctures;
 
 public class CustomHashMap<K, V> {
     public LinkedList<HashMapNodeVal<K, V>>[] table;

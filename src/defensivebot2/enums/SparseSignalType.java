@@ -1,4 +1,4 @@
-package defensivebot.enums;
+package defensivebot2.enums;
 
 // TODO: Decide which signals we need and their relative importance
 public enum SparseSignalType {

@@ -1,16 +1,16 @@
-package defensivebot.bots;
+package defensivebot2.bots;
 
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.*;
-import defensivebot.strategies.Comms;
-import defensivebot.strategies.LocalInfo;
-import defensivebot.utils.*;
+import defensivebot2.strategies.Comms;
+import defensivebot2.strategies.LocalInfo;
+import defensivebot2.utils.*;
 
 
-import static defensivebot.utils.Constants.EXTRA_BYTECODE_FOR_COMMS_CLEANUP;
-import static defensivebot.utils.LogUtils.printVerboseLog;
+import static defensivebot2.utils.Constants.EXTRA_BYTECODE_FOR_COMMS_CLEANUP;
+import static defensivebot2.utils.LogUtils.printVerboseLog;
 
 public abstract class Robot {
 

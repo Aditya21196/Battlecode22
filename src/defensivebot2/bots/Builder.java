@@ -1,15 +1,15 @@
-package defensivebot.bots;
+package defensivebot2.bots;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
-//import defensivebot.enums.DroidSubType;
+//import defensivebot2.enums.DroidSubType;
 
-import static defensivebot.bots.Archon.rng;
-import static defensivebot.utils.Constants.directions;
-import static defensivebot.utils.LogUtils.printDebugLog;
+import static defensivebot2.bots.Archon.rng;
+import static defensivebot2.utils.Constants.directions;
+import static defensivebot2.utils.LogUtils.printDebugLog;
 
 import java.util.Random;
 

@@ -1,23 +1,23 @@
-package defensivebot.strategies;
+package defensivebot2.strategies;
 
 import battlecode.common.*;
-import defensivebot.datasturctures.CustomHashMap;
-import defensivebot.datasturctures.CustomSet;
-import defensivebot.datasturctures.HashMapNodeVal;
-import defensivebot.datasturctures.LinkedList;
-import defensivebot.enums.CommInfoBlockType;
-import defensivebot.enums.SparseSignalType;
-import defensivebot.models.SparseSignal;
+import defensivebot2.datasturctures.CustomHashMap;
+import defensivebot2.datasturctures.CustomSet;
+import defensivebot2.datasturctures.HashMapNodeVal;
+import defensivebot2.datasturctures.LinkedList;
+import defensivebot2.enums.CommInfoBlockType;
+import defensivebot2.enums.SparseSignalType;
+import defensivebot2.models.SparseSignal;
 
 import java.util.Map;
 
-import static defensivebot.bots.Robot.turnCount;
+import static defensivebot2.bots.Robot.turnCount;
 
-import static defensivebot.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
-import static defensivebot.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
-import static defensivebot.utils.Constants.*;
-import static defensivebot.utils.CustomMath.ceilDivision;
-import static defensivebot.utils.LogUtils.printDebugLog;
+import static defensivebot2.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
+import static defensivebot2.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
+import static defensivebot2.utils.Constants.*;
+import static defensivebot2.utils.CustomMath.ceilDivision;
+import static defensivebot2.utils.LogUtils.printDebugLog;
 
 public class Comms {
 

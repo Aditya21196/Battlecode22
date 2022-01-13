@@ -1,4 +1,4 @@
-package defensivebot.utils;
+package defensivebot2.utils;
 
 import battlecode.common.MapLocation;
 

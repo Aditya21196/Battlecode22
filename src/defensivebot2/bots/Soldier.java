@@ -1,12 +1,12 @@
-package defensivebot.bots;
+package defensivebot2.bots;
 
-import static defensivebot.bots.Archon.rng;
-import static defensivebot.utils.Constants.directions;
+import static defensivebot2.bots.Archon.rng;
+import static defensivebot2.utils.Constants.directions;
 
 import battlecode.common.*;
-import defensivebot.datasturctures.CustomSet;
+import defensivebot2.datasturctures.CustomSet;
 
-import static defensivebot.utils.LogUtils.printDebugLog;
+import static defensivebot2.utils.LogUtils.printDebugLog;
 
 public class Soldier extends Robot{
 	

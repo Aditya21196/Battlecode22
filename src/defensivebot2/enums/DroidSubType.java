@@ -1,4 +1,4 @@
-package defensivebot.enums;
+package defensivebot2.enums;
 
 import battlecode.common.RobotType;
 
