@@ -53,7 +53,7 @@ public class LocalInfo {
     //Gold Info gathered
     public MapLocation nearestGoldLoc;
     public int nearestGoldDist;
-    public int totalGoldDeposits;
+    public int numMinersInSector;
     
     //Rubble Info gathered
     //public MapLocation lowestRubbleLoc;
@@ -85,6 +85,7 @@ public class LocalInfo {
         // for debugging
         nearestEnemy = null;
         nearestEnemyDist = Integer.MAX_VALUE;
+		numMinersInSector = 0;
 
 
         nearestFR = new RobotInfo[UNITS_AVAILABLE];
@@ -99,17 +100,21 @@ public class LocalInfo {
             weakestERHealth = new int[UNITS_AVAILABLE];
         }
 
-
         for(int i = nearestFRDist.length; --i>=0;) {
         	nearestFRDist[i] = Integer.MAX_VALUE;
         	nearestERDist[i] = Integer.MAX_VALUE;
             if(forAttack)weakestERHealth[i] = Integer.MAX_VALUE;
         }
         
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        if(nearbyRobots.length>20)nearbyRobots = rc.senseNearbyRobots(10);
 
-        MapLocation loc = rc.getLocation();
+
+		MapLocation loc = rc.getLocation();
+		int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
+		boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
+
+		RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+		if(nearbyRobots.length>20)nearbyRobots = rc.senseNearbyRobots(10);
+
         for(int i = nearbyRobots.length; --i>=0;){
         	MapLocation robLoc = nearbyRobots[i].getLocation();
             int distToMe = loc.distanceSquaredTo(robLoc);
@@ -123,6 +128,13 @@ public class LocalInfo {
                 if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal()) {
                 	homeArchon = nearbyRobots[i];
                 }
+
+				if(
+						typeOrdinal == RobotType.MINER.ordinal() &&
+						isDenseUpdateAllowed && robLoc.x/comms.xSectorSize == xSector &&
+								robLoc.y/comms.ySectorSize == ySector
+				)numMinersInSector++;
+
 
                 
             }else{
@@ -184,6 +196,7 @@ public class LocalInfo {
             	nearestLeadDist = distToMe;
             }
         }
+		if(robotsSensedLastRound == turnCount)totalLeadInSector /= (numMinersInSector+1);
         if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
     }
 

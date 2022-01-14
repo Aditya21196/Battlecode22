@@ -70,20 +70,20 @@ public abstract class Robot {
         currentLocation = rc.getLocation();
 
 		sense();
-//		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 
         executeRole();
-//		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
+		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
 
 		move();
-//		verbose("bytecode remaining after moving: "+ Clock.getBytecodesLeft());
-		verbose("lead count: "+rc.getTeamLeadAmount(team));
+//		verbose("lead count: "+rc.getTeamLeadAmount(team));
 
 		localInfo.checkExploration();
-		//localInfo.checkEnemySpotted();
-		//localInfo.checkArchonSpotted();
+		localInfo.checkEnemySpotted();
+		localInfo.checkArchonSpotted();
 		comms.processUpdateQueues();
 
+		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
 		// TODO: decide byte code limit for cleaning dynamically?
 		//if(comms.isSignalArrayFull && Clock.getBytecodesLeft()<EXTRA_BYTECODE_FOR_COMMS_CLEANUP)comms.cleanComms();
       	// TODO: more stuff for spare bytecode utilization?

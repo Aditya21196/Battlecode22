@@ -7,8 +7,8 @@ import static defensivebot2.bots.Robot.turnCount;
 public class LogUtils {
 
     // TODO: change to false before tournament submission
-    private static final boolean isDebugMode=true;
-    private static final boolean isVerboseMode=false;
+    private static final boolean isDebugMode=false;
+    private static final boolean isVerboseMode=true;
 
     public static void printDebugLog(String msg){
         if(!isDebugMode)return;
