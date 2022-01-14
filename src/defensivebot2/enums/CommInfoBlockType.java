@@ -22,8 +22,8 @@ public enum CommInfoBlockType {
     public int getStoreVal(int val){
         switch (this){
             case LEAD_MAP:
-                if(val>100)return 3;
-                if(val>50)return 2;
+                if(val>30)return 3;
+                if(val>20)return 2;
                 return 0;
             case EXPLORATION:
                 if(val>0)return 1;

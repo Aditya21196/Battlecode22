@@ -76,6 +76,7 @@ public abstract class Robot {
 
 		localInfo.checkExploration();
 		//localInfo.checkEnemySpotted();
+
 		localInfo.checkArchonSpotted();
 		comms.processUpdateQueues();
 
