@@ -91,7 +91,7 @@ public class Constants {
     // comms cleanup
     public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP = 8000;
 
-    public static final int DENSE_COMMS_UPDATE_LIMIT = 2;
+    public static final int DENSE_COMMS_UPDATE_LIMIT = 3;
 
     // only say archon is dead if you are very close to center of sector
     public static final int ARCHON_DEATH_CONFIRMATION = 2;

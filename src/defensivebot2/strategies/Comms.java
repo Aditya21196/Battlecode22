@@ -134,14 +134,72 @@ public class Comms {
         return getCenterOfSector(curSectorX,curSectorY);
     }
 
+//    public int writeBits1(int[] updatedCommsValues,int offset,int val,int numBits){
+//        int initBitIdx =  offset%16;
+//        int initUdateIdx = offset/16;
+//        int initVal = updatedCommsValues[initUdateIdx];
+//        int oldVal=0;
+//        for(int j = 0; j<numBits;j++){
+//            int updateIdx = offset/16;
+//            int bitIdx = offset%16;
+//            int updateVal = (val & 1<<j) > 0? 1: 0;
+//            updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
+//            oldVal = updatedCommsValues[updateIdx];
+//            offset++;
+//        }
+//        if(16-initBitIdx>=numBits){
+//            int mask = ((1 << numBits) - 1) << initBitIdx;
+//            int newVal = (initVal & ~mask) | (val << initBitIdx);
+//            offset += numBits;
+//            if(newVal != oldVal){
+//                throw new RuntimeException("ss");
+//            }
+//        }
+//        return offset;
+//    }
+
     public int writeBits(int[] updatedCommsValues,int offset,int val,int numBits){
-        for(int j = 0; j<numBits;j++){
-            int updateIdx = offset/16;
-            int bitIdx = offset%16;
-            int updateVal = (val & 1<<j) > 0? 1: 0;
-            updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
-            offset++;
+
+        int updateIdx = offset/16;
+        int bitIdx = offset%16;
+        // we can modify 16 - bitIdx bits
+        if(16-bitIdx>=numBits){
+            int mask = ((1 << numBits) - 1) << bitIdx;
+            updatedCommsValues[updateIdx] = (updatedCommsValues[updateIdx] & ~mask) | (val << bitIdx);
+            offset += numBits;
+        }else{
+//            int initVal1 = updatedCommsValues[updateIdx];
+//            int initVal2 = updatedCommsValues[updateIdx+1];
+//            int updatedVal1 = initVal1;
+//            int updatedVal2 = initVal2;
+//            int uIdx=updateIdx;
+//            // assuming that at max 17 bits are updated at once
+//            int numUpdate = 16-numBits;
+//
+//            int mask = ((1 << numUpdate) - 1);
+//            mask <<= bitIdx;
+//            updatedVal1 = (updatedVal1 & ~mask) | ((val | mask) << bitIdx);
+//
+//            int newVal = val >> numUpdate;
+//            numUpdate = numBits - (16-bitIdx);
+//            mask = ((1 << numUpdate) - 1);
+//            updateIdx++;
+//            updatedVal2 = (updatedVal2 & ~mask) | (newVal | mask);
+
+            // TODO: optimize this when this starts happening too often
+            for(int j = 0; j<numBits;j++){
+                updateIdx = offset/16;
+                bitIdx = offset%16;
+                int updateVal = (val & 1<<j) > 0? 1: 0;
+                updatedCommsValues[updateIdx] = modifyBit(updatedCommsValues[updateIdx],bitIdx,updateVal);
+                offset++;
+            }
+//            if(updatedVal1 != updatedCommsValues[uIdx] || updatedVal2 != updatedCommsValues[uIdx+1]){
+//                throw new RuntimeException("ss");
+//            }
         }
+
+
         return offset;
     }
 
@@ -185,6 +243,7 @@ public class Comms {
     * */
 
     public MapLocation getNearestLeadLoc() throws GameActionException {
+        readSharedData();
         MapLocation loc = rc.getLocation();
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
 
@@ -194,8 +253,8 @@ public class Comms {
 
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
-            int val = readInfo(commInfoBlockType,checkX,checkY);
-            if(val >=2){
+            int val = readBits(data,blockOffset* commInfoBlockType.offset + (checkX*ySectors + checkY)*commInfoBlockType.blockSize, commInfoBlockType.blockSize);
+            if(val >=1){
                 return getCenterOfSector(checkX,checkY);
             }
         }
@@ -204,6 +263,7 @@ public class Comms {
 
 
     public MapLocation getNearbyUnexplored() throws GameActionException {
+        readSharedData();
         MapLocation loc = rc.getLocation();
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
 
@@ -215,7 +275,7 @@ public class Comms {
 
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
-            int val = readInfo(commInfoBlockType,checkX,checkY);
+            int val = readBits(data,blockOffset* commInfoBlockType.offset + (checkX*ySectors + checkY)*commInfoBlockType.blockSize, commInfoBlockType.blockSize);
             if(val == 0){
                 return getCenterOfSector(checkX,checkY);
             }
@@ -231,14 +291,8 @@ public class Comms {
         return new MapLocation(x,y);
     }
 
-    private int readInfo(CommInfoBlockType commInfoBlockType, int sectorX, int sectorY) throws GameActionException {
-        return readBits(data,getCommOffset(commInfoBlockType,sectorX,sectorY), commInfoBlockType.blockSize);
-    }
-
+    // must have read shared array for this to work
     private int readBits(int[] arr,int offset,int num) throws GameActionException {
-        // TODO: Remove this from here when it becomes unnecessary
-        readSharedData();
-
         int val=0;
         for(int j=num;--j>=0;){
             // read (offset + j) th bit
@@ -252,10 +306,13 @@ public class Comms {
         return val;
     }
 
+    // to set to 1: original |= 1 << pos
+    // to set to 0: original &= ~(1 << pos)
     public int modifyBit(int original, int pos, int val)
     {
-        int mask = 1 << pos;
-        return (original & ~mask) | ((val << pos) & mask);
+        if(val == 1){
+            return original | (1 << pos);
+        } else return original & ~(1 << pos);
     }
 
     public void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
@@ -287,7 +344,7 @@ public class Comms {
         int dim8 = (int)Math.ceil(1.0*dimension/8);
         if(dim7 == dim8)return 7;
         // more bits saved if we choose 8
-        return 8;
+        return 10;
     }
 
     public boolean isDenseUpdateAllowed(){
