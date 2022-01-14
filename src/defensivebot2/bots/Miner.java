@@ -4,9 +4,6 @@ package defensivebot2.bots;
 import battlecode.common.*;
 import defensivebot2.utils.Constants;
 
-import static defensivebot2.bots.Archon.rng;
-import static defensivebot2.utils.Constants.directions;
-
 public class Miner extends Robot{
     
 	private MapLocation taskLoc = null;
@@ -52,9 +49,9 @@ public class Miner extends Robot{
     	tryMoveNewTask();
     	
     	//movement priority 5: full miner repulsion
+    	//TODO: consider adding edge repulsion
     	tryMoveRepel();
     	
-		return;
     }
     
 
@@ -96,7 +93,7 @@ public class Miner extends Robot{
 	private void tryMoveInDanger() throws GameActionException {
 		if(!rc.isMovementReady()) return;
 		
-		moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run from: "+taskLoc);
+		moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run in danger");
 	}
 
 	private void tryMoveOnTask() throws GameActionException {

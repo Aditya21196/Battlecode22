@@ -429,7 +429,7 @@ public class Comms {
         return Integer.toBinaryString(val);
     }
     
-    public SparseSignal getClosestEnemyArchon() throws GameActionException {
+    public SparseSignal getClosestArchon() throws GameActionException {
         querySparseSignals();
         sparseSignals.initIteration();
         SparseSignal signal = sparseSignals.next();
@@ -449,5 +449,5 @@ public class Comms {
         }
         return closestArchonSignal;
     }
-
+    
 }

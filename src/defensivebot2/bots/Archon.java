@@ -61,27 +61,27 @@ public class Archon extends Robot{
         RobotType toBuild = RobotType.MINER;
 //        printDebugLog("exploration index: "+comms.explorationIndex());
 
-        CustomSet<SparseSignal> sparseSignals = comms.querySparseSignals();
+       // CustomSet<SparseSignal> sparseSignals = comms.querySparseSignals();
 
-        sparseSignals.initIteration();
-        SparseSignal next = sparseSignals.next();
-        while (next != null){
-            if(next.type == SparseSignalType.ENEMY_SPOTTED)enemySpotted = true;
-            next = sparseSignals.next();
-        }
-
-        // act as if enemy is spotted
-        if(roundNum > 1000) {
-        	enemySpotted = true;
-        }
+//        sparseSignals.initIteration();
+//        SparseSignal next = sparseSignals.next();
+//        while (next != null){
+//            if(next.type == SparseSignalType.ENEMY_SPOTTED)enemySpotted = true;
+//            next = sparseSignals.next();
+//        }
+//
+//        // act as if enemy is spotted
+//        if(roundNum > 1000) {
+//        	enemySpotted = true;
+//        }
         
         //testing
-        if(roundNum > 250) {
-        	toBuild = null;
-        }
+//        if(roundNum > 250) {
+//        	toBuild = null;
+//        }
         
-        if(enemySpotted && tempCounter%5 != 0){
-            //toBuild = RobotType.SOLDIER;
+        if(tempCounter%2 != 0){
+            toBuild = RobotType.SOLDIER;
         }
 
         //if(rc.getMapHeight() > 40 && rc.getMapWidth() > 40 && Math.random() < 0.05) toBuild = RobotType.BUILDER;

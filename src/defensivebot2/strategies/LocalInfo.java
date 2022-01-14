@@ -64,15 +64,7 @@ public class LocalInfo {
         this.rc=rc;
         this.comms=comms;
     }
-
-    private void reset(){
-
-    }
-
-//    public RobotInfo getNearestEnemy(){
-//
-//    }
-
+    
     public void senseRobots(boolean forAttack){
 
         if(robotsSensedLastRound == turnCount)return;

@@ -296,6 +296,9 @@ public class Soldier extends Robot{
 	}
 
 	// TODO: this should be only for robots in attack radius, not vision radius
+	// This works based on the robot's action radius covering its vision radius with one move
+	// Since we make sure soldiers only move to a location in range of best target 
+	// this only fails if target is on perimeter of vision and soldier cannot move toward target
 	private MapLocation getBestTarget() {
 		double highestDPH = Double.MIN_VALUE;
 		int highestDPHIndex = 0;

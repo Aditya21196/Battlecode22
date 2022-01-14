@@ -1,23 +1,17 @@
 package defensivebot2.bots;
 
-import static defensivebot2.bots.Archon.rng;
-import static defensivebot2.utils.Constants.directions;
+//import static defensivebot.utils.Constants.ARCHON_DEATH_CONFIRMATION;
 
 import battlecode.common.*;
+import defensivebot2.models.SparseSignal;
 import defensivebot2.datasturctures.CustomSet;
-
-import static defensivebot2.utils.LogUtils.printDebugLog;
+import defensivebot2.utils.Constants;
 
 public class Soldier extends Robot{
 	
-	private int headingIndex = -1; // index in Constants.directions for heading
-	private MapLocation poi = null;
-	
-	//TODO:convert taskType to enum or try to sync with what is used in comms
-	private int taskType = -1;
-	private MapLocation taskLocation = null;
-	private MapLocation headingTarget = null;
-	private boolean randomMovementAllowed = false;
+	private MapLocation taskLoc = null;
+	private boolean isMapExplored = false;
+	private boolean tryTargetFromComms = true;
 	private CustomSet<MapLocation> discoveredArchons = new CustomSet<>(5);
 	
 	
@@ -30,306 +24,348 @@ public class Soldier extends Robot{
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
     	localInfo.senseRobots(true);
-    	localInfo.senseLead(false);
-    	//enemies that deal damage nearby?
-		poi = localInfo.findNearestDamager();
-		if(poi != null){
-			enemyDamagerNearby();
-			rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-			rc.setIndicatorString("avoiding enemy");
-		}
     	
-    	//no enemy damagers nearby
-    	//enemy non damager nearby?
-		poi = localInfo.findNearestNondamager();
-		if(poi != null){
-			enemyNonDamagerNearby();
-			rc.setIndicatorLine(rc.getLocation(), poi, 255, 0, 0);
-			rc.setIndicatorString("enemy non damager");
-		}
-
-
-    	//no enemy non damager nearby
+    	//movement priority 1: run from danger in area if out numbered (in this case we should attack first if able)
     	
-    	//has task and taskLocation?
-    	//currently does nothing ...
-    	if(taskType == 0) {
-    		//perform movement for task
-    		trySenseResources();
-    		return;
+    	int ed = localInfo.getEnemyDamagerCount();
+    	int fd = localInfo.getFriendlyDamagerCount();
+    	if(ed > fd) {
+    		tryAttack();
+			tryMoveInDanger();
     	}
     	
-    	//no task
+    	//movement priority 2: move to best location to attack best target.
+    	tryMoveAndAttackBestTarget();
     	
-    	//TODO: add decision to look in comms for tasks (ie explore here, go to here, surround here)
-		MapLocation loc = commsBestLocforSoldier();
-		if(loc != null){
-			// There can be a lot of back and forth because of this if not done right
-			moveTo(loc);
-			return;
-		}
+    	//movement priority 3: move to best location to attack a target.
+    	tryMoveAndAttack();
+    	tryAttack();
     	
-    	//friendly soldier with higher id?
-    	/*if(localInfo.highestIDFR[RobotType.SOLDIER.ordinal()] != null && localInfo.highestIDFR[RobotType.SOLDIER.ordinal()].getID() > rc.getID()) {
-    		//follow him
-    		moveTo(localInfo.highestIDFR[RobotType.SOLDIER.ordinal()].getLocation());
-    		trySenseResources();
-    		rc.setIndicatorString("following FS");
-    		return;
-    	}*/
+    	//movement priority 4: continue or get a task
+    	tryMoveOnTask();
+    	tryMoveNewTask();
     	
-    	//no friendly soldier with higher id
-    	//heading
-		// TODO: We are wasting soldier potential here. We should do something
-		moveHeading();
-		rc.setIndicatorString("heading. no one is around");
+    	trySenseResources();
     }
 
-	private MapLocation commsBestLocforSoldier() throws GameActionException {
-		MapLocation bestLoc = comms.getNearbyUnexplored();
-		if(bestLoc != null)rc.setIndicatorString("unexplored area: "+bestLoc);
-		else{
-			//bestLoc = comms.getClosestEnemyArchon(discoveredArchons);
-			if(bestLoc!=null && currentLocation.distanceSquaredTo(bestLoc)<20){
-				discoveredArchons.add(bestLoc);
-			}
+    private void tryMoveOnTask() throws GameActionException {
+		if(!rc.isMovementReady() || taskLoc == null) return;
+		//arrived at task
+		if(rc.getLocation().isWithinDistanceSquared(taskLoc, Constants.CLOSE_RADIUS)) {
+			taskLoc = null;
+			return;
 		}
-		return bestLoc;
+		
+		moveToward(taskLoc);rc.setIndicatorString("best task loc: "+taskLoc);
+		if(rc.isMovementReady()) {
+			taskLoc = null;
+		}
+	}
+    
+    //strategy is to only read from comms one piece of info per turn
+  	private void tryMoveNewTask() throws GameActionException {
+  		if(!rc.isMovementReady()) return;
+  		
+  		//got target from comms last time you checked, therefore try again
+  		if(tryTargetFromComms) {
+  			SparseSignal signal = comms.getClosestArchon();
+  			if(signal != null){
+				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestER[RobotType.ARCHON.ordinal()] == null){
+					comms.markArchonDead(signal);
+				} 
+				taskLoc = signal.target;
+			}
+  			tryTargetFromComms = signal != null;
+  		}
+  		
+  		//did not get target from comms last time, try to get an exploration task
+  		else if(!isMapExplored) {
+  			//reset lead found state to look for lead next time
+  			tryTargetFromComms = true;
+  			taskLoc = comms.getNearbyUnexplored();
+  			if(taskLoc == null) {
+  				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
+  			}
+  		}
+  		
+  		else {
+  			//reset lead found state to look for lead next time
+  			tryTargetFromComms = true;
+  			System.out.println("Map Fully Explored! Horray!");
+  		}
+  		
+  		tryMoveOnTask();
+  	}
+    
+    private void tryMoveInDanger() throws GameActionException {
+		if(!rc.isMovementReady()) return;
+		
+		moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run outnumbered");
 	}
 
 	private void trySenseResources() throws GameActionException {
-		if(Clock.getBytecodesLeft() > 1000) {
+		if(Clock.getBytecodesLeft() > 3000) {
 			localInfo.senseLead(false);
+			System.out.println("SL");
 		}
-		if(Clock.getBytecodesLeft() > 1000) {
+		if(Clock.getBytecodesLeft() > 2000) {
 			localInfo.senseGold();
+			System.out.println("SG");
+		}
+	}
+	
+
+	//try to attack a target
+	private void tryAttack() throws GameActionException {
+		if(!rc.isActionReady()) return;
+		
+		MapLocation target = null;
+		
+		if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation();
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+				tryAttack(target);
+				return;
+			}	
+		}
+		
+		if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation();
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+				tryAttack(target);
+				return;
+			}
+		}
+		
+		if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation();
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+				tryAttack(target);
+				return;
+			}	
+		}
+		if(localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.ARCHON.ordinal()].getLocation();
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+				tryAttack(target);
+				return;
+			}
+		}
+		if(localInfo.nearestER[RobotType.BUILDER.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.BUILDER.ordinal()].getLocation();
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+				tryAttack(target);
+				return;
+			}
+		}
+		if(localInfo.nearestER[RobotType.MINER.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.MINER.ordinal()].getLocation();
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+				tryAttack(target);
+				return;
+			}
+		}
+		if(localInfo.nearestER[RobotType.LABORATORY.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.LABORATORY.ordinal()].getLocation();
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+				tryAttack(target);
+				return;
+			}
+		}
+		
+	}
+	
+	//try to make an aggressive move, then try to attack a target
+	private void tryMoveAndAttack() throws GameActionException {
+		if(!rc.isMovementReady()) return;
+		
+		MapLocation target = null;
+		MapLocation best = null;
+		
+		if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation();
+			best = localInfo.getBestLocInRange(target);
+			if(best != null) {
+				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+				if(!rc.isActionReady())
+					return;
+				tryAttack(target);
+				return;
+			}	
+		}
+		
+		if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation();
+			best = localInfo.getBestLocInRange(target);
+			if(best != null) {
+				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+				if(!rc.isActionReady())
+					return;
+				tryAttack(target);
+				return;
+			}	
+		}
+		
+		if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation();
+			best = localInfo.getBestLocInRange(target);
+			if(best != null) {
+				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+				if(!rc.isActionReady())
+					return;
+				tryAttack(target);
+				return;
+			}	
+		}
+		if(localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.ARCHON.ordinal()].getLocation();
+			best = localInfo.getBestLocInRange(target);
+			if(best != null) {
+				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+				if(!rc.isActionReady())
+					return;
+				tryAttack(target);
+				return;
+			}	
+		}
+		if(localInfo.nearestER[RobotType.BUILDER.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.BUILDER.ordinal()].getLocation();
+			best = localInfo.getBestLocInRange(target);
+			if(best != null) {
+				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+				if(!rc.isActionReady())
+					return;
+				tryAttack(target);
+				return;
+			}	
+		}
+		if(localInfo.nearestER[RobotType.MINER.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.MINER.ordinal()].getLocation();
+			best = localInfo.getBestLocInRange(target);
+			if(best != null) {
+				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+				if(!rc.isActionReady())
+					return;
+				tryAttack(target);
+				return;
+			}	
+		}
+		if(localInfo.nearestER[RobotType.LABORATORY.ordinal()] != null) {
+			target = localInfo.nearestER[RobotType.LABORATORY.ordinal()].getLocation();
+			best = localInfo.getBestLocInRange(target);
+			if(best != null) {
+				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+				if(!rc.isActionReady())
+					return;
+				tryAttack(target);
+				return;
+			}	
 		}
 	}
 
 	
-
-
-	private void enemyDamagerNearby() throws GameActionException {
-		int fdCount = localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]+
-				localInfo.friendlyUnitCounts[RobotType.SOLDIER.ordinal()]+
-				localInfo.friendlyUnitCounts[RobotType.SAGE.ordinal()];
-		int edCount = localInfo.enemyUnitCounts[RobotType.WATCHTOWER.ordinal()]+
-				localInfo.enemyUnitCounts[RobotType.SOLDIER.ordinal()]+
-				localInfo.enemyUnitCounts[RobotType.SAGE.ordinal()];
-		//friendly damager count >= enemy damager count
-		if(fdCount >= edCount) {
-			//compute target
-			
-			//movement ready?
-			if(rc.isMovementReady()) {
-				MapLocation target = getBestTarget();
-				if(currentLocation.distanceSquaredTo(target)>RobotType.SOLDIER.actionRadiusSquared)
-					target = poi;
-//				localInfo.senseRubbleForAttack(target);
-//				int curRubble = rc.senseRubble(currentLocation);
-//				if(localInfo.lowestRubbleLoc != null && curRubble - localInfo.lowestRubble>3) {
-//					moveTo(localInfo.lowestRubbleLoc);
-//				}
-				tryAttack(target);
-				return;
+	//try to make an aggressive move, then try to attack the best target based on damage per turn per hp
+	private void tryMoveAndAttackBestTarget() throws GameActionException {
+		if(!rc.isMovementReady()) return;
+		
+		double highestDPH = Double.MIN_VALUE;
+		MapLocation target = null;
+		double dph;//damage per turn per hp
+		if(localInfo.weakestER[RobotType.SOLDIER.ordinal()] != null) {
+			dph = (RobotType.SOLDIER.damage / 2) / (double)localInfo.weakestER[RobotType.SOLDIER.ordinal()].getHealth();
+			if(dph > highestDPH) {
+				highestDPH = dph;
+				target = localInfo.weakestER[RobotType.SOLDIER.ordinal()].getLocation();
 			}
-			
-			//movement not ready
-			
-			//action ready?
-			if(rc.isActionReady()) {
-				MapLocation target = getBestTargetInRange();
-				if(target != null) {
-					tryAttack(target);
-				}
-				return;
+		}
+		//as of 1-13-22 targeting level 1 WT 1st seems acceptable
+		if(localInfo.weakestER[RobotType.WATCHTOWER.ordinal()] != null) {
+			dph = (RobotType.WATCHTOWER.getDamage(localInfo.weakestER[RobotType.WATCHTOWER.ordinal()].getLevel()) / Constants.ROUNDS_PER_ACTION) / (double)localInfo.weakestER[RobotType.WATCHTOWER.ordinal()].getHealth();
+			if(dph > highestDPH) {
+				highestDPH = dph;
+				target = localInfo.weakestER[RobotType.WATCHTOWER.ordinal()].getLocation();
 			}
-			//action not ready
-			trySenseResources();
-			return;
+		}
+		if(localInfo.weakestER[RobotType.SAGE.ordinal()] != null) {
+			//assumes level 1 buildings 
+			int buildingDamage = 	
+				localInfo.friendlyUnitCounts[RobotType.ARCHON.ordinal()]*RobotType.ARCHON.health/10 + 
+				localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]*RobotType.WATCHTOWER.health/10 + 
+				localInfo.friendlyUnitCounts[RobotType.LABORATORY.ordinal()]*RobotType.LABORATORY.health/10;
+			int robotDamage = 
+				localInfo.friendlyUnitCounts[RobotType.SOLDIER.ordinal()]*RobotType.SOLDIER.health/10 + 
+				localInfo.friendlyUnitCounts[RobotType.MINER.ordinal()]*RobotType.WATCHTOWER.health/10 + 
+				localInfo.friendlyUnitCounts[RobotType.SAGE.ordinal()]*RobotType.SAGE.health/10 + 
+				localInfo.friendlyUnitCounts[RobotType.BUILDER.ordinal()]*RobotType.BUILDER.health/10;
+			
+			int damage = RobotType.SAGE.damage;
+			if(buildingDamage > damage)
+				damage = buildingDamage;
+			if(robotDamage > damage)
+				damage = robotDamage;
+			
+			dph = (damage / (RobotType.SAGE.actionCooldown / GameConstants.COOLDOWNS_PER_TURN)) / (double)localInfo.weakestER[RobotType.SAGE.ordinal()].getHealth();
+			if(dph > highestDPH) {
+				highestDPH = dph;
+				target = localInfo.weakestER[RobotType.SAGE.ordinal()].getLocation();
+			}
 		}
 		
-		//enemy damager count is greater
-		
-		//can attack?
-		if(rc.isActionReady()) {
-			//calc best target in range
-			MapLocation target = getBestTargetInRange();
-			if(target != null) {
-				tryAttack(target);
+		//check non damagers
+		if(target == null) {
+			if(localInfo.weakestER[RobotType.ARCHON.ordinal()] != null) {
+				target = localInfo.weakestER[RobotType.ARCHON.ordinal()].getLocation();
+			}else if(localInfo.weakestER[RobotType.BUILDER.ordinal()] != null) {
+				target = localInfo.weakestER[RobotType.BUILDER.ordinal()].getLocation();
+			}else if(localInfo.weakestER[RobotType.MINER.ordinal()] != null) {
+				target = localInfo.weakestER[RobotType.MINER.ordinal()].getLocation();
+			}else if(localInfo.weakestER[RobotType.LABORATORY.ordinal()] != null) {
+				target = localInfo.weakestER[RobotType.LABORATORY.ordinal()].getLocation();
 			}
-			//move away from damager
-			moveAway(poi);
-			return;
-		}
-		//no one to attack, but still try to run
-		moveAway(poi);
-		return;
-	}
-	
-	
-
-	private void enemyNonDamagerNearby() throws GameActionException {
-		//movement ready?
-		if(rc.isMovementReady()) {
-			MapLocation target = getBestTargetNonDamager();
-//			localInfo.senseRubbleForAttack(target);
-//			if(localInfo.lowestRubbleLoc != null) {
-//				moveTo(localInfo.lowestRubbleLoc);
-//				tryAttack(target);
-//				return;
-//			}
-			
-			//location doesn't exist to attack best target.
-			//has action?
-			if(rc.isActionReady()) {
-				target = getBestTargetNonDamagerInRange();
-				if(target != null) {
-					tryAttack(target);
-				}
-				return;
-			}
-			return;
 		}
 		
-		//movement not ready
-		
-		//has action?
-		if(rc.isActionReady()) {
-			MapLocation target = getBestTargetNonDamagerInRange();
-			if(target != null) {
-				tryAttack(target);
-			}
+		if(target == null) //no one to attack
 			return;
-		}
 		
-		//action not ready
-		trySenseResources();
-		return;
+		MapLocation best = localInfo.getBestLocInRange(target);
+		
+		if(best == null) //cannot move or stay to attack best target
+			return;
+		
+		moveToward(best); rc.setIndicatorString("best attack loc for best target: "+best);
+		
+		if(!rc.isActionReady())
+			return;
+		
+		tryAttack(target);
 		
 	}
 
-	private MapLocation getBestTargetNonDamager() {
-		if(localInfo.weakestER[RobotType.ARCHON.ordinal()] != null) {
-    		return localInfo.weakestER[RobotType.ARCHON.ordinal()].location;
-    	}else if(localInfo.weakestER[RobotType.MINER.ordinal()] != null) {
-    		return localInfo.weakestER[RobotType.MINER.ordinal()].location;
-    	}else if(localInfo.weakestER[RobotType.BUILDER.ordinal()] != null) {
-    		return localInfo.weakestER[RobotType.BUILDER.ordinal()].location;
-    	}else if(localInfo.weakestER[RobotType.LABORATORY.ordinal()] != null) {
-    		return localInfo.weakestER[RobotType.LABORATORY.ordinal()].location;
+	
+	private void tryMove(Direction dir) throws GameActionException {
+    	if(dir!=null && rc.canMove(dir)) {
+			rc.move(dir);
+		}
+    }
+
+    private void moveToward(MapLocation target) throws GameActionException {
+    	if(rc.isMovementReady() && !rc.getLocation().equals(target)) {
+    		tryMove(getBestValidDirection(target));
+		}
+    }
+    
+    private void moveAway(MapLocation toAvoid) throws GameActionException {
+    	if(rc.isMovementReady()) {
+    		tryMove(getBestValidDirection(toAvoid.directionTo(rc.getLocation())));
     	}
-		return null;
 	}
-	
-	private MapLocation getBestTargetNonDamagerInRange() {
-		if(localInfo.nearestER[RobotType.ARCHON.ordinal()] != null && 
-				localInfo.nearestER[RobotType.ARCHON.ordinal()].getLocation().isWithinDistanceSquared(rc.getLocation(), rc.getType().actionRadiusSquared)) {
-    		return localInfo.nearestER[RobotType.ARCHON.ordinal()].location;
-    	}else if(localInfo.nearestER[RobotType.MINER.ordinal()] != null && 
-				localInfo.nearestER[RobotType.MINER.ordinal()].getLocation().isWithinDistanceSquared(rc.getLocation(), rc.getType().actionRadiusSquared)) {
-    		return localInfo.nearestER[RobotType.MINER.ordinal()].location;
-    	}else if(localInfo.nearestER[RobotType.BUILDER.ordinal()] != null && 
-				localInfo.nearestER[RobotType.BUILDER.ordinal()].getLocation().isWithinDistanceSquared(rc.getLocation(), rc.getType().actionRadiusSquared)) {
-    		return localInfo.nearestER[RobotType.BUILDER.ordinal()].location;
-    	}else if(localInfo.nearestER[RobotType.LABORATORY.ordinal()] != null && 
-				localInfo.nearestER[RobotType.LABORATORY.ordinal()].getLocation().isWithinDistanceSquared(rc.getLocation(), rc.getType().actionRadiusSquared)) {
-    		return localInfo.nearestER[RobotType.LABORATORY.ordinal()].location;
-    	}
-		return null;
-	}
-
-	private void tryAttack(MapLocation target) throws GameActionException {
+    
+    private void tryAttack(MapLocation target) throws GameActionException {
 		if(rc.canAttack(target)) {
 			rc.attack(target);
 		}
 		
 	}
-	
-	private void moveAway(MapLocation toAvoid) throws GameActionException {
-    	if(rc.isMovementReady()) {
-    		tryMove(getBestValidDirection(toAvoid.directionTo(rc.getLocation())));
-    	}
-	}
-	private void moveTo(MapLocation target) throws GameActionException {
-    	if(rc.isMovementReady() && !rc.getLocation().equals(target)) {
-    		tryMove(getBestValidDirection(target));
-		}
-    }
-	
-	private void tryMove(Direction dir) throws GameActionException {
-    	if(dir!=null && rc.canMove(dir)) {
-			rc.move(dir);
-		}else {
-			headingIndex = -1;
-		}
-    }
-	
-	private void moveHeading() throws GameActionException {
-		if(!rc.isMovementReady()) return;
-
-		if(headingTarget!=null){
-			if(currentLocation.distanceSquaredTo(headingTarget)>10){
-				headingTarget = new MapLocation(rng.nextInt(width),rng.nextInt(height));
-			}
-
-			if(headingIndex == -1) {
-				headingIndex = rng.nextInt(directions.length);
-			}
-
-			tryMove(getBestValidDirection(directions[headingIndex]));
-		}else headingTarget = new MapLocation(rng.nextInt(width),rng.nextInt(height));
-
-	}
-
-	// TODO: this should be only for robots in attack radius, not vision radius
-	private MapLocation getBestTarget() {
-		double highestDPH = Double.MIN_VALUE;
-		int highestDPHIndex = 0;
-		for(int i = localInfo.weakestER.length; --i>=0;) {
-			if(localInfo.weakestER[i] != null) {
-				double dph = localInfo.weakestER[i].getType().getDamage(localInfo.weakestER[i].getLevel()) / (double)localInfo.weakestER[i].getHealth();
-				if(dph > highestDPH) {
-					highestDPH = dph;
-					highestDPHIndex = i;
-				}
-			}
-			
-		}
-		return localInfo.weakestER[highestDPHIndex].getLocation();
-	}
-
-	private MapLocation getBestTargetInRange() {
-		double highestDPH = Double.MIN_VALUE;
-		int highestDPHIndex = -1;
-		for(int i = localInfo.weakestER.length; --i>=0;) {
-			if(localInfo.weakestER[i] != null && localInfo.weakestER[i].getLocation().isWithinDistanceSquared(rc.getLocation(), rc.getType().actionRadiusSquared)) {
-				double dph = localInfo.weakestER[i].getType().getDamage(localInfo.weakestER[i].getLevel()) / (double)localInfo.weakestER[i].getHealth();
-				if(dph > highestDPH) {
-					highestDPH = dph;
-					highestDPHIndex = i;
-				}
-			}
-		}
-		if(highestDPHIndex != -1) {
-			return localInfo.weakestER[highestDPHIndex].getLocation();
-		}
-		for(int i = localInfo.nearestER.length; --i>=0;) {
-			if(localInfo.weakestER[i] != null && localInfo.nearestER[i].getLocation().isWithinDistanceSquared(rc.getLocation(), rc.getType().actionRadiusSquared)) {
-				double dph = localInfo.nearestER[i].getType().getDamage(localInfo.nearestER[i].getLevel()) / (double)localInfo.nearestER[i].getHealth();
-				if(dph > highestDPH) {
-					highestDPH = dph;
-					highestDPHIndex = i;
-				}
-			}
-		}
-		if(highestDPHIndex != -1) {
-			return localInfo.nearestER[highestDPHIndex].getLocation();
-		}
-		return null;
-	}
-
-    
 
 
 }

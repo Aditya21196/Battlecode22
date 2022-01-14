@@ -80,6 +80,8 @@ public class Constants {
     public static final double MINES_PER_ROUND = 5.0; //set to best case for miners (0 rubble means miners can mine 5 times)
     public static final int CLOSE_RADIUS = 5;
     
+    public static final int ROUNDS_PER_ACTION = 2;
+    
     public static final int MAX_MAP_SIZE=60;
     public static final int UNITS_AVAILABLE=7;
 
@@ -91,5 +93,5 @@ public class Constants {
     public static final int DENSE_COMMS_UPDATE_LIMIT = 4;
 
     // only say archon is dead if you are very close to center of sector
-    public static final int ARCHON_DEATH_CONFIRMATION=1;
+    public static final int ARCHON_DEATH_CONFIRMATION = 2;
 }

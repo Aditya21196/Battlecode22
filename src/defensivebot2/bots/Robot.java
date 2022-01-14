@@ -76,7 +76,7 @@ public abstract class Robot {
 
 		localInfo.checkExploration();
 		//localInfo.checkEnemySpotted();
-		//localInfo.checkArchonSpotted();
+		localInfo.checkArchonSpotted();
 		comms.processUpdateQueues();
 
 		// TODO: decide byte code limit for cleaning dynamically?
