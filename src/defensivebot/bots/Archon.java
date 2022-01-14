@@ -81,9 +81,9 @@ public class Archon extends Robot{
         if(roundNum > 1000)enemySpotted = true;
 
         //testing
-        if(roundNum > 250) {
-            toBuild = null;
-        }
+//        if(roundNum > 250) {
+//            toBuild = null;
+//        }
 
 //        if(enemySpotted && tempCounter%5 != 0){
 //            toBuild = RobotType.SOLDIER;

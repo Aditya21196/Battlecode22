@@ -105,17 +105,5 @@ public class Builder extends Robot{
     	}
 	}
     
-    @Override
-    public void move() throws GameActionException {}
-    @Override
-    public void sense() throws GameActionException {
-
-//        CustomSet<SparseSignal> sparseSignals = comms.querySparseSignals();
-//        sparseSignals.initIteration();
-//        SparseSignal next = sparseSignals.next();
-//        while(next!=null){
-//            printDebugLog("Sparse Signal Found: "+next.type);
-//            if(next.type == )
-//        }
-    }
+    
 }

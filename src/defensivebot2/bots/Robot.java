@@ -69,30 +69,22 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 
-		sense();
-		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+		executeRole();
+//		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
 
-        executeRole();
-		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
-
-		move();
-//		verbose("lead count: "+rc.getTeamLeadAmount(team));
+		//verbose("lead count: "+rc.getTeamLeadAmount(team));
 
 		localInfo.checkExploration();
-		localInfo.checkEnemySpotted();
+		//localInfo.checkEnemySpotted();
+
 		localInfo.checkArchonSpotted();
 		comms.processUpdateQueues();
 
-		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
 		// TODO: decide byte code limit for cleaning dynamically?
 		//if(comms.isSignalArrayFull && Clock.getBytecodesLeft()<EXTRA_BYTECODE_FOR_COMMS_CLEANUP)comms.cleanComms();
       	// TODO: more stuff for spare bytecode utilization?
     }
 
-	// sensing
-	abstract public void sense() throws GameActionException;
-
-	abstract public void move() throws GameActionException;
     
     /*
      * returns MapLocation which is closest to this robot and null if MapLocations are not valid.

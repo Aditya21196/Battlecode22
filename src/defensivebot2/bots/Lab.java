@@ -8,15 +8,7 @@ public class Lab extends Robot{
         super(rc);
     }
 
-    @Override
-    public void sense() throws GameActionException {
-
-    }
-
-    @Override
-    public void move() throws GameActionException {
-
-    }
+    
 
     @Override
     public void executeRole() throws GameActionException {

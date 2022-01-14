@@ -64,15 +64,7 @@ public class LocalInfo {
         this.rc=rc;
         this.comms=comms;
     }
-
-    private void reset(){
-
-    }
-
-//    public RobotInfo getNearestEnemy(){
-//
-//    }
-
+    
     public void senseRobots(boolean forAttack){
 
         if(robotsSensedLastRound == turnCount)return;
@@ -216,7 +208,7 @@ public class LocalInfo {
     }
     
 
-    //TODO: reduce by storing this information
+    
     public void checkExploration(){
         // if lead was checked, we mark as explored
         if(!comms.isDenseUpdateAllowed())return;
@@ -225,7 +217,7 @@ public class LocalInfo {
         }
     }
 
-    //TODO: reduce this frequency a lot
+    
     public void checkEnemySpotted(){
         if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
             comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
@@ -234,7 +226,14 @@ public class LocalInfo {
     
     public void checkArchonSpotted() {
         if(turnCount == robotsSensedLastRound && nearestER[RobotType.ARCHON.ordinal()] != null){
-            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_ARCHON_LOCATION,nearestER[RobotType.ARCHON.ordinal()].location,-1));
+            comms.queueSparseSignalUpdate(
+                    new SparseSignal(
+                            SparseSignalType.ENEMY_ARCHON_LOCATION,
+                            nearestER[RobotType.ARCHON.ordinal()].location,
+                            -1,
+                            3// first bit is on - means enemy archon. 2nd bit means its alive
+                    )
+            );
         }
     }
     
@@ -377,7 +376,7 @@ public class LocalInfo {
         
         //begin a binary search for radius with lead deposit counts within thresholds
     	high--;
-    	int low = 0;//TODO: set low to a radius with possible squares <= min threshold to help search and save bytecode
+    	int low = 0;
     	int mid = 0;
     	while(low < high) {
     		//sets mid to higher of two middle numbers when even number between low and high

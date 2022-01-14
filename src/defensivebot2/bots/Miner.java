@@ -4,9 +4,6 @@ package defensivebot2.bots;
 import battlecode.common.*;
 import defensivebot2.utils.Constants;
 
-import static defensivebot2.bots.Archon.rng;
-import static defensivebot2.utils.Constants.directions;
-
 public class Miner extends Robot{
     
 	private MapLocation taskLoc = null;
@@ -17,16 +14,15 @@ public class Miner extends Robot{
         super(rc);
     }
     
-	@Override
-    public void sense() throws GameActionException{
-    	localInfo.senseRobots(false);
-    	localInfo.senseGold();
-    	localInfo.senseLead(true);
-    }
-    public void move() throws GameActionException {}
+	
 
     @Override
     public void executeRole() throws GameActionException {
+    	
+    	localInfo.senseRobots(false);
+    	localInfo.senseGold();
+    	localInfo.senseLead(true);
+    	
     	//movement priority 1: run from danger in area (in this case we should mine first if able)
     	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
     		tryMineGold();
@@ -53,9 +49,9 @@ public class Miner extends Robot{
     	tryMoveNewTask();
     	
     	//movement priority 5: full miner repulsion
+    	//TODO: consider adding edge repulsion
     	tryMoveRepel();
     	
-		return;
     }
     
 
@@ -97,7 +93,7 @@ public class Miner extends Robot{
 	private void tryMoveInDanger() throws GameActionException {
 		if(!rc.isMovementReady()) return;
 		
-		moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run from: "+taskLoc);
+		moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run in danger");
 	}
 
 	private void tryMoveOnTask() throws GameActionException {
