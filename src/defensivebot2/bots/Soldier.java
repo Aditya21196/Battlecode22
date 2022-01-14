@@ -24,21 +24,13 @@ public class Soldier extends Robot{
     public Soldier(RobotController rc) throws GameActionException  {
         super(rc);
     }
-
-    @Override
-
-    public void sense() throws GameActionException {
-		localInfo.senseLead(false);
-	}
-    @Override
-    public void move() throws GameActionException {}
     
 
     @Override
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
     	localInfo.senseRobots(true);
-    	
+    	localInfo.senseLead(false);
     	//enemies that deal damage nearby?
 		poi = localInfo.findNearestDamager();
 		if(poi != null){

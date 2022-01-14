@@ -17,16 +17,15 @@ public class Miner extends Robot{
         super(rc);
     }
     
-	@Override
-    public void sense() throws GameActionException{
-    	localInfo.senseRobots(false);
-    	localInfo.senseGold();
-    	localInfo.senseLead(true);
-    }
-    public void move() throws GameActionException {}
+	
 
     @Override
     public void executeRole() throws GameActionException {
+    	
+    	localInfo.senseRobots(false);
+    	localInfo.senseGold();
+    	localInfo.senseLead(true);
+    	
     	//movement priority 1: run from danger in area (in this case we should mine first if able)
     	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
     		tryMineGold();

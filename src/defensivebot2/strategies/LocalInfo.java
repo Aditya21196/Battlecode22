@@ -203,7 +203,7 @@ public class LocalInfo {
     }
     
 
-    //TODO: reduce by storing this information
+    
     public void checkExploration(){
         // if lead was checked, we mark as explored
         if(!comms.isDenseUpdateAllowed())return;
@@ -212,7 +212,7 @@ public class LocalInfo {
         }
     }
 
-    //TODO: reduce this frequency a lot
+    
     public void checkEnemySpotted(){
         if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
             comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
@@ -371,7 +371,7 @@ public class LocalInfo {
         
         //begin a binary search for radius with lead deposit counts within thresholds
     	high--;
-    	int low = 0;//TODO: set low to a radius with possible squares <= min threshold to help search and save bytecode
+    	int low = 0;
     	int mid = 0;
     	while(low < high) {
     		//sets mid to higher of two middle numbers when even number between low and high

@@ -52,17 +52,10 @@ public class Archon extends Robot{
     }
 
     @Override
-    public void sense() throws GameActionException {
-        // TODO: check bytecode. This should not be required all the time
-        localInfo.senseRobots(false);
-        localInfo.senseLead(false);
-//        localInfo.senseTerrain();
-    }
-
-    @Override
     public void executeRole() throws GameActionException {
-        // for debugging
-
+        
+    	localInfo.senseRobots(false);
+        localInfo.senseLead(false);
 //        if(rc.getRoundNum()>80)rc.resign();
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.MINER;
@@ -132,10 +125,6 @@ public class Archon extends Robot{
         return new MapLocation(currentLocation.x + dir.dx*10,currentLocation.y + dir.dy*10);
     }
 
-    @Override
-    public void move() throws GameActionException {
-
-    }
 
 
 }
