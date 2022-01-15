@@ -22,7 +22,7 @@ public class Miner extends Robot{
     	localInfo.senseRobots(false, false);
     	localInfo.senseGold();
     	localInfo.senseLead(true);
-    	
+
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
     	AnomalyScheduleEntry  next = getNextAnomaly();
     	if(next.anomalyType == AnomalyType.CHARGE && next.roundNumber - rc.getRoundNum() < Constants.RUN_ROUNDS_BEFORE_CHARGE) {
@@ -31,6 +31,8 @@ public class Miner extends Robot{
 			tryMoveRepelFriends();
     	}
     	
+		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+
     	//movement priority 1: run from danger in area (in this case we should mine first if able)
     	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
     		tryMineGold();

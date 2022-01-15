@@ -68,9 +68,17 @@ public class LinkedList<T> {
         else {
             end = node.prev;
         }
-        node = null;
         size--;
     }
+
+    // to use as a stack
+    public T pop(){
+        if(size == 0)return null;
+        Node<T> node = end;
+        remove(node);
+        return node.val;
+    }
+
     public boolean remove(T obj) {
         Node<T> node = head;
         while (node != null) {

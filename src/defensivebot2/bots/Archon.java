@@ -17,10 +17,12 @@ public class Archon extends Robot{
 
     static int[] unitCounts = new int[UNITS_AVAILABLE];
     private boolean enemySpotted = false;
+    private boolean reportedCurrentLocation = false;
+    private boolean reportedDangerFlag = false;
 
     // build order
-    final int INITIAL_MINERS_TO_BUILD_ROUNDS;
-    final int EARLY_GAME_ROUNDS;
+//    final int INITIAL_MINERS_TO_BUILD_ROUNDS;
+//    final int EARLY_GAME_ROUNDS;
 
     MapLocation nearestCorner;
     private int tempCounter = 0;
@@ -28,8 +30,8 @@ public class Archon extends Robot{
     public Archon(RobotController rc) throws GameActionException  {
         super(rc);
         // TODO: decide based on map dimensions?
-        INITIAL_MINERS_TO_BUILD_ROUNDS = 5;
-        EARLY_GAME_ROUNDS = 50;
+//        INITIAL_MINERS_TO_BUILD_ROUNDS = 5;
+//        EARLY_GAME_ROUNDS = 50;
 
     }
 
@@ -56,10 +58,49 @@ public class Archon extends Robot{
         
     	localInfo.senseRobots(false);
         localInfo.senseLead(false);
+
+        // TODO: test this
+        if(!reportedCurrentLocation){
+            comms.queueSparseSignalUpdate(
+                    new SparseSignal(
+                            SparseSignalType.ARCHON_LOCATION,
+                            currentLocation,
+                            -1,
+                            0
+                    )
+            );
+            reportedCurrentLocation = true;
+        }
+
+        boolean currentlyInDanger = rc.getHealth() < RobotType.ARCHON.getMaxHealth(rc.getLevel()) && localInfo.nearestEnemy != null;
+
+        if(currentlyInDanger && !reportedDangerFlag){
+            // signal for danger
+            comms.queueSparseSignalUpdate(
+                    new SparseSignal(
+                            SparseSignalType.ARCHON_LOCATION,
+                            currentLocation,
+                            -1,
+                            2
+                    )
+            );
+            reportedDangerFlag = true;
+        }else if(!currentlyInDanger && reportedDangerFlag){
+            // signal I am okay
+            comms.queueSparseSignalUpdate(
+                    new SparseSignal(
+                            SparseSignalType.ARCHON_LOCATION,
+                            currentLocation,
+                            -1,
+                            0
+                    )
+            );
+            reportedDangerFlag = false;
+        }
+
 //        if(rc.getRoundNum()>80)rc.resign();
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild = RobotType.MINER;
-//        printDebugLog("exploration index: "+comms.explorationIndex());
 
        // CustomSet<SparseSignal> sparseSignals = comms.querySparseSignals();
 
@@ -74,39 +115,13 @@ public class Archon extends Robot{
 //        if(roundNum > 1000) {
 //        	enemySpotted = true;
 //        }
+
         
-        //testing
-//        if(roundNum > 250) {
-//        	toBuild = null;
-//        }
-        
-        if(tempCounter%2 != 0){
+        if(tempCounter%3 == 0){
             toBuild = RobotType.SOLDIER;
         }
 
-        //if(rc.getMapHeight() > 40 && rc.getMapWidth() > 40 && Math.random() < 0.05) toBuild = RobotType.BUILDER;
 
-        // testing this strat
-//        if(turnCount<INITIAL_MINERS_TO_BUILD_ROUNDS){
-//            toBuild = RobotType.MINER;
-//        }else if(turnCount<EARLY_GAME_ROUNDS){
-//            if(turnCount%2==0)toBuild = RobotType.MINER;
-//            else toBuild = RobotType.SOLDIER;
-//        }else{
-//            // decide based on unit counts and resources
-//            if(rc.getTeamLeadAmount(team)>200 && unitCounts[RobotType.BUILDER.ordinal()]<2){
-//                toBuild = RobotType.BUILDER;
-//            }else if(unitCounts[RobotType.WATCHTOWER.ordinal()]<4){
-//                comms.signalUnitSubType(DroidSubType.BUILDER_FOR_WATCHTOWER,getLocationForWatchTower());
-//            }
-//        }
-
-//        if(unitCounts[RobotType.MINER.ordinal()] > 50)toBuild = RobotType.SOLDIER;
-
-//        if(unitCounts[RobotType.SOLDIER.ordinal()] > 30)toBuild = RobotType.SAGE;
-
-        // testing
-//        comms.signalUnitSubType(DroidSubType.MINER_ECO,rc.getLocation());
 
         if (toBuild!=null && rc.canBuildRobot(toBuild, dir)) {
             rc.buildRobot(toBuild, dir);

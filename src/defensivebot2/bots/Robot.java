@@ -3,6 +3,7 @@ package defensivebot2.bots;
 import battlecode.common.*;
 import defensivebot2.strategies.Comms;
 import defensivebot2.strategies.LocalInfo;
+import defensivebot2.strategies.Pathfinding;
 import defensivebot2.utils.*;
 
 
@@ -26,8 +27,12 @@ public abstract class Robot {
 	MapLocation topRight;
 	protected int height;
 	protected int width;
+
 	public AnomalyScheduleEntry[] anomalies;
 	public int anomalyIndex;
+
+	protected Pathfinding pathfinding;
+
 
     
 
@@ -47,6 +52,7 @@ public abstract class Robot {
 		bottomRight = new MapLocation(0,width-1);
 		topLeft = new MapLocation(height-1,0);
 		topRight = new MapLocation(height-1,width-1);
+		pathfinding = new Pathfinding(rc);
     }
 
     // factory method for robots
@@ -70,15 +76,17 @@ public abstract class Robot {
         currentLocation = rc.getLocation();
 
 		executeRole();
-//		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
+		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
 
 		//verbose("lead count: "+rc.getTeamLeadAmount(team));
 
 		localInfo.checkExploration();
-		//localInfo.checkEnemySpotted();
+//		localInfo.checkEnemySpotted();
 
 		localInfo.checkArchonSpotted();
 		comms.processUpdateQueues();
+
+		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
 
 		// TODO: decide byte code limit for cleaning dynamically?
 		//if(comms.isSignalArrayFull && Clock.getBytecodesLeft()<EXTRA_BYTECODE_FOR_COMMS_CLEANUP)comms.cleanComms();
