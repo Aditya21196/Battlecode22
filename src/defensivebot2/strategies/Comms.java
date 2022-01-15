@@ -136,6 +136,9 @@ public class Comms {
 
     public int writeBits(int[] updatedCommsValues,int offset,int val,int numBits){
         for(int j = 0; j<numBits;j++){
+            if(offset == 605){
+                System.out.println("");
+            }
             int updateIdx = offset/16;
             int bitIdx = offset%16;
             int updateVal = (val & 1<<j) > 0? 1: 0;
@@ -175,15 +178,6 @@ public class Comms {
 
 
 
-    /*
-    * Read Shared array to check whether if nearby sectors have high density of queried droid/resource
-    * Typically, threshold should be 1 or 2 or 3
-    * Should use this function to look for high density friends, resources etc.
-    * Don't use for checking directions to run away from enemy.
-    * For that, we need to find a direction which runs from all high density enemy sectors and towards high density friends sector
-    * TODO: prioritise location with less rubble
-    * */
-
     public MapLocation getNearestLeadLoc() throws GameActionException {
         MapLocation loc = rc.getLocation();
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
@@ -196,6 +190,25 @@ public class Comms {
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
             int val = readInfo(commInfoBlockType,checkX,checkY);
             if(val >=2){
+                return getCenterOfSector(checkX,checkY);
+            }
+        }
+        return null;
+    }
+
+    // Only returns enemy locations with low threat which needs to be chipped off. High threat areas are left alone
+    public MapLocation getNearestEnemyLoc() throws GameActionException {
+        MapLocation loc = rc.getLocation();
+        int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
+
+        CommInfoBlockType commInfoBlockType = CommInfoBlockType.ENEMY_UNITS;
+        for(int i=1;i<BFS_MANHATTAN_5.length/2;i++){
+            int checkX = BFS_MANHATTAN_5[i][0]+curSectorX,checkY = BFS_MANHATTAN_5[i][1]+curSectorY;
+
+            // check if sector is valid
+            if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
+            int val = readInfo(commInfoBlockType,checkX,checkY);
+            if(val == 1){
                 return getCenterOfSector(checkX,checkY);
             }
         }
@@ -267,7 +280,7 @@ public class Comms {
     }
 
     public int findClosestGreaterOrEqualPowerOf2(int num){
-        for(int i=7;--i>=0;)if(num<=bitMasks[i])return i;
+        for(int i=0;i<16;i++)if(num<=bitMasks[i])return i;
         // TODO: throw exception here
         return -1;
     }
@@ -396,7 +409,7 @@ public class Comms {
         updateSharedArray(updatedCommsValues);
     }
     
-    public void markArchonDead(SparseSignal signal) {
+    public void markArchonLocationSafe(SparseSignal signal) {
         signal.modifyBitVal(modifyBit(signal.fixedBitsVal,1,0));
         queueSparseSignalUpdate(signal);
     }
@@ -439,8 +452,8 @@ public class Comms {
         int minDist = Integer.MAX_VALUE;
         SparseSignal closestArchonSignal = null;
         while (signal != null){
-            // only read archons that are alive
-            if(signal.type==SparseSignalType.ENEMY_ARCHON_LOCATION && signal.fixedBitsVal>2){
+            // check if archon needs to be defended
+            if(signal.type==SparseSignalType.ARCHON_LOCATION && signal.fixedBitsVal>=2){
                 int d = loc.distanceSquaredTo(signal.target);
                 if(d<minDist){
                     minDist = d;

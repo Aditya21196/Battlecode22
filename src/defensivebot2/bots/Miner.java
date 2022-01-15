@@ -22,7 +22,7 @@ public class Miner extends Robot{
     	localInfo.senseRobots(false);
     	localInfo.senseGold();
     	localInfo.senseLead(true);
-    	
+		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
     	//movement priority 1: run from danger in area (in this case we should mine first if able)
     	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
     		tryMineGold();

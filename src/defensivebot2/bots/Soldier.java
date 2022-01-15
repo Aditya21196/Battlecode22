@@ -24,7 +24,7 @@ public class Soldier extends Robot{
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
     	localInfo.senseRobots(true);
-    	
+		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
     	//movement priority 1: run from danger in area if out numbered (in this case we should attack first if able)
     	
     	int ed = localInfo.getEnemyDamagerCount();
@@ -33,6 +33,10 @@ public class Soldier extends Robot{
     		tryAttack();
 			tryMoveInDanger();
     	}
+
+		if(rc.getID() == 10015 && rc.getRoundNum()>=1074){
+			System.out.println();
+		}
     	
     	//movement priority 2: move to best location to attack best target.
     	tryMoveAndAttackBestTarget();
@@ -70,8 +74,8 @@ public class Soldier extends Robot{
   		if(tryTargetFromComms) {
   			SparseSignal signal = comms.getClosestArchon();
   			if(signal != null){
-				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestER[RobotType.ARCHON.ordinal()] == null){
-					comms.markArchonDead(signal);
+				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
+					comms.markArchonLocationSafe(signal);
 				} 
 				taskLoc = signal.target;
 			}
@@ -106,11 +110,11 @@ public class Soldier extends Robot{
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 3000) {
 			localInfo.senseLead(false);
-			System.out.println("SL");
+//			System.out.println("SL");
 		}
 		if(Clock.getBytecodesLeft() > 2000) {
 			localInfo.senseGold();
-			System.out.println("SG");
+//			System.out.println("SG");
 		}
 	}
 	
