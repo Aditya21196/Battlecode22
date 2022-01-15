@@ -29,9 +29,11 @@ public class LocalInfo {
     public int[] nearestERDist; //nearest enemy robots' distances(of each type)
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
-    // just for debugging
+    
     public RobotInfo nearestEnemy;
     public int nearestEnemyDist;
+    public RobotInfo nearestFriend;
+    public int nearestFriendDist;
 
     public RobotInfo homeArchon;
 
@@ -39,7 +41,11 @@ public class LocalInfo {
     //additional Robot Info (for attacking)
     public RobotInfo[] weakestER; //weakest(lowest health) enemy robots of each type
     public int[] weakestERHealth; //weakest enemy robots' health (of each type)
-
+    
+    //additional Robot Info (for repair)
+    public RobotInfo[] nearestDamagedFR; //weakest(lowest health) enemy robots of each type
+    public int[] nearestDamagedFRDist; //weakest enemy robots' health (of each type)
+    
     public int leadSensedLastRound = -1,robotsSensedLastRound = -1;
 
 
@@ -65,7 +71,7 @@ public class LocalInfo {
         this.comms=comms;
     }
     
-    public void senseRobots(boolean forAttack){
+    public void senseRobots(boolean forAttack, boolean forRepair){
 
         if(robotsSensedLastRound == turnCount)return;
         else robotsSensedLastRound = turnCount;
@@ -74,9 +80,11 @@ public class LocalInfo {
         enemyUnitCounts = new int[UNITS_AVAILABLE];
 
 
-        // for debugging
+        
         nearestEnemy = null;
         nearestEnemyDist = Integer.MAX_VALUE;
+        nearestFriend = null;
+        nearestFriendDist = Integer.MAX_VALUE;
 		numMinersInSector = 0;
 
 
@@ -91,11 +99,17 @@ public class LocalInfo {
             weakestER = new RobotInfo[UNITS_AVAILABLE];
             weakestERHealth = new int[UNITS_AVAILABLE];
         }
+        if(forRepair){
+            //additional info gathered not in senseRobots()
+        	nearestDamagedFR = new RobotInfo[UNITS_AVAILABLE];
+        	nearestDamagedFRDist = new int[UNITS_AVAILABLE];
+        }
 
         for(int i = nearestFRDist.length; --i>=0;) {
         	nearestFRDist[i] = Integer.MAX_VALUE;
         	nearestERDist[i] = Integer.MAX_VALUE;
             if(forAttack)weakestERHealth[i] = Integer.MAX_VALUE;
+            if(forRepair)nearestDamagedFRDist[i] = Integer.MAX_VALUE;
         }
         
 
@@ -112,7 +126,12 @@ public class LocalInfo {
             int distToMe = loc.distanceSquaredTo(robLoc);
             int typeOrdinal = nearbyRobots[i].getType().ordinal();
             if(nearbyRobots[i].getTeam() == rc.getTeam()){
-                friendlyUnitCounts[typeOrdinal]++;
+            	if(nearestFriendDist>distToMe){
+            		nearestFriendDist = distToMe;
+                    nearestFriend = nearbyRobots[i];
+                }
+            	
+            	friendlyUnitCounts[typeOrdinal]++;
                 if(distToMe < nearestFRDist[typeOrdinal]) {
                 	nearestFR[typeOrdinal] = nearbyRobots[i];
                 	nearestFRDist[typeOrdinal] = distToMe;
@@ -120,7 +139,11 @@ public class LocalInfo {
                 if(homeArchon == null && typeOrdinal == RobotType.ARCHON.ordinal()) {
                 	homeArchon = nearbyRobots[i];
                 }
-
+                if(forRepair && distToMe < nearestDamagedFRDist[typeOrdinal] && 
+            		nearbyRobots[i].getHealth() < nearbyRobots[i].getType().getMaxHealth(nearbyRobots[i].getLevel()) ){
+                	nearestDamagedFRDist[typeOrdinal] = distToMe;
+                	nearestDamagedFR[typeOrdinal] = nearbyRobots[i];
+                }
 				if(
 						typeOrdinal == RobotType.MINER.ordinal() &&
 						isDenseUpdateAllowed && robLoc.x/comms.xSectorSize == xSector &&
@@ -131,7 +154,6 @@ public class LocalInfo {
                 
             }else{
 
-                // for debugging
                 if(nearestEnemyDist>distToMe){
                     nearestEnemyDist = distToMe;
                     nearestEnemy = nearbyRobots[i];

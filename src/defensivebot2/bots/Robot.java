@@ -1,8 +1,5 @@
 package defensivebot2.bots;
 
-import battlecode.common.Clock;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
 import battlecode.common.*;
 import defensivebot2.strategies.Comms;
 import defensivebot2.strategies.LocalInfo;
@@ -29,6 +26,8 @@ public abstract class Robot {
 	MapLocation topRight;
 	protected int height;
 	protected int width;
+	public AnomalyScheduleEntry[] anomalies;
+	public int anomalyIndex;
 
     
 
@@ -37,7 +36,8 @@ public abstract class Robot {
         team = rc.getTeam();
 		enemyTeam = team.opponent();
 		type = rc.getType();
-        //TODO: get and store anomaly schedule
+        anomalies = rc.getAnomalySchedule();
+        anomalyIndex = 0;
 		comms = new Comms(rc);
 		localInfo = new LocalInfo(rc,comms);
 		turnCount = 0;
@@ -85,6 +85,33 @@ public abstract class Robot {
       	// TODO: more stuff for spare bytecode utilization?
     }
 
+    public AnomalyScheduleEntry getNextAnomaly() {
+    	while(anomalyIndex < anomalies.length) {
+    		if(anomalies[anomalyIndex].roundNumber > rc.getRoundNum()) {
+    			return anomalies[anomalyIndex];
+    		}
+    		anomalyIndex++;
+    	}
+    	
+    	return null;
+    }
+    public void tryMove(Direction dir) throws GameActionException {
+    	if(dir!=null && rc.canMove(dir)) {
+			rc.move(dir);
+		}
+    }
+    
+    public void moveToward(MapLocation target) throws GameActionException {
+    	if(rc.isMovementReady() && !rc.getLocation().equals(target)) {
+    		tryMove(getBestValidDirection(target));
+		}
+    }
+    
+    public void moveAway(MapLocation toAvoid) throws GameActionException {
+    	if(rc.isMovementReady()) {
+    		tryMove(getBestValidDirection(toAvoid.directionTo(rc.getLocation())));
+    	}
+	}
     
     /*
      * returns MapLocation which is closest to this robot and null if MapLocations are not valid.

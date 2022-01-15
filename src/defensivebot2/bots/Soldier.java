@@ -23,13 +23,17 @@ public class Soldier extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
-    	localInfo.senseRobots(true);
+    	localInfo.senseRobots(true, false);
+    	
+    	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
+    	AnomalyScheduleEntry  next = getNextAnomaly();
+    	if(next.anomalyType == AnomalyType.CHARGE && next.roundNumber - rc.getRoundNum() < Constants.RUN_ROUNDS_BEFORE_CHARGE) {
+    		tryMoveRepelFriends();
+    	}
     	
     	//movement priority 1: run from danger in area if out numbered (in this case we should attack first if able)
     	
-    	int ed = localInfo.getEnemyDamagerCount();
-    	int fd = localInfo.getFriendlyDamagerCount();
-    	if(ed > fd) {
+    	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
     		tryAttack();
 			tryMoveInDanger();
     	}
@@ -45,9 +49,18 @@ public class Soldier extends Robot{
     	tryMoveOnTask();
     	tryMoveNewTask();
     	
+    	//TODO: movement priority for after tasks
+    	
     	trySenseResources();
     }
 
+    private void tryMoveRepelFriends() throws GameActionException {
+		if(!rc.isMovementReady() || localInfo.nearestFriend == null) return;
+		
+		moveAway(localInfo.nearestFriend.location);rc.setIndicatorString("full friend repel, from: "+localInfo.nearestFriend.location);
+		
+	}
+    
     private void tryMoveOnTask() throws GameActionException {
 		if(!rc.isMovementReady() || taskLoc == null) return;
 		//arrived at task
@@ -342,23 +355,9 @@ public class Soldier extends Robot{
 	}
 
 	
-	private void tryMove(Direction dir) throws GameActionException {
-    	if(dir!=null && rc.canMove(dir)) {
-			rc.move(dir);
-		}
-    }
+	
 
-    private void moveToward(MapLocation target) throws GameActionException {
-    	if(rc.isMovementReady() && !rc.getLocation().equals(target)) {
-    		tryMove(getBestValidDirection(target));
-		}
-    }
     
-    private void moveAway(MapLocation toAvoid) throws GameActionException {
-    	if(rc.isMovementReady()) {
-    		tryMove(getBestValidDirection(toAvoid.directionTo(rc.getLocation())));
-    	}
-	}
     
     private void tryAttack(MapLocation target) throws GameActionException {
 		if(rc.canAttack(target)) {
