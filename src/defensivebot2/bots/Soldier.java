@@ -74,8 +74,8 @@ public class Soldier extends Robot{
   		if(tryTargetFromComms) {
   			SparseSignal signal = comms.getClosestArchon();
   			if(signal != null){
-				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestER[RobotType.ARCHON.ordinal()] == null){
-					comms.markArchonDead(signal);
+				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
+					comms.markArchonLocationSafe(signal);
 				} 
 				taskLoc = signal.target;
 			}
