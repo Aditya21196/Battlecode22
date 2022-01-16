@@ -34,31 +34,32 @@ public class Pathfinding {
 
         }
 
-        // find angle to target. Then, find corresponding index in array
         MapLocation currentLocation = rc.getLocation();
-        int itrIdx = (int)(Math.toDegrees(Math.atan2(target.y-currentLocation.y,target.x-currentLocation.x))/11.25)-8;
-        if(itrIdx<0)itrIdx += 32;
-
         MapLocation localTarget = null;
-        MapLocation consider;
-        double dist;
-        double minDist = Double.MAX_VALUE;
-        for(int i=16;--i>=0;){
-            if(itrIdx>=32)itrIdx -= 32;
-            consider = currentLocation.translate(BORDER20[itrIdx][0],BORDER20[itrIdx][1]);
-            // TODO: Should we ignore occupying unit? When?
-            if(!rc.onTheMap(consider) || !rc.isLocationOccupied(consider))continue;
-            dist = consider.distanceSquaredTo(consider) + RUBBLE_SCORE_MULTIPLIER*rc.senseRubble(consider);
-            if(dist<minDist){
-                localTarget = consider;
-                minDist = dist;
+        if(!rc.canSenseLocation(target)){
+            // find angle to target. Then, find corresponding index in array
+            int itrIdx = (int)(Math.toDegrees(Math.atan2(target.y-currentLocation.y,target.x-currentLocation.x))/11.25)-8;
+            if(itrIdx<0)itrIdx += 32;
+            MapLocation consider;
+            double dist;
+            double minDist = Double.MAX_VALUE;
+            for(int i=16;--i>=0;){
+                if(itrIdx>=32)itrIdx -= 32;
+                consider = currentLocation.translate(BORDER20[itrIdx][0],BORDER20[itrIdx][1]);
+                // TODO: Should we ignore occupying unit? When?
+                if(!rc.onTheMap(consider) || rc.isLocationOccupied(consider))continue;
+                dist = target.distanceSquaredTo(consider) + RUBBLE_SCORE_MULTIPLIER*rc.senseRubble(consider);
+                if(dist<minDist){
+                    localTarget = consider;
+                    minDist = dist;
+                }
+                // code to find local target
+                itrIdx++;
             }
-            // code to find local target
-            itrIdx++;
-        }
+        }else localTarget = target;
 
         // TODO: move this check inside function?
-        if(Clock.getBytecodesLeft() > MIN_AFFORD_PATH_OPT){
+        if(localTarget!=null && Clock.getBytecodesLeft() > MIN_AFFORD_PATH_OPT){
             localTarget = findBetterLocalTarget(localTarget);
         }
 
@@ -68,7 +69,7 @@ public class Pathfinding {
         }else dir = currentLocation.directionTo(target);
 
         // greedily go to the target
-        greedyMoveTowards(dir,target);
+        greedyMoveTowards(dir,localTarget);
     }
 
     // unrolled loop.
@@ -76,57 +77,58 @@ public class Pathfinding {
     private void greedyMoveTowards(Direction dir,MapLocation target) throws GameActionException {
 
         MapLocation consider;
+        Direction idealDir=null;
         MapLocation currentLocation = rc.getLocation();
-        Direction considerDir = dir.rotateLeft();
-        Direction idealDir = considerDir;
         int minRubble = Integer.MAX_VALUE;
         int rubble;
 
-        if(rc.canMove(considerDir)){
-            consider = currentLocation.add(considerDir);
-            if(consider == target && rc.canMove(considerDir)){
-                rc.move(considerDir);
-                return;
-            }
+        // check the direction
+        if(rc.canMove(dir)){
+            consider = currentLocation.add(dir);
             minRubble = rc.senseRubble(consider);
-//            idealDir = considerDir; // variable already assigned to this value
+            if(consider == target || minRubble == 0){
+                rc.move(dir);
+                return;
+            }
+            idealDir = dir; // variable already assigned to this value
         }
 
-        considerDir = considerDir.rotateRight();
+        // check left
+        Direction considerDir = dir.rotateLeft();
 
         if(rc.canMove(considerDir)){
             consider = currentLocation.add(considerDir);
-            if(consider == target && rc.canMove(considerDir)){
+            rubble = rc.senseRubble(consider);
+            if(consider == target || rubble == 0){
                 rc.move(considerDir);
                 return;
             }
-            rubble = rc.senseRubble(consider);
             if(rubble<minRubble){
                 minRubble = rubble;
                 idealDir = considerDir;
             }
         }
 
-        considerDir = considerDir.rotateRight();
+        considerDir = dir.rotateRight();
 
         if(rc.canMove(considerDir)){
             consider = currentLocation.add(considerDir);
-            if(consider == target && rc.canMove(considerDir)){
+            rubble = rc.senseRubble(consider);
+            if(consider == target || rubble == 0){
                 rc.move(considerDir);
                 return;
             }
-            rubble = rc.senseRubble(consider);
             if(rubble<minRubble){
                 minRubble = rubble;
                 idealDir = considerDir;
             }
         }
 
-        if(minRubble>0)rc.move(idealDir);
+        if(idealDir!=null)rc.move(idealDir);
         else{
             // bug nav
             if(bugRight){
-                considerDir = considerDir.rotateRight();
+                considerDir = dir.rotateRight().rotateRight();
             }else{
                 considerDir = dir.rotateLeft().rotateLeft();
             }
@@ -141,21 +143,28 @@ public class Pathfinding {
     private MapLocation findBetterLocalTarget(MapLocation target) throws GameActionException {
         // check if it is a local target
         if (!rc.canSenseLocation(target)) {return target;}
-        for (int i=0; i<NUM_BETTER_LOC_ITERATIONS; i++) {
+        Direction dirFrom = null;
+        MapLocation loc = rc.getLocation();
+        for (int i=NUM_BETTER_LOC_ITERATIONS; --i>=0;) {
+            if(target.distanceSquaredTo(loc)<=2)return target;
             // TODO: decide bytecode limit
 //            if (Clock.getBytecodesLeft()<1500) {break;}
             Direction bestDir = null;
-            double bestCost = Integer.MAX_VALUE;
+            double bestCost = Double.MAX_VALUE;
             for (Direction dir:Direction.values()) {
+                if(dir == dirFrom)continue;
                 MapLocation adjacent = target.add(dir);
                 if (!rc.canSenseLocation(adjacent))continue;
-                double cost = RUBBLE_SCORE_MULTIPLIER*rc.senseRubble(adjacent) + adjacent.distanceSquaredTo(target);
+                int d=adjacent.distanceSquaredTo(loc);
+                double cost = RUBBLE_SCORE_LOCAL_MULTIPLIER*rc.senseRubble(adjacent) + adjacent.distanceSquaredTo(loc);
                 if (cost<bestCost) {
                     bestDir = dir;
                     bestCost = cost;
                 }
             }
             if(bestDir == null)return target;
+            // no need to check this direction again
+            dirFrom = bestDir.opposite();
             target = target.add(bestDir);
         }
         return target;

@@ -136,9 +136,6 @@ public class Comms {
 
     public int writeBits(int[] updatedCommsValues,int offset,int val,int numBits){
         for(int j = 0; j<numBits;j++){
-            if(offset == 605){
-                System.out.println("");
-            }
             int updateIdx = offset/16;
             int bitIdx = offset%16;
             int updateVal = (val & 1<<j) > 0? 1: 0;
