@@ -114,11 +114,15 @@ public class Archon extends Robot{
 	        
 
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
-        RobotType toBuild = RobotType.MINER;
-        if(tempCounter%3 == 0){
-            toBuild = RobotType.BUILDER;
+        RobotType toBuild; 
+        if(tempCounter%10 < 5){
+            toBuild = RobotType.MINER;
+        }else if(tempCounter %10 < 9) {
+        	toBuild = RobotType.SOLDIER;
+        }else {
+        	toBuild = RobotType.BUILDER;
         }
-        if(roundNum > 400) {
+        if(roundNum > 400 && roundNum < 500) {
         	//rc.resign();
         	toBuild = null;
         }

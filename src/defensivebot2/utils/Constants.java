@@ -98,4 +98,6 @@ public class Constants {
 
 	public static final int RUN_ROUNDS_BEFORE_CHARGE = 10;
 
+	public static final double BUILDER_WATCHTOWER_FRACTION = 0.33; // greater than half equals closer to enemies.
+
 }

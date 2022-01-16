@@ -31,7 +31,7 @@ public class Soldier extends Robot{
     	
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
     	AnomalyScheduleEntry  next = getNextAnomaly();
-    	if(next.anomalyType == AnomalyType.CHARGE && next.roundNumber - rc.getRoundNum() < Constants.RUN_ROUNDS_BEFORE_CHARGE) {
+    	if(next != null && next.anomalyType == AnomalyType.CHARGE && next.roundNumber - rc.getRoundNum() < Constants.RUN_ROUNDS_BEFORE_CHARGE) {
     		tryMoveRepelFriends();
     	}
     	

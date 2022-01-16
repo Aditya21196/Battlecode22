@@ -93,19 +93,19 @@ public abstract class Robot {
       	// TODO: more stuff for spare bytecode utilization?
     }
 
-    public MapLocation getNearestCorner(){
+    public MapLocation getNearestCorner(MapLocation loc){
         MapLocation nearestCorner = bottomLeft;
-        int minDist = bottomLeft.distanceSquaredTo(rc.getLocation());
-        int dist = bottomRight.distanceSquaredTo(rc.getLocation());
+        int minDist = bottomLeft.distanceSquaredTo(loc);
+        int dist = bottomRight.distanceSquaredTo(loc);
         if(dist<minDist){
             nearestCorner = bottomRight;
             minDist = dist;
         }
-        dist = topRight.distanceSquaredTo(rc.getLocation());
+        dist = topRight.distanceSquaredTo(loc);
         if(dist<minDist){
             nearestCorner = topRight;
             minDist = dist;
-        }dist = topLeft.distanceSquaredTo(rc.getLocation());
+        }dist = topLeft.distanceSquaredTo(loc);
         if(dist<minDist){
             nearestCorner = topLeft;
         }
