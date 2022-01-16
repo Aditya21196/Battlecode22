@@ -96,4 +96,8 @@ public class Constants {
     // only say archon is dead if you are very close to center of sector
     public static final int ARCHON_DEATH_CONFIRMATION = 2;
 
+	public static final int RUN_ROUNDS_BEFORE_CHARGE = 10;
+
+	public static final double BUILDER_WATCHTOWER_FRACTION = 0.33; // greater than half equals closer to enemies.
+
 }

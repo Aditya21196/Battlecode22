@@ -441,7 +441,7 @@ public class Comms {
         return Integer.toBinaryString(val);
     }
     
-    public SparseSignal getClosestArchon() throws GameActionException {
+    public SparseSignal getClosestArchonMarked() throws GameActionException {
         querySparseSignals();
         sparseSignals.initIteration();
         SparseSignal signal = sparseSignals.next();
@@ -451,6 +451,27 @@ public class Comms {
         while (signal != null){
             // check if archon needs to be defended
             if(signal.type==SparseSignalType.ARCHON_LOCATION && signal.fixedBitsVal>=2){
+                int d = loc.distanceSquaredTo(signal.target);
+                if(d<minDist){
+                    minDist = d;
+                    closestArchonSignal = signal;
+                }
+            }
+            signal = sparseSignals.next();
+        }
+        return closestArchonSignal;
+    }
+    
+    public SparseSignal getClosestArchon() throws GameActionException {
+        querySparseSignals();
+        sparseSignals.initIteration();
+        SparseSignal signal = sparseSignals.next();
+        MapLocation loc = rc.getLocation();
+        int minDist = Integer.MAX_VALUE;
+        SparseSignal closestArchonSignal = null;
+        while (signal != null){
+            // check if archon needs to be defended
+            if(signal.type==SparseSignalType.ARCHON_LOCATION){
                 int d = loc.distanceSquaredTo(signal.target);
                 if(d<minDist){
                     minDist = d;

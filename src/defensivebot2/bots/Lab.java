@@ -12,6 +12,8 @@ public class Lab extends Robot{
 
     @Override
     public void executeRole() throws GameActionException {
-
+    	if(rc.canTransmute()) {
+    		rc.transmute();
+    	}
     }
 }

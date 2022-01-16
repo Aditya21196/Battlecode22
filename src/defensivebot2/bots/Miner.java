@@ -19,10 +19,20 @@ public class Miner extends Robot{
     @Override
     public void executeRole() throws GameActionException {
     	
-    	localInfo.senseRobots(false);
+    	localInfo.senseRobots(false, false);
     	localInfo.senseGold();
     	localInfo.senseLead(true);
+
+    	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
+    	AnomalyScheduleEntry  next = getNextAnomaly();
+    	if(next != null && next.anomalyType == AnomalyType.CHARGE && next.roundNumber - rc.getRoundNum() < Constants.RUN_ROUNDS_BEFORE_CHARGE) {
+    		tryMineGold();
+			tryMineLead();
+			tryMoveRepelFriends();
+    	}
+    	
 		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+
     	//movement priority 1: run from danger in area (in this case we should mine first if able)
     	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
     		tryMineGold();
@@ -50,15 +60,22 @@ public class Miner extends Robot{
     	
     	//movement priority 5: full miner repulsion
     	//TODO: consider adding edge repulsion
-    	tryMoveRepel();
+    	tryMoveRepelMiners();
     	
     }
     
 
-	private void tryMoveRepel() throws GameActionException {
+	private void tryMoveRepelMiners() throws GameActionException {
 		if(!rc.isMovementReady() || localInfo.nearestFR[RobotType.MINER.ordinal()] == null) return;
 		
 		moveAway(localInfo.nearestFR[RobotType.MINER.ordinal()].location);rc.setIndicatorString("repel from: "+localInfo.nearestFR[RobotType.MINER.ordinal()].location);
+		
+	}
+	
+	private void tryMoveRepelFriends() throws GameActionException {
+		if(!rc.isMovementReady() || localInfo.nearestFriend == null) return;
+		
+		moveAway(localInfo.nearestFriend.location);rc.setIndicatorString("full friend repel, from: "+localInfo.nearestFriend.location);
 		
 	}
 
@@ -135,24 +152,7 @@ public class Miner extends Robot{
 		}
 		
 	}
-    
-    private void tryMove(Direction dir) throws GameActionException {
-    	if(dir!=null && rc.canMove(dir)) {
-			rc.move(dir);
-		}
-    }
-
-    private void moveToward(MapLocation target) throws GameActionException {
-    	if(rc.isMovementReady() && !rc.getLocation().equals(target)) {
-    		tryMove(getBestValidDirection(target));
-		}
-    }
-    
-    private void moveAway(MapLocation toAvoid) throws GameActionException {
-    	if(rc.isMovementReady()) {
-    		tryMove(getBestValidDirection(toAvoid.directionTo(rc.getLocation())));
-    	}
-	}
+   
     
     //mine lead if nearest lead is found and in range
 	private void tryMineLead() throws GameActionException {

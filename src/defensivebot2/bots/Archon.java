@@ -56,7 +56,7 @@ public class Archon extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         
-    	localInfo.senseRobots(false);
+    	localInfo.senseRobots(false,true);
         localInfo.senseLead(false);
 
         // TODO: test this
@@ -99,8 +99,7 @@ public class Archon extends Robot{
         }
 
 //        if(rc.getRoundNum()>80)rc.resign();
-        Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
-        RobotType toBuild = RobotType.MINER;
+        
 
        // CustomSet<SparseSignal> sparseSignals = comms.querySparseSignals();
 
@@ -112,15 +111,21 @@ public class Archon extends Robot{
 //        }
 //
 //        // act as if enemy is spotted
-//        if(roundNum > 1000) {
-//        	enemySpotted = true;
-//        }
+	        
 
-        
-        if(tempCounter%3 == 0){
-            toBuild = RobotType.SOLDIER;
+        Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
+        RobotType toBuild; 
+        if(tempCounter%10 < 5){
+            toBuild = RobotType.MINER;
+        }else if(tempCounter %10 < 9) {
+        	toBuild = RobotType.SOLDIER;
+        }else {
+        	toBuild = RobotType.BUILDER;
         }
-
+        if(roundNum%15 < 5) {
+        	//rc.resign();
+        	toBuild = null;
+        }
 
 
         if (toBuild!=null && rc.canBuildRobot(toBuild, dir)) {
