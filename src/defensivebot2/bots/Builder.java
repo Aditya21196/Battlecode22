@@ -28,10 +28,19 @@ public class Builder extends Robot{
 			0.0,//threshold
 			-1.0,//corner
 			-1.0,//home
-			2.0,//lead
-			-1.0,//gold
+			1.0,//lead
+			-5.0,//gold
 			-2.0,//friend count
 			-5.0,//rubble
+	};
+	
+	private double[] wtWeights = {
+			1000.0,//threshold
+			-1.0,//home
+			0.1,//lead in reserve
+			-5.0,//rubble
+			10.0,//lead deposits
+			1.0,//near corner
 	};
 	
 	
@@ -46,7 +55,7 @@ public class Builder extends Robot{
 
     @Override
     public void executeRole() throws GameActionException {
-    	localInfo.senseRobots(false, false);
+    	localInfo.senseRobots(false, true);
     	
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
     	AnomalyScheduleEntry  next = getNextAnomaly();
@@ -183,6 +192,9 @@ public class Builder extends Robot{
     		}
     	}
 		
+    	if(localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null && bestLoc.isWithinDistanceSquared(localInfo.nearestFR[RobotType.ARCHON.ordinal()].location, 5)) {
+    		
+    	}
     	
 		if(lead > RobotType.LABORATORY.buildCostLead) {
 			double value = labWeights[1]*nearestCornerToSpawn.distanceSquaredTo(rc.getLocation()) + 
@@ -192,11 +204,25 @@ public class Builder extends Robot{
 				labWeights[5]*(localInfo.getFriendlyDamagerCount()+localInfo.getFriendlyNonDamagerCount()) +
 				labWeights[6]*lowestRubble;
 			rc.setIndicatorString("Lab value: "+value);
+			if(value > labWeights[0]) {
+				tryBuild(RobotType.LABORATORY, rc.getLocation().directionTo(bestLoc));
+				return;
+			}
 		}
 		
-		//
 		if(lead > RobotType.WATCHTOWER.buildCostLead) {
-			//consider moving to build a lab
+			localInfo.senseLead(false);
+			double value =  
+					wtWeights[1]*localInfo.homeArchon.location.distanceSquaredTo(rc.getLocation()) +
+					wtWeights[2]*lead +
+					wtWeights[3]*lowestRubble +
+					wtWeights[4]*localInfo.totalLeadDeposits +
+					wtWeights[5]*getNearestCorner().distanceSquaredTo(rc.getLocation());
+			rc.setIndicatorString("WT value: "+value);
+			if(value > wtWeights[0]) {
+				tryBuild(RobotType.WATCHTOWER, rc.getLocation().directionTo(bestLoc));
+				return;
+			}
 		}
 		
 		

@@ -99,8 +99,7 @@ public class Archon extends Robot{
         }
 
 //        if(rc.getRoundNum()>80)rc.resign();
-        Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
-        RobotType toBuild = RobotType.MINER;
+        
 
        // CustomSet<SparseSignal> sparseSignals = comms.querySparseSignals();
 
@@ -114,12 +113,13 @@ public class Archon extends Robot{
 //        // act as if enemy is spotted
 	        
 
-        
+        Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
+        RobotType toBuild = RobotType.MINER;
         if(tempCounter%3 == 0){
             toBuild = RobotType.BUILDER;
         }
         if(roundNum > 400) {
-        	rc.resign();
+        	//rc.resign();
         	toBuild = null;
         }
 

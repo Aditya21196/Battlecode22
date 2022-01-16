@@ -186,6 +186,7 @@ public class LocalInfo {
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
     	totalLead=0;
+    	totalLeadDeposits = 0;
 
         MapLocation loc = rc.getLocation();
         
@@ -196,9 +197,10 @@ public class LocalInfo {
         
         boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
         for(int i = locations.length; --i >= 0;){
-        	//we should consider not counting lead at all
+        	//we should consider not counting lead at all, just deposits
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
+        	totalLeadDeposits++;
             if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
                 totalLeadInSector += lead;
 
