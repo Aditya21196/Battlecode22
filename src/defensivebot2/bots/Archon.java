@@ -122,7 +122,7 @@ public class Archon extends Robot{
         }else {
         	toBuild = RobotType.BUILDER;
         }
-        if(roundNum > 400 && roundNum < 500) {
+        if(roundNum%15 < 5) {
         	//rc.resign();
         	toBuild = null;
         }

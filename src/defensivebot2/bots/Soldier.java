@@ -101,7 +101,7 @@ public class Soldier extends Robot{
   		
   		//got target from comms last time you checked, therefore try again
   		if(tryTargetFromComms) {
-  			SparseSignal signal = comms.getClosestArchon();
+  			SparseSignal signal = comms.getClosestArchonMarked();
   			if(signal != null){
 				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
 					comms.markArchonLocationSafe(signal);

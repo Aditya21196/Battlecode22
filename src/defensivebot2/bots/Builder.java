@@ -154,6 +154,8 @@ public class Builder extends Robot{
     	if(lead < RobotType.LABORATORY.buildCostLead)
 			return;
     	
+    	//System.out.println("loking for job");
+    	
     	SparseSignal signal = comms.getClosestArchon();
     	//check if this builder thinks the team currently has a lab
     	if(roundsWithoutProducingGold > 20) {
@@ -171,9 +173,11 @@ public class Builder extends Robot{
     	//fixedBits == 0b00 || == 0b10 means friendly archon
 		if(signal != null && (signal.fixedBitsVal == 0 || signal.fixedBitsVal == 2)){
 			MapLocation enemyLoc = comms.getNearestEnemyLoc();
+			//System.out.println(enemyLoc);
 			if(enemyLoc != null) {
 				taskLocWT = new MapLocation(signal.target.x + (int)((enemyLoc.x-signal.target.x)*Constants.BUILDER_WATCHTOWER_FRACTION), 
 										signal.target.y + (int)((enemyLoc.y-signal.target.y)*Constants.BUILDER_WATCHTOWER_FRACTION));
+				//System.out.println("I should build a watch tower at: "+taskLocWT);
 			}
 		}
 		
@@ -192,10 +196,10 @@ public class Builder extends Robot{
 		
 		//current strat: mutate archons if able. Mutate watchtowers only if lead/gold is super high
 		if(localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null && 
-				((lead > RobotType.ARCHON.getLeadMutateCost(2)+RobotType.ARCHON.getGoldMutateCost(3) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 1) ||
+				((lead > RobotType.ARCHON.getLeadMutateCost(2)+RobotType.ARCHON.getGoldMutateCost(2) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 1) ||
 				(gold > RobotType.ARCHON.getLeadMutateCost(3)+RobotType.ARCHON.getGoldMutateCost(3) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 2)) ) {
 			moveToward(localInfo.nearestFR[RobotType.ARCHON.ordinal()].location);rc.setIndicatorString("toward for mutation");
-			//System.out.println(RobotType.ARCHON.getLeadMutateCost(2)+RobotType.ARCHON.getGoldMutateCost(2));
+			//System.out.println(RobotType.ARCHON.getLeadMutateCost(3)+RobotType.ARCHON.getGoldMutateCost(3));
 			return;
 			
 		}
@@ -219,8 +223,8 @@ public class Builder extends Robot{
 		
 		//current strat: mutate archons if able. Mutate watchtowers only if lead/gold is super high
 		if(localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null && 
-				((lead > RobotType.ARCHON.getLeadMutateCost(1)+RobotType.ARCHON.getGoldMutateCost(1) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 1) ||
-				(gold > RobotType.ARCHON.getLeadMutateCost(2)+RobotType.ARCHON.getGoldMutateCost(2) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 2)) &&
+				((lead > RobotType.ARCHON.getLeadMutateCost(2)+RobotType.ARCHON.getGoldMutateCost(2) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 1) ||
+				(gold > RobotType.ARCHON.getLeadMutateCost(3)+RobotType.ARCHON.getGoldMutateCost(3) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 2)) &&
 				localInfo.nearestFR[RobotType.ARCHON.ordinal()].location.isWithinDistanceSquared(rc.getLocation(), 2)) {
 			tryMutate(localInfo.nearestFR[RobotType.ARCHON.ordinal()].location);
 			return;
@@ -228,8 +232,8 @@ public class Builder extends Robot{
 		}
 		
 		if(localInfo.nearestFR[RobotType.WATCHTOWER.ordinal()] != null && 
-				((lead*2.5 > RobotType.WATCHTOWER.getLeadMutateCost(1)+RobotType.WATCHTOWER.getGoldMutateCost(1) && localInfo.nearestFR[RobotType.WATCHTOWER.ordinal()].getLevel() == 1) ||
-				(gold*2.5 > RobotType.WATCHTOWER.getLeadMutateCost(2)+RobotType.WATCHTOWER.getGoldMutateCost(2) && localInfo.nearestFR[RobotType.WATCHTOWER.ordinal()].getLevel() == 2)) &&
+				((lead*2.5 > RobotType.WATCHTOWER.getLeadMutateCost(2)+RobotType.WATCHTOWER.getGoldMutateCost(2) && localInfo.nearestFR[RobotType.WATCHTOWER.ordinal()].getLevel() == 1) ||
+				(gold*2.5 > RobotType.WATCHTOWER.getLeadMutateCost(3)+RobotType.WATCHTOWER.getGoldMutateCost(3) && localInfo.nearestFR[RobotType.WATCHTOWER.ordinal()].getLevel() == 2)) &&
 				localInfo.nearestFR[RobotType.WATCHTOWER.ordinal()].location.isWithinDistanceSquared(rc.getLocation(), 2)) {
 			tryMutate(localInfo.nearestFR[RobotType.ARCHON.ordinal()].location);
 			return;
