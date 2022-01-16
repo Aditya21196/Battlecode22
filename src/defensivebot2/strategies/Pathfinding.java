@@ -1,13 +1,17 @@
 package defensivebot2.strategies;
 
 import battlecode.common.*;
+import defensivebot.datasturctures.LinkedList;
+
 import static defensivebot2.utils.PathFindingConstants.*;
 
 // TODO: needs path caching, backtracking prevention, bytecode checks, integration with local info, persistent pathing to avoid enemy damaging units for miners
 public class Pathfinding {
 
-    private RobotController rc;
-    MapLocation prevTarget=null;
+    private final RobotController rc;
+    MapLocation prevTarget=null,prevResponse=null;
+    int prevTargetRubble = 100;
+    LinkedList<MapLocation> prevTargetCache = null;
     MapLocation prevPrevTarget=null;
     boolean bugRight = true;
     int persistentTargeting=0;
@@ -21,91 +25,105 @@ public class Pathfinding {
 
     public void moveTowards(MapLocation target,boolean preventBacktracking) throws GameActionException {
         // check if path to target is cached which isn't more than 5 turns old
-        // TODO: consider using LRU cache for more backtracking
-        if(target == prevTarget){
-
-        }
-        if(target == prevPrevTarget){
-
-        }
-
-        if(preventBacktracking){
-            // check if next movement is opposite to previous movement. If yes, use old target
-
+        if(rc.getID() == 12164 && rc.getRoundNum() >= 20){
+            System.out.println("");
         }
 
         MapLocation currentLocation = rc.getLocation();
         MapLocation localTarget = null;
+
         if(!rc.canSenseLocation(target)){
-            // find angle to target. Then, find corresponding index in array
-            int itrIdx = (int)(Math.toDegrees(Math.atan2(target.y-currentLocation.y,target.x-currentLocation.x))/11.25)-8;
-            if(itrIdx<0)itrIdx += 32;
-            MapLocation consider;
-            double dist;
-            double minDist = Double.MAX_VALUE;
-            for(int i=16;--i>=0;){
-                if(itrIdx>=32)itrIdx -= 32;
-                consider = currentLocation.translate(BORDER20[itrIdx][0],BORDER20[itrIdx][1]);
-                // TODO: Should we ignore occupying unit? When?
-                if(!rc.onTheMap(consider) || rc.isLocationOccupied(consider))continue;
-                dist = target.distanceSquaredTo(consider) + RUBBLE_SCORE_MULTIPLIER*rc.senseRubble(consider);
-                if(dist<minDist){
-                    localTarget = consider;
-                    minDist = dist;
+
+            if(target == prevTarget && prevResponse != null && rc.canSenseLocation(prevResponse)){
+                localTarget = prevResponse;
+            }else{
+                // find angle to target. Then, find corresponding index in array
+                int itrIdx = (int)(Math.toDegrees(Math.atan2(target.y-currentLocation.y,target.x-currentLocation.x))/11.25)-VISION_RADIUS;
+                if(itrIdx<0)itrIdx += 32;
+                MapLocation consider;
+                double dist;
+                double minDist = Double.MAX_VALUE;
+                for(int i=2*VISION_RADIUS+VISION_RADIUS_BIAS;--i>=0;){
+                    if(itrIdx>=32)itrIdx -= 32;
+                    consider = currentLocation.translate(BORDER20[itrIdx][0],BORDER20[itrIdx][1]);
+                    // TODO: Should we ignore occupying unit? When?
+                    if(!rc.onTheMap(consider) || rc.canSenseRobotAtLocation(consider))continue;
+                    dist = target.distanceSquaredTo(consider) + RUBBLE_SCORE_MULTIPLIER*rc.senseRubble(consider);
+                    if(dist<minDist){
+                        localTarget = consider;
+                        minDist = dist;
+                    }
+                    // code to find local target
+                    itrIdx++;
                 }
-                // code to find local target
-                itrIdx++;
+                if(localTarget!=null && rc.senseRubble(localTarget)<CACHING_RUBBLE_LIMIT) {
+                    prevTarget = target;
+                    prevResponse = localTarget;
+                }
             }
-        }else localTarget = target;
+        }
+
+        if(localTarget == null)localTarget = target;
 
         // TODO: move this check inside function?
-        if(localTarget!=null && Clock.getBytecodesLeft() > MIN_AFFORD_PATH_OPT){
+        if(Clock.getBytecodesLeft() > MIN_AFFORD_PATH_OPT){
             localTarget = findBetterLocalTarget(localTarget);
         }
 
-        Direction dir;
-        if(localTarget != null){
-            dir = currentLocation.directionTo(localTarget);
-        }else dir = currentLocation.directionTo(target);
+        greedyMoveTowards(localTarget);
+
 
         // greedily go to the target
-        greedyMoveTowards(dir,localTarget);
+
     }
 
     // unrolled loop.
     // pass target as null if it isn't a local target
-    private void greedyMoveTowards(Direction dir,MapLocation target) throws GameActionException {
+    private void greedyMoveTowards(MapLocation target) throws GameActionException {
 
+        MapLocation currentLocation = rc.getLocation();
+        Direction dir = currentLocation.directionTo(target);
         MapLocation consider;
         Direction idealDir=null;
-        MapLocation currentLocation = rc.getLocation();
         int minRubble = Integer.MAX_VALUE;
         int rubble;
 
+//        int curD = 0;
+        int curD = currentLocation.distanceSquaredTo(target);
+        if(curD<=5){
+            if(rc.canMove(dir))rc.move(dir);
+            return;
+        }
         // check the direction
         if(rc.canMove(dir)){
             consider = currentLocation.add(dir);
-            minRubble = rc.senseRubble(consider);
-            if(consider == target || minRubble == 0){
-                rc.move(dir);
-                return;
+            if(consider.distanceSquaredTo(target)<curD){
+                minRubble = rc.senseRubble(consider);
+                if(consider == target || minRubble == 0){
+                    rc.move(dir);
+                    return;
+                }
+                idealDir = dir; // variable already assigned to this value
             }
-            idealDir = dir; // variable already assigned to this value
         }
+
 
         // check left
         Direction considerDir = dir.rotateLeft();
 
         if(rc.canMove(considerDir)){
             consider = currentLocation.add(considerDir);
-            rubble = rc.senseRubble(consider);
-            if(consider == target || rubble == 0){
-                rc.move(considerDir);
-                return;
-            }
-            if(rubble<minRubble){
-                minRubble = rubble;
-                idealDir = considerDir;
+            // check only strictly closer targets
+            if(consider.distanceSquaredTo(target)<curD){
+                rubble = rc.senseRubble(consider);
+                if(consider == target || rubble == 0){
+                    rc.move(considerDir);
+                    return;
+                }
+                if(rubble<minRubble){
+                    minRubble = rubble;
+                    idealDir = considerDir;
+                }
             }
         }
 
@@ -113,14 +131,16 @@ public class Pathfinding {
 
         if(rc.canMove(considerDir)){
             consider = currentLocation.add(considerDir);
-            rubble = rc.senseRubble(consider);
-            if(consider == target || rubble == 0){
-                rc.move(considerDir);
-                return;
-            }
-            if(rubble<minRubble){
-                minRubble = rubble;
-                idealDir = considerDir;
+            if(consider.distanceSquaredTo(target)<curD){
+                rubble = rc.senseRubble(consider);
+                if(consider == target || rubble == 0){
+                    rc.move(considerDir);
+                    return;
+                }
+                if(rubble<minRubble){
+                    minRubble = rubble;
+                    idealDir = considerDir;
+                }
             }
         }
 
@@ -172,7 +192,8 @@ public class Pathfinding {
 
     public void moveAwayFrom(MapLocation target,int threatLevel) throws GameActionException {
         // TODO: improve this to prevent backtracking and integrate threat level to improve run away
-        greedyMoveTowards(target.directionTo(rc.getLocation()),null);
+        MapLocation loc = rc.getLocation();
+        greedyMoveTowards(target.translate(loc.x-target.x,loc.y-target.y));
         // find tiles in direction opposite to target
 
         // find the one easiest to reach

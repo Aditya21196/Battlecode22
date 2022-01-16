@@ -39,19 +39,12 @@ public class Soldier extends Robot{
     	//movement priority 1: run from danger in area if out numbered (in this case we should attack first if able)
 
 
-		if(rc.getID() == 11521 && rc.getRoundNum() >= 20){
-			System.out.println("");
-		}
 
     	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
     		tryAttack();
 			tryMoveInDanger();
     	}
 
-		if(rc.getID() == 10015 && rc.getRoundNum()>=1074){
-			System.out.println();
-		}
-    	
     	//movement priority 2: move to best location to attack best target.
     	tryMoveAndAttackBestTarget();
     	
@@ -214,101 +207,101 @@ public class Soldier extends Robot{
 		MapLocation target = null;
 		MapLocation best = null;
 
-//		if(target != null){
+		if(target != null){
+			best = localInfo.getBestLocInRange(target);
+			if(best != null) {
+				int bc = Clock.getBytecodesLeft();
+				if(bc>SOLDIER_PATHFINDING_LIMIT){
+					pathfinding.moveTowards(best,false);rc.setIndicatorString("best loc: "+best);
+				}else moveToward(best);rc.setIndicatorString("best loc: "+best);
+				if(bc-Clock.getBytecodesLeft()<0){
+					System.out.println("bc was:"+bc);
+				}
+				if(!rc.isActionReady())
+					return;
+				tryAttack(target);
+			}
+		}
+		
+//		if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
+//			target = localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation();
 //			best = localInfo.getBestLocInRange(target);
 //			if(best != null) {
-//				int bc = Clock.getBytecodesLeft();
-//				if(bc>SOLDIER_PATHFINDING_LIMIT){
-//					pathfinding.moveTowards(best,false);rc.setIndicatorString("best loc: "+best);
-//				}else moveToward(best);rc.setIndicatorString("best loc: "+best);
-//				if(bc-Clock.getBytecodesLeft()<0){
-//					System.out.println("bc was:"+bc);
-//				}
+//				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
 //				if(!rc.isActionReady())
 //					return;
 //				tryAttack(target);
+//				return;
 //			}
 //		}
-		
-		if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
-			target = localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation();
-			best = localInfo.getBestLocInRange(target);
-			if(best != null) {
-				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
-				if(!rc.isActionReady())
-					return;
-				tryAttack(target);
-				return;
-			}
-		}
-
-		if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
-			target = localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation();
-			best = localInfo.getBestLocInRange(target);
-			if(best != null) {
-				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
-				if(!rc.isActionReady())
-					return;
-				tryAttack(target);
-				return;
-			}
-		}
-
-		if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
-			target = localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation();
-			best = localInfo.getBestLocInRange(target);
-			if(best != null) {
-				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
-				if(!rc.isActionReady())
-					return;
-				tryAttack(target);
-				return;
-			}
-		}
-		if(localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
-			target = localInfo.nearestER[RobotType.ARCHON.ordinal()].getLocation();
-			best = localInfo.getBestLocInRange(target);
-			if(best != null) {
-				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
-				if(!rc.isActionReady())
-					return;
-				tryAttack(target);
-				return;
-			}
-		}
-		if(localInfo.nearestER[RobotType.BUILDER.ordinal()] != null) {
-			target = localInfo.nearestER[RobotType.BUILDER.ordinal()].getLocation();
-			best = localInfo.getBestLocInRange(target);
-			if(best != null) {
-				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
-				if(!rc.isActionReady())
-					return;
-				tryAttack(target);
-				return;
-			}
-		}
-		if(localInfo.nearestER[RobotType.MINER.ordinal()] != null) {
-			target = localInfo.nearestER[RobotType.MINER.ordinal()].getLocation();
-			best = localInfo.getBestLocInRange(target);
-			if(best != null) {
-				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
-				if(!rc.isActionReady())
-					return;
-				tryAttack(target);
-				return;
-			}
-		}
-		if(localInfo.nearestER[RobotType.LABORATORY.ordinal()] != null) {
-			target = localInfo.nearestER[RobotType.LABORATORY.ordinal()].getLocation();
-			best = localInfo.getBestLocInRange(target);
-			if(best != null) {
-				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
-				if(!rc.isActionReady())
-					return;
-				tryAttack(target);
-				return;
-			}
-		}
+//
+//		if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
+//			target = localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation();
+//			best = localInfo.getBestLocInRange(target);
+//			if(best != null) {
+//				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+//				if(!rc.isActionReady())
+//					return;
+//				tryAttack(target);
+//				return;
+//			}
+//		}
+//
+//		if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
+//			target = localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation();
+//			best = localInfo.getBestLocInRange(target);
+//			if(best != null) {
+//				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+//				if(!rc.isActionReady())
+//					return;
+//				tryAttack(target);
+//				return;
+//			}
+//		}
+//		if(localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
+//			target = localInfo.nearestER[RobotType.ARCHON.ordinal()].getLocation();
+//			best = localInfo.getBestLocInRange(target);
+//			if(best != null) {
+//				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+//				if(!rc.isActionReady())
+//					return;
+//				tryAttack(target);
+//				return;
+//			}
+//		}
+//		if(localInfo.nearestER[RobotType.BUILDER.ordinal()] != null) {
+//			target = localInfo.nearestER[RobotType.BUILDER.ordinal()].getLocation();
+//			best = localInfo.getBestLocInRange(target);
+//			if(best != null) {
+//				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+//				if(!rc.isActionReady())
+//					return;
+//				tryAttack(target);
+//				return;
+//			}
+//		}
+//		if(localInfo.nearestER[RobotType.MINER.ordinal()] != null) {
+//			target = localInfo.nearestER[RobotType.MINER.ordinal()].getLocation();
+//			best = localInfo.getBestLocInRange(target);
+//			if(best != null) {
+//				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+//				if(!rc.isActionReady())
+//					return;
+//				tryAttack(target);
+//				return;
+//			}
+//		}
+//		if(localInfo.nearestER[RobotType.LABORATORY.ordinal()] != null) {
+//			target = localInfo.nearestER[RobotType.LABORATORY.ordinal()].getLocation();
+//			best = localInfo.getBestLocInRange(target);
+//			if(best != null) {
+//				moveToward(best); rc.setIndicatorString("best attack loc for near target: "+best);
+//				if(!rc.isActionReady())
+//					return;
+//				tryAttack(target);
+//				return;
+//			}
+//		}
 	}
 
 
@@ -380,8 +373,15 @@ public class Soldier extends Robot{
 		if(best == null) //cannot move or stay to attack best target
 			return;
 
-		moveToward(best); rc.setIndicatorString("best attack loc for best target: "+best);
-		
+//		moveToward(best); rc.setIndicatorString("best attack loc for best target: "+best);
+		int bc = Clock.getBytecodesLeft();
+		if(bc>SOLDIER_PATHFINDING_LIMIT){
+			pathfinding.moveTowards(best,false);rc.setIndicatorString("best task loc: "+best);
+		}else moveToward(best);rc.setIndicatorString("best task loc: "+best);
+		if(bc-Clock.getBytecodesLeft()<0){
+			System.out.println("bc was:"+bc);
+		}
+
 		if(!rc.isActionReady())
 			return;
 		

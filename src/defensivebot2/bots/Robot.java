@@ -9,6 +9,7 @@ import defensivebot2.utils.*;
 
 import static defensivebot2.utils.Constants.EXTRA_BYTECODE_FOR_COMMS_CLEANUP;
 import static defensivebot2.utils.LogUtils.printVerboseLog;
+import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
 public abstract class Robot {
 
@@ -119,7 +120,6 @@ public abstract class Robot {
     		}
     		anomalyIndex++;
     	}
-    	
     	return null;
     }
     public void tryMove(Direction dir) throws GameActionException {
@@ -130,7 +130,13 @@ public abstract class Robot {
     
     public void moveToward(MapLocation target) throws GameActionException {
     	if(rc.isMovementReady() && !rc.getLocation().equals(target)) {
-    		tryMove(getBestValidDirection(target));
+			int bc = Clock.getBytecodesLeft();
+			if(bc>SOLDIER_PATHFINDING_LIMIT){
+				pathfinding.moveTowards(target,false);rc.setIndicatorString("best task loc: "+target);
+			}else moveToward(target);rc.setIndicatorString("best task loc: "+target);
+			if(bc-Clock.getBytecodesLeft()<0){
+				System.out.println("bc was:"+bc);
+			}
 		}
     }
     
