@@ -10,9 +10,9 @@ import defensivebot2.utils.Constants;
 public class Soldier extends Robot{
 	
 	private MapLocation taskLoc = null;
-	private boolean isMapExplored = false;
+	private boolean isMapExplored = false;//TODO:reset this to false every 100 rounds or so
 	private boolean tryTargetFromComms = true;
-	private CustomSet<MapLocation> discoveredArchons = new CustomSet<>(5);
+	//private CustomSet<MapLocation> discoveredArchons = new CustomSet<>(5);
 	
 	
     public Soldier(RobotController rc) throws GameActionException  {
@@ -55,7 +55,7 @@ public class Soldier extends Robot{
     	tryMoveOnTask();
     	tryMoveNewTask();
     	
-    	//TODO: movement priority for after tasks
+    	//TODO: movement priority for after tasks (repel FArchons?)
     	
     	trySenseResources();
     }
@@ -110,7 +110,6 @@ public class Soldier extends Robot{
   		else {
   			//reset lead found state to look for lead next time
   			tryTargetFromComms = true;
-  			System.out.println("Map Fully Explored! Horray!");
   		}
   		
   		tryMoveOnTask();
@@ -125,11 +124,9 @@ public class Soldier extends Robot{
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 3000) {
 			localInfo.senseLead(false);
-//			System.out.println("SL");
 		}
 		if(Clock.getBytecodesLeft() > 2000) {
 			localInfo.senseGold();
-//			System.out.println("SG");
 		}
 	}
 	
