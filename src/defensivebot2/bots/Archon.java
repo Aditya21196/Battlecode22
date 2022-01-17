@@ -117,17 +117,13 @@ public class Archon extends Robot{
         Direction dir = Constants.directions[rng.nextInt(Constants.directions.length)];
         RobotType toBuild=RobotType.MINER;
         if(tempCounter%2==1)toBuild=RobotType.SOLDIER;
-//        if(tempCounter%10 < 5){
-//            toBuild = RobotType.MINER;
-//        }else if(tempCounter %10 < 9) {
-//        	toBuild = RobotType.SOLDIER;
-//        }else {
-//        	toBuild = RobotType.BUILDER;
-//        }
-//        if(roundNum%15 < 5) {
-//        	//rc.resign();
-//        	toBuild = null;
-//        }
+        if(tempCounter%10 < 3){
+            toBuild = RobotType.MINER;
+        }else if(tempCounter %10 < 9) {
+        	toBuild = RobotType.SOLDIER;
+        }else {
+        	toBuild = RobotType.BUILDER;
+        }
 
 
         if (toBuild!=null && rc.canBuildRobot(toBuild, dir)) {

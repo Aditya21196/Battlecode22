@@ -221,7 +221,7 @@ public class Comms {
         CommInfoBlockType commInfoBlockType = CommInfoBlockType.EXPLORATION;
         // DFS finds enemies quicker
         // BFS protects friendly units while exploring
-        int[][] search = DFS25[exploreDir];
+        int[][] search = BFS25[exploreDir];
         for(int i=1;i<search.length;i++){
             int checkX = search[i][0]+curSectorX,checkY = search[i][1]+curSectorY;
 
@@ -441,6 +441,24 @@ public class Comms {
     public String checkBits(int[] arr,int offset,int num) throws GameActionException {
         int val = readBits(arr,offset,num);
         return Integer.toBinaryString(val);
+    }
+
+    public MapLocation getNearestThreat(int level) throws GameActionException {
+        MapLocation loc = rc.getLocation();
+        int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
+
+        CommInfoBlockType commInfoBlockType = CommInfoBlockType.ENEMY_UNITS;
+        for(int i=1;i<BFS_MANHATTAN_5.length/2;i++){
+            int checkX = BFS_MANHATTAN_5[i][0]+curSectorX,checkY = BFS_MANHATTAN_5[i][1]+curSectorY;
+
+            // check if sector is valid
+            if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
+            int val = readInfo(commInfoBlockType,checkX,checkY);
+            if(val == level){
+                return getCenterOfSector(checkX,checkY);
+            }
+        }
+        return null;
     }
     
     public SparseSignal getClosestArchonMarked() throws GameActionException {

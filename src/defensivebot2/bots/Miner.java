@@ -21,7 +21,7 @@ public class Miner extends Robot{
     	
     	localInfo.senseRobots(false, false, false);
     	localInfo.senseGold();
-    	localInfo.senseLead(true,true);
+    	localInfo.senseLead(true);
 
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
     	AnomalyScheduleEntry  next = getNextAnomaly();
@@ -143,10 +143,10 @@ public class Miner extends Robot{
 	private void tryMoveToLead() throws GameActionException {
 		if(!rc.isMovementReady()) return;
 		
-		if(localInfo.bestLeadLoc != null) {
-			MapLocation best = localInfo.getBestLocInRange(localInfo.bestLeadLoc);
+		if(localInfo.nearestLeadLoc != null) {
+			MapLocation best = localInfo.getBestLocInRange(localInfo.nearestLeadLoc);
 			if(best == null) {
-				best = localInfo.bestLeadLoc;
+				best = localInfo.nearestLeadLoc;
 			}
 			moveToward(best);rc.setIndicatorString("best lead loc: "+best);
 		}

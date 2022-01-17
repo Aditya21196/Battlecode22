@@ -189,9 +189,9 @@ public class LocalInfo {
 		if(Clock.getBytecodesLeft()>5000 && comms.isDenseUpdateAllowed()){
 			int ed = getEnemyDamagerCount();
 			int val=0;
-			if(ed>1)val = 3;
-			else if(ed == 1)val = 2;
-			else if(getEnemyNonDamagerCount()>0)val = 1;
+			if(ed>3)val = 3;
+			else if(ed > 1)val = 2;
+			else if(ed == 1)val = 1;
 			comms.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS);
 		}
     }
@@ -199,7 +199,7 @@ public class LocalInfo {
 
     
     
-    public void senseLead(boolean forPassive,boolean forMining) throws GameActionException {
+    public void senseLead(boolean forPassive) throws GameActionException {
 
         if(leadSensedLastRound == turnCount)return;
         else leadSensedLastRound = turnCount;
@@ -235,13 +235,6 @@ public class LocalInfo {
             	nearestLeadDist = distToMe;
             }
 
-			if(forMining){
-				int leadScore = lead*LEAD_IMPORTANCE/(distToMe+1);
-				if(leadScore>bestLeadScore && leadScore>LEAD_SCORE_THRESHOLD){
-					bestLeadScore = leadScore;
-					bestLeadLoc = loc;
-				}
-			}
         }
 
 
