@@ -1,10 +1,6 @@
 package defensivebot2.strategies;
 
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-import battlecode.common.RobotInfo;
-import battlecode.common.RobotType;
+import battlecode.common.*;
 import defensivebot2.datasturctures.CustomSet;
 import defensivebot2.enums.CommInfoBlockType;
 import defensivebot2.enums.SparseSignalType;
@@ -189,6 +185,14 @@ public class LocalInfo {
                 }
             }
         }
+		if(Clock.getBytecodesLeft()>5000 && comms.isDenseUpdateAllowed()){
+			int ed = getEnemyDamagerCount();
+			int val=0;
+			if(ed>1)val = 3;
+			else if(ed == 1)val = 2;
+			else if(getEnemyNonDamagerCount()>0)val = 1;
+			comms.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS);
+		}
     }
 
 

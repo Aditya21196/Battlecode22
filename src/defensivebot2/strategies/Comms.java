@@ -31,6 +31,7 @@ public class Comms {
     private CustomSet<SparseSignal> sparseSignals;
     private LinkedList<SparseSignal> orderedSparseSignals;
     boolean denseUpdateAllowed=false;
+    private final int exploreDir;
 
 
     public boolean isSignalArrayFull = false;
@@ -47,7 +48,7 @@ public class Comms {
         h = rc.getMapHeight();
         xSectorSize = getBestSectorSize(w);
         ySectorSize = getBestSectorSize(h);
-
+        exploreDir = rc.getID()%8;
 
         xSectors = ceilDivision(w,xSectorSize);
         ySectors = ceilDivision(h,ySectorSize);
@@ -218,10 +219,11 @@ public class Comms {
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
 
         CommInfoBlockType commInfoBlockType = CommInfoBlockType.EXPLORATION;
-        int randomDir = rc.getID()%4;
-        int[][] BFS = BFS25[randomDir];
-        for(int i=1;i<BFS.length;i++){
-            int checkX = BFS[i][0]+curSectorX,checkY = BFS[i][1]+curSectorY;
+        // DFS finds enemies quicker
+        // BFS protects friendly units while exploring
+        int[][] search = DFS25[exploreDir];
+        for(int i=1;i<search.length;i++){
+            int checkX = search[i][0]+curSectorX,checkY = search[i][1]+curSectorY;
 
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;

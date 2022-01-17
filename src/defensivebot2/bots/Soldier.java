@@ -80,9 +80,7 @@ public class Soldier extends Robot{
 		if(bc>SOLDIER_PATHFINDING_LIMIT){
 			pathfinding.moveTowards(taskLoc,false);rc.setIndicatorString("best task loc: "+taskLoc);
 		}else moveToward(taskLoc);rc.setIndicatorString("best task loc: "+taskLoc);
-		if(bc-Clock.getBytecodesLeft()<0){
-			System.out.println("bc was:"+bc);
-		}
+
 		if(rc.isMovementReady()) {
 			taskLoc = null;
 		}
@@ -214,9 +212,7 @@ public class Soldier extends Robot{
 				if(bc>SOLDIER_PATHFINDING_LIMIT){
 					pathfinding.moveTowards(best,false);rc.setIndicatorString("best loc: "+best);
 				}else moveToward(best);rc.setIndicatorString("best loc: "+best);
-				if(bc-Clock.getBytecodesLeft()<0){
-					System.out.println("bc was:"+bc);
-				}
+
 				if(!rc.isActionReady())
 					return;
 				tryAttack(target);
@@ -378,9 +374,7 @@ public class Soldier extends Robot{
 		if(bc>SOLDIER_PATHFINDING_LIMIT){
 			pathfinding.moveTowards(best,false);rc.setIndicatorString("best task loc: "+best);
 		}else moveToward(best);rc.setIndicatorString("best task loc: "+best);
-		if(bc-Clock.getBytecodesLeft()<0){
-			System.out.println("bc was:"+bc);
-		}
+
 
 		if(!rc.isActionReady())
 			return;

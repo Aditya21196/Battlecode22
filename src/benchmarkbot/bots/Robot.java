@@ -133,9 +133,6 @@ public abstract class Robot {
 			if(bc>SOLDIER_PATHFINDING_LIMIT){
 				pathfinding.moveTowards(target,false);rc.setIndicatorString("best task loc: "+target);
 			}else moveToward(target);rc.setIndicatorString("best task loc: "+target);
-			if(bc-Clock.getBytecodesLeft()<0){
-				System.out.println("bc was:"+bc);
-			}
 		}
     }
     
