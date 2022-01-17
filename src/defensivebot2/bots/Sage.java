@@ -92,7 +92,7 @@ public class Sage extends Robot{
 	}
     
     private void tryMoveOnTask() throws GameActionException {
-		if(!rc.isActionReady() || !rc.isMovementReady() || taskLoc == null) return;
+		if(!rc.isMovementReady() || taskLoc == null) return;
 		//arrived at task
 		if(rc.getLocation().isWithinDistanceSquared(taskLoc, Constants.CLOSE_RADIUS)) {
 			taskLoc = null;
