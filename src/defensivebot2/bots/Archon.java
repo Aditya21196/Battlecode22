@@ -42,11 +42,11 @@ public class Archon extends Robot{
     };
     
     private double[] minerWeights = {
-    		0.0,//miner threshold
+    		0.5,//miner threshold
     		-1.0,//distance to marked archon
     		-1.0,//distance to enemy
     		1.0,//distance to lead
-    		2.0,//distance to unexplored
+    		1.0,//distance to unexplored
     		1.0,//soldier count
     		-1.0,//miner count
     		0.01,//team lead
@@ -83,7 +83,7 @@ public class Archon extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         
-    	localInfo.senseRobots(false,true,false);
+    	localInfo.senseRobots(true,true,false);
         localInfo.senseLead(true);
         
         if(turnCount%4 == 0) {
@@ -252,6 +252,19 @@ public class Archon extends Robot{
         int lead = rc.getTeamLeadAmount(rc.getTeam());
         int gold = rc.getTeamGoldAmount(rc.getTeam());
         
+        
+        if(localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
+        	if(gold > RobotType.SAGE.buildCostGold) {
+        		buildDir = rc.getLocation().directionTo(localInfo.nearestER[RobotType.ARCHON.ordinal()].location).rotateRight();
+        		tryBuild(RobotType.SAGE);
+        	}
+        	if(lead > RobotType.SOLDIER.buildCostLead) {
+        		buildDir = rc.getLocation().directionTo(localInfo.nearestER[RobotType.ARCHON.ordinal()].location).rotateRight();
+        		tryBuild(RobotType.SOLDIER);
+        		
+        	}
+        	return;
+        }
         //damager in vision build defensive troops
         if(nearDamager != null) {
         	if(gold > RobotType.SAGE.buildCostGold) {
@@ -272,7 +285,7 @@ public class Archon extends Robot{
     		return;
         }
         
-        if(localInfo.nearestLeadLoc != null) {
+        if(localInfo.totalLead > 50) {
         	buildDir = rc.getLocation().directionTo(localInfo.nearestLeadLoc).rotateRight();
     		tryBuild(RobotType.MINER);
     		return;
