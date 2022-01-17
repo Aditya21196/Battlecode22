@@ -32,6 +32,10 @@ public class LocalInfo {
     public int nearestFriendDist;
 
     public RobotInfo homeArchon;
+    
+    //for anomaly info
+    public int buildingDamage;
+    public int robotDamage;
 
     
     //additional Robot Info (for attacking)
@@ -68,7 +72,7 @@ public class LocalInfo {
         this.comms=comms;
     }
     
-    public void senseRobots(boolean forAttack, boolean forRepair){
+    public void senseRobots(boolean forAttack, boolean forRepair, boolean forAnomaly){
 
         if(robotsSensedLastRound == turnCount)return;
         else robotsSensedLastRound = turnCount;
@@ -100,6 +104,10 @@ public class LocalInfo {
             //additional info gathered not in senseRobots()
         	nearestDamagedFR = new RobotInfo[UNITS_AVAILABLE];
         	nearestDamagedFRDist = new int[UNITS_AVAILABLE];
+        }
+        if(forAnomaly) {
+        	buildingDamage = 0;
+        	robotDamage = 0;
         }
 
         for(int i = nearestFRDist.length; --i>=0;) {
@@ -167,6 +175,14 @@ public class LocalInfo {
                         weakestER[typeOrdinal] = nearbyRobots[i];
                         weakestERHealth[typeOrdinal] = hp;
                     }
+                }
+                if(forAnomaly && distToMe <= rc.getType().actionRadiusSquared) {
+                	if(nearbyRobots[i].getType().isBuilding()) {
+                		buildingDamage += (int)(nearbyRobots[i].getType().getMaxHealth(nearbyRobots[i].getLevel())*0.1);
+                	}else {
+                		robotDamage += (int)(nearbyRobots[i].getType().health*0.1);
+                	}
+                	
                 }
             }
         }
