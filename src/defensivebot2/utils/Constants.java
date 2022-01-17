@@ -84,4 +84,7 @@ public class Constants {
 
 	public static final double BUILDER_WATCHTOWER_FRACTION = 0.33; // greater than half equals closer to enemies.
 
+    public static final int LEAD_IMPORTANCE = 2;
+    public static final int LEAD_SCORE_THRESHOLD = 5;
+
 }

@@ -9,7 +9,7 @@ import defensivebot2.utils.Constants;
 
 import static defensivebot2.bots.Robot.roundNum;
 import static defensivebot2.bots.Robot.turnCount;
-import static defensivebot2.utils.Constants.UNITS_AVAILABLE;
+import static defensivebot2.utils.Constants.*;
 import static defensivebot2.utils.LogUtils.printDebugLog;
 
 public class LocalInfo {
@@ -43,7 +43,8 @@ public class LocalInfo {
     public int[] nearestDamagedFRDist; //weakest enemy robots' health (of each type)
     
     public int leadSensedLastRound = -1,robotsSensedLastRound = -1;
-
+	public int bestLeadScore;
+	public MapLocation bestLeadLoc;
 
     
     //Lead Info gathered
@@ -182,7 +183,7 @@ public class LocalInfo {
 
     
     
-    public void senseLead(boolean forPassive) throws GameActionException {
+    public void senseLead(boolean forPassive,boolean forMining) throws GameActionException {
 
         if(leadSensedLastRound == turnCount)return;
         else leadSensedLastRound = turnCount;
@@ -191,6 +192,8 @@ public class LocalInfo {
     	nearestLeadLoc = null;
     	totalLead=0;
     	totalLeadDeposits = 0;
+		bestLeadScore = 0;
+		bestLeadLoc=null;
 
         MapLocation loc = rc.getLocation();
         
@@ -215,7 +218,18 @@ public class LocalInfo {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
+
+			if(forMining){
+				int leadScore = lead*LEAD_IMPORTANCE/(distToMe+1);
+				if(leadScore>bestLeadScore && leadScore>LEAD_SCORE_THRESHOLD){
+					bestLeadScore = leadScore;
+					bestLeadLoc = loc;
+				}
+			}
         }
+
+
+
 		if(robotsSensedLastRound == turnCount)totalLeadInSector /= (numMinersInSector+1);
         if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
     }

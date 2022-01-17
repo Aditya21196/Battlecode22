@@ -57,7 +57,7 @@ public class Archon extends Robot{
     public void executeRole() throws GameActionException {
         
     	localInfo.senseRobots(false,true);
-        localInfo.senseLead(false);
+        localInfo.senseLead(false,false);
 
         // TODO: test this
         if(!reportedCurrentLocation){

@@ -129,7 +129,7 @@ public class Soldier extends Robot{
 
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 3000) {
-			localInfo.senseLead(false);
+			localInfo.senseLead(false,false);
 		}
 		if(Clock.getBytecodesLeft() > 2000) {
 			localInfo.senseGold();
