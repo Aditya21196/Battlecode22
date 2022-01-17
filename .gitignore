@@ -21,6 +21,7 @@ build/*
 *.iws
 /.idea/
 scripts
+src/benchmarkbot
 
 
 # User-specific stuff:
