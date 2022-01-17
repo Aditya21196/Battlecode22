@@ -70,15 +70,17 @@ public class Sage extends Robot{
 		if(localInfo.robotDamage > localInfo.buildingDamage && localInfo.robotDamage > RobotType.SAGE.damage) {
 			if(rc.canEnvision(AnomalyType.CHARGE)) {
 				rc.envision(AnomalyType.CHARGE);
+				tryMoveInDanger();
 			}
 		}
 		
 		if(localInfo.buildingDamage > localInfo.robotDamage && localInfo.buildingDamage > RobotType.SAGE.damage) {
 			if(rc.canEnvision(AnomalyType.FURY)) {
 				rc.envision(AnomalyType.FURY);
+				tryMoveInDanger();
 			}
 		}
-		tryMoveInDanger();
+		
 	}
 
 
