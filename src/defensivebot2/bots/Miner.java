@@ -19,7 +19,7 @@ public class Miner extends Robot{
     @Override
     public void executeRole() throws GameActionException {
     	
-    	localInfo.senseRobots(false, false);
+    	localInfo.senseRobots(false, false, false);
     	localInfo.senseGold();
     	localInfo.senseLead(true);
 

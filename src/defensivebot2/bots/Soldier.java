@@ -27,7 +27,7 @@ public class Soldier extends Robot{
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
 
-    	localInfo.senseRobots(true, false);
+    	localInfo.senseRobots(true, false, false);
     	
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
     	AnomalyScheduleEntry  next = getNextAnomaly();
@@ -69,7 +69,7 @@ public class Soldier extends Robot{
 	}
     
     private void tryMoveOnTask() throws GameActionException {
-		if(!rc.isMovementReady() || taskLoc == null) return;
+		if(!rc.isActionReady() || !rc.isMovementReady() || taskLoc == null) return;
 		//arrived at task
 		if(rc.getLocation().isWithinDistanceSquared(taskLoc, Constants.CLOSE_RADIUS)) {
 			taskLoc = null;

@@ -46,7 +46,7 @@ public class Builder extends Robot{
 
     @Override
     public void executeRole() throws GameActionException {
-    	localInfo.senseRobots(false, true);
+    	localInfo.senseRobots(false, true, false);
     	lead = rc.getTeamLeadAmount(rc.getTeam());
     	gold = rc.getTeamGoldAmount(rc.getTeam());
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
