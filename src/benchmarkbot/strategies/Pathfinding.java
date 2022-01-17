@@ -25,9 +25,6 @@ public class Pathfinding {
 
     public void moveTowards(MapLocation target,boolean preventBacktracking) throws GameActionException {
         // check if path to target is cached which isn't more than 5 turns old
-        if(rc.getID() == 12164 && rc.getRoundNum() >= 20){
-            System.out.println("");
-        }
 
         MapLocation currentLocation = rc.getLocation();
         MapLocation localTarget = null;
