@@ -170,7 +170,7 @@ public class Sage extends Robot{
 		
 		if(localInfo.nearestER[RobotType.SAGE.ordinal()] != null) {
 			target = localInfo.nearestER[RobotType.SAGE.ordinal()].getLocation();
-			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SAGE.actionRadiusSquared)) {
 				tryAttack(target);
 				return;
 			}	
@@ -178,7 +178,7 @@ public class Sage extends Robot{
 		
 		if(localInfo.nearestER[RobotType.SOLDIER.ordinal()] != null) {
 			target = localInfo.nearestER[RobotType.SOLDIER.ordinal()].getLocation();
-			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SAGE.actionRadiusSquared)) {
 				tryAttack(target);
 				return;
 			}
@@ -186,35 +186,35 @@ public class Sage extends Robot{
 		
 		if(localInfo.nearestER[RobotType.WATCHTOWER.ordinal()] != null) {
 			target = localInfo.nearestER[RobotType.WATCHTOWER.ordinal()].getLocation();
-			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SAGE.actionRadiusSquared)) {
 				tryAttack(target);
 				return;
 			}	
 		}
 		if(localInfo.nearestER[RobotType.ARCHON.ordinal()] != null) {
 			target = localInfo.nearestER[RobotType.ARCHON.ordinal()].getLocation();
-			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SAGE.actionRadiusSquared)) {
 				tryAttack(target);
 				return;
 			}
 		}
 		if(localInfo.nearestER[RobotType.BUILDER.ordinal()] != null) {
 			target = localInfo.nearestER[RobotType.BUILDER.ordinal()].getLocation();
-			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SAGE.actionRadiusSquared)) {
 				tryAttack(target);
 				return;
 			}
 		}
 		if(localInfo.nearestER[RobotType.MINER.ordinal()] != null) {
 			target = localInfo.nearestER[RobotType.MINER.ordinal()].getLocation();
-			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SAGE.actionRadiusSquared)) {
 				tryAttack(target);
 				return;
 			}
 		}
 		if(localInfo.nearestER[RobotType.LABORATORY.ordinal()] != null) {
 			target = localInfo.nearestER[RobotType.LABORATORY.ordinal()].getLocation();
-			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SOLDIER.actionRadiusSquared)) {
+			if(target.isWithinDistanceSquared(rc.getLocation(), RobotType.SAGE.actionRadiusSquared)) {
 				tryAttack(target);
 				return;
 			}
