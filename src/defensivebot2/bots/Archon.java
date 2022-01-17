@@ -56,7 +56,7 @@ public class Archon extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         
-    	localInfo.senseRobots(false,true);
+    	localInfo.senseRobots(false,true,false);
         localInfo.senseLead(false);
 
         // TODO: test this
