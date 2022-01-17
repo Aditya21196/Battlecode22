@@ -1,14 +1,12 @@
-package defensivebot2.bots;
+package benchmarkbot.bots;
 
 //import static defensivebot.utils.Constants.ARCHON_DEATH_CONFIRMATION;
 
 import battlecode.common.*;
-import defensivebot2.models.SparseSignal;
-import defensivebot2.datasturctures.CustomSet;
-import defensivebot2.utils.Constants;
+import benchmarkbot.models.SparseSignal;
+import benchmarkbot.utils.Constants;
 
-import static defensivebot2.utils.LogUtils.printDebugLog;
-import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
+import static benchmarkbot.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
 public class Soldier extends Robot{
 	

@@ -1,4 +1,4 @@
-package defensivebot2.utils;
+package benchmarkbot.utils;
 
 import battlecode.common.Direction;
 

@@ -1,15 +1,14 @@
-package defensivebot2.bots;
+package benchmarkbot.bots;
 
 import java.util.Random;
 
 import battlecode.common.*;
-import defensivebot2.datasturctures.CustomSet;
-import defensivebot2.enums.SparseSignalType;
-import defensivebot2.models.SparseSignal;
-import defensivebot2.utils.*;
+import benchmarkbot.enums.SparseSignalType;
+import benchmarkbot.models.SparseSignal;
+import benchmarkbot.utils.*;
 
 
-import static defensivebot2.utils.Constants.UNITS_AVAILABLE;
+import static benchmarkbot.utils.Constants.UNITS_AVAILABLE;
 
 public class Archon extends Robot{
 

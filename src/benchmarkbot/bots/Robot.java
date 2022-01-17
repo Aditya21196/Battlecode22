@@ -1,15 +1,14 @@
-package defensivebot2.bots;
+package benchmarkbot.bots;
 
 import battlecode.common.*;
-import defensivebot2.strategies.Comms;
-import defensivebot2.strategies.LocalInfo;
-import defensivebot2.strategies.Pathfinding;
-import defensivebot2.utils.*;
+import benchmarkbot.strategies.Comms;
+import benchmarkbot.strategies.LocalInfo;
+import benchmarkbot.strategies.Pathfinding;
+import benchmarkbot.utils.*;
 
 
-import static defensivebot2.utils.Constants.EXTRA_BYTECODE_FOR_COMMS_CLEANUP;
-import static defensivebot2.utils.LogUtils.printVerboseLog;
-import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
+import static benchmarkbot.utils.LogUtils.printVerboseLog;
+import static benchmarkbot.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
 public abstract class Robot {
 

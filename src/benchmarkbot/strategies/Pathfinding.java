@@ -1,9 +1,9 @@
-package defensivebot2.strategies;
+package benchmarkbot.strategies;
 
 import battlecode.common.*;
 import defensivebot.datasturctures.LinkedList;
 
-import static defensivebot2.utils.PathFindingConstants.*;
+import static benchmarkbot.utils.PathFindingConstants.*;
 
 // TODO: needs path caching, backtracking prevention, bytecode checks, integration with local info, persistent pathing to avoid enemy damaging units for miners
 public class Pathfinding {
