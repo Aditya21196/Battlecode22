@@ -84,4 +84,6 @@ public class Constants {
 
 	public static final double BUILDER_WATCHTOWER_FRACTION = 0.33; // greater than half equals closer to enemies.
 
+	public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING = 13;
+
 }

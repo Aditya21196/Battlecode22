@@ -19,6 +19,14 @@ public class Miner extends Robot{
     @Override
     public void executeRole() throws GameActionException {
     	
+    	if(turnCount == 100) {
+    		isMapExplored = false;
+    	}
+    	
+    	if(turnCount%20 == 0) {
+    		taskLoc = null;
+    	}
+    	
     	localInfo.senseRobots(false, false, false);
     	localInfo.senseGold();
     	localInfo.senseLead(true);
