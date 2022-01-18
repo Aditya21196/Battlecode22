@@ -72,7 +72,7 @@ public class LocalInfo {
         this.comms=comms;
     }
     
-    public void senseRobots(boolean forAttack, boolean forRepair, boolean forAnomaly){
+    public void senseRobots(boolean forAttack, boolean forRepair, boolean forAnomaly) throws GameActionException{
 
         if(robotsSensedLastRound == turnCount)return;
         else robotsSensedLastRound = turnCount;
@@ -123,8 +123,7 @@ public class LocalInfo {
 		int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
 		boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
 
-		RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-		if(nearbyRobots.length>20)nearbyRobots = rc.senseNearbyRobots(10);
+		RobotInfo[] nearbyRobots = getRobots(forAttack);
 
         for(int i = nearbyRobots.length; --i>=0;){
         	MapLocation robLoc = nearbyRobots[i].getLocation();
@@ -269,11 +268,11 @@ public class LocalInfo {
     }
 
     
-    public void checkEnemySpotted(){
-        if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
-            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
-        }
-    }
+//    public void checkEnemySpotted(){
+//        if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
+//            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
+//        }
+//    }
     
     public void checkArchonSpotted() {
         if(turnCount == robotsSensedLastRound && nearestER[RobotType.ARCHON.ordinal()] != null){
@@ -387,6 +386,28 @@ public class LocalInfo {
         if(nearestER[RobotType.MINER.ordinal()] != null)return nearestER[RobotType.MINER.ordinal()].location;
         if(nearestER[RobotType.BUILDER.ordinal()] != null)return nearestER[RobotType.BUILDER.ordinal()].location;
         return null;
+    }
+    
+    private RobotInfo[] getRobots(boolean forAttack) throws GameActionException {
+    	
+		int r = rc.getType().visionRadiusSquared;
+    	RobotInfo[] robots = rc.senseNearbyRobots(r);
+    	
+    	//perform this check because most times there should be < 21 lead deposits and we should just proceed
+        if(robots.length <= Constants.ROBOTS_UPPER_THRESHOLD_FOR_SENSING) {
+        	return robots;
+        }
+        
+        if(forAttack) {
+        	return rc.senseNearbyRobots(r, rc.getTeam().opponent());
+        }
+        
+        int rNew = (Constants.ROBOTS_UPPER_THRESHOLD_FOR_SENSING * r)/robots.length; //gets radius for finding lead upper threshold lead assuming uniform lead density
+        
+    	
+		return rc.senseNearbyRobots(rNew);
+        
+    	
     }
     
     private MapLocation[] getLeadLocations(boolean forPassive) throws GameActionException {

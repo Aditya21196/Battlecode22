@@ -148,8 +148,9 @@ public class Sage extends Robot{
     
     private void tryMoveInDanger() throws GameActionException {
 		if(!rc.isMovementReady()) return;
-		
-		moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run outnumbered");
+		if(localInfo.findNearestDamager() != null) {
+			moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run outnumbered");
+		}
 	}
 
 	private void trySenseResources() throws GameActionException {

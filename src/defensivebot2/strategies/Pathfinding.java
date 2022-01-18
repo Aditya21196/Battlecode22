@@ -1,7 +1,7 @@
 package defensivebot2.strategies;
 
 import battlecode.common.*;
-import defensivebot.datasturctures.LinkedList;
+import defensivebot2.datasturctures.LinkedList;
 
 import static defensivebot2.utils.PathFindingConstants.*;
 

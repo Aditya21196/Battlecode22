@@ -26,7 +26,15 @@ public class Soldier extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
-
+    	
+    	if(turnCount == 100) {
+    		isMapExplored = false;
+    	}
+    	
+    	if(turnCount%20 == 0) {
+    		taskLoc = null;
+    	}
+    	
     	localInfo.senseRobots(true, false, false);
     	
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
@@ -113,7 +121,7 @@ public class Soldier extends Robot{
   		}
   		
   		else {
-  			//reset lead found state to look for lead next time
+  			//reset found state to look for lead next time
   			tryTargetFromComms = true;
 
   		}
