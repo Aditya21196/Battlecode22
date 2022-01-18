@@ -83,6 +83,7 @@ public class Archon extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         
+
     	localInfo.senseRobots(true,true,false);
         localInfo.senseLead(true);
         
@@ -99,6 +100,7 @@ public class Archon extends Robot{
         }else if(turnCount%4 == 3) {
         	near[3] = comms.getNearbyUnexplored();
         }
+
 
         // TODO: test this
         if(!reportedCurrentLocation){
@@ -144,6 +146,8 @@ public class Archon extends Robot{
         tryRepair();
         
         tryBuildFromComms();
+
+
 
 
         

@@ -9,7 +9,7 @@ import defensivebot2.utils.Constants;
 
 import static defensivebot2.bots.Robot.roundNum;
 import static defensivebot2.bots.Robot.turnCount;
-import static defensivebot2.utils.Constants.UNITS_AVAILABLE;
+import static defensivebot2.utils.Constants.*;
 import static defensivebot2.utils.LogUtils.printDebugLog;
 
 public class LocalInfo {
@@ -47,7 +47,8 @@ public class LocalInfo {
     public int[] nearestDamagedFRDist; //weakest enemy robots' health (of each type)
     
     public int leadSensedLastRound = -1,robotsSensedLastRound = -1;
-
+	public int bestLeadScore;
+	public MapLocation bestLeadLoc;
 
     
     //Lead Info gathered
@@ -187,9 +188,9 @@ public class LocalInfo {
 		if(Clock.getBytecodesLeft()>5000 && comms.isDenseUpdateAllowed()){
 			int ed = getEnemyDamagerCount();
 			int val=0;
-			if(ed>1)val = 3;
-			else if(ed == 1)val = 2;
-			else if(getEnemyNonDamagerCount()>0)val = 1;
+			if(ed>3)val = 3;
+			else if(ed > 1)val = 2;
+			else if(ed == 1)val = 1;
 			comms.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS);
 		}
     }
@@ -206,6 +207,8 @@ public class LocalInfo {
     	nearestLeadLoc = null;
     	totalLead=0;
     	totalLeadDeposits = 0;
+		bestLeadScore = 0;
+		bestLeadLoc=null;
 
         MapLocation loc = rc.getLocation();
         
@@ -230,7 +233,11 @@ public class LocalInfo {
             	nearestLeadLoc = locations[i];
             	nearestLeadDist = distToMe;
             }
+
         }
+
+
+
 		if(robotsSensedLastRound == turnCount)totalLeadInSector /= (numMinersInSector+1);
         if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
     }
