@@ -144,8 +144,7 @@ public class Builder extends Robot{
     	
     	if(lead < RobotType.LABORATORY.buildCostLead)
 			return;
-    	
-    	//System.out.println("loking for job");
+
     	
     	SparseSignal signal = comms.getClosestArchon();
     	//check if this builder thinks the team currently has a lab
@@ -164,7 +163,6 @@ public class Builder extends Robot{
     	//fixedBits == 0b00 || == 0b10 means friendly archon
 		if(signal != null && (signal.fixedBitsVal == 0 || signal.fixedBitsVal == 2)){
 			MapLocation enemyLoc = comms.getNearestEnemyLoc();
-			//System.out.println(enemyLoc);
 			if(enemyLoc != null) {
 				taskLocWT = new MapLocation(signal.target.x + (int)((enemyLoc.x-signal.target.x)*Constants.BUILDER_WATCHTOWER_FRACTION), 
 										signal.target.y + (int)((enemyLoc.y-signal.target.y)*Constants.BUILDER_WATCHTOWER_FRACTION));

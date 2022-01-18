@@ -28,30 +28,14 @@ public class Archon extends Robot{
     //comms locations
     MapLocation[] near = new MapLocation[4];
     double distFar = rc.getMapWidth()*rc.getMapWidth()+rc.getMapHeight()*rc.getMapHeight();
-    
-    private double[] soldierWeights = {
-    		0.0,//soldier threshold
-    		1.0,//distance to marked archon
-    		1.0,//distance to enemy
-    		-1.0,//distance to lead
-    		0.0,//distance to unexplored
-    		-1.0,//soldier count
-    		1.0,//miner count
-    		0.01,//team lead
-    		-0.001,//nearestCorner
-    };
-    
-    private double[] minerWeights = {
-    		0.5,//miner threshold
-    		-1.0,//distance to marked archon
-    		-1.0,//distance to enemy
-    		1.0,//distance to lead
-    		1.0,//distance to unexplored
-    		1.0,//soldier count
-    		-1.0,//miner count
-    		0.01,//team lead
-    		-0.001,//nearestCorner
-    };
+
+	//soldier threshold, distance to marked archon,distance to enemy,distance to lead
+	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
+    private double[] soldierWeights = {0.0, 1.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.01, -0.001};
+
+	//miner threshold, distance to marked archon, distance to enemy, distance to lead
+	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
+    private double[] minerWeights = {0.5, -1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 0.01, -0.001};
 
     MapLocation nearestCorner;
     
