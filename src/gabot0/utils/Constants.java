@@ -58,37 +58,42 @@ public class Constants {
             { 2, -2 }, { 1, -3 }, { 0, -4 }, { -1, -3 }, { -2, -2 }, { -3, -1 }, { -4, 0 }, { -3, 1 }, { -2, 2 },
             { -1, 3 }, { 0, 4 }, { 1, 3 }, { 2, 2 }, { 3, 1 }, { 4, -1 }, { 3, -2 }, { 2, -3 }, { 1, -4 }, { -1, -4 }};
 
-    public static final int LEAD_LOWER_THRESHOLD_FOR_SENSING = 15;
-    public static final int LEAD_UPPER_THRESHOLD_FOR_SENSING = 21;
+    public static final int LEAD_LOWER_THRESHOLD_FOR_SENSING =17;
+    public static final int LEAD_UPPER_THRESHOLD_FOR_SENSING =21;
+
+    //set to best case for miners (0 rubble means miners can mine 5 times)
+    public static final double MINES_PER_ROUND =4.5;
+    public static final int CLOSE_RADIUS =6;
     
-    public static final double MINES_PER_ROUND = 5.0; //set to best case for miners (0 rubble means miners can mine 5 times)
-    public static final int CLOSE_RADIUS = 5;
-    
-    public static final int ROUNDS_PER_ACTION = 2;
+    public static final int ROUNDS_PER_ACTION =3;
     
     public static final int MAX_MAP_SIZE=60;
     public static final int UNITS_AVAILABLE=7;
 
-    public static final int UNIT_TYPE_SIGNAL_BITS=2; // maximum 4 unit types for droid
-    public static final int INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE = 3; // meaning 1/3 of messages will be removed from comms
+    // maximum 4 unit types for droid
+    public static final int UNIT_TYPE_SIGNAL_BITS=2;
+
+    // meaning 1/3 of messages will be removed from comms
+    public static final int INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE = 3;
 
     // comms cleanup
-    public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP = 8000;
+    public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP =4800;
 
-    public static final int DENSE_COMMS_UPDATE_LIMIT = 3;
+    public static final int DENSE_COMMS_UPDATE_LIMIT =6;
 
     // only say archon is dead if you are very close to center of sector
-    public static final int ARCHON_DEATH_CONFIRMATION = 2;
+    public static final int ARCHON_DEATH_CONFIRMATION =3;
 
-	public static final int RUN_ROUNDS_BEFORE_CHARGE = 10;
+	public static final int RUN_ROUNDS_BEFORE_CHARGE =3;
 
-	public static final double BUILDER_WATCHTOWER_FRACTION = 0.33; // greater than half equals closer to enemies.
+    // greater than half equals closer to enemies.
+	public static final double BUILDER_WATCHTOWER_FRACTION =0.85;
 
 
     public static final int LEAD_IMPORTANCE = 4;
     public static final int LEAD_SCORE_THRESHOLD = 5;
 
-	public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING = 13;
+	public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING =11;
 
 
 }

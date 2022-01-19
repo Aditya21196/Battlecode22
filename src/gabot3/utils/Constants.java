@@ -1,4 +1,4 @@
-package defensivebot2.utils;
+package gabot3.utils;
 
 import battlecode.common.Direction;
 
@@ -58,14 +58,14 @@ public class Constants {
             { 2, -2 }, { 1, -3 }, { 0, -4 }, { -1, -3 }, { -2, -2 }, { -3, -1 }, { -4, 0 }, { -3, 1 }, { -2, 2 },
             { -1, 3 }, { 0, 4 }, { 1, 3 }, { 2, 2 }, { 3, 1 }, { 4, -1 }, { 3, -2 }, { 2, -3 }, { 1, -4 }, { -1, -4 }};
 
-    public static final int LEAD_LOWER_THRESHOLD_FOR_SENSING = 15;
-    public static final int LEAD_UPPER_THRESHOLD_FOR_SENSING = 21;
+    public static final int LEAD_LOWER_THRESHOLD_FOR_SENSING =9;
+    public static final int LEAD_UPPER_THRESHOLD_FOR_SENSING =23;
 
     //set to best case for miners (0 rubble means miners can mine 5 times)
-    public static final double MINES_PER_ROUND = 5.0;
-    public static final int CLOSE_RADIUS = 5;
+    public static final double MINES_PER_ROUND =3.5;
+    public static final int CLOSE_RADIUS =5;
     
-    public static final int ROUNDS_PER_ACTION = 2;
+    public static final int ROUNDS_PER_ACTION =3;
     
     public static final int MAX_MAP_SIZE=60;
     public static final int UNITS_AVAILABLE=7;
@@ -77,23 +77,23 @@ public class Constants {
     public static final int INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE = 3;
 
     // comms cleanup
-    public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP = 8000;
+    public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP =8600;
 
-    public static final int DENSE_COMMS_UPDATE_LIMIT = 3;
+    public static final int DENSE_COMMS_UPDATE_LIMIT =3;
 
     // only say archon is dead if you are very close to center of sector
-    public static final int ARCHON_DEATH_CONFIRMATION = 2;
+    public static final int ARCHON_DEATH_CONFIRMATION =3;
 
-	public static final int RUN_ROUNDS_BEFORE_CHARGE = 10;
+	public static final int RUN_ROUNDS_BEFORE_CHARGE =11;
 
     // greater than half equals closer to enemies.
-	public static final double BUILDER_WATCHTOWER_FRACTION = 0.33;
+	public static final double BUILDER_WATCHTOWER_FRACTION =0.87;
 
 
     public static final int LEAD_IMPORTANCE = 4;
     public static final int LEAD_SCORE_THRESHOLD = 5;
 
-	public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING = 13;
+	public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING =13;
 
 
 }

@@ -1,15 +1,15 @@
-package defensivebot2.bots;
+package gabot3.bots;
 
 import java.util.Random;
 
 import battlecode.common.*;
-import defensivebot2.datasturctures.CustomSet;
-import defensivebot2.enums.SparseSignalType;
-import defensivebot2.models.SparseSignal;
-import defensivebot2.utils.*;
+import gabot3.datasturctures.CustomSet;
+import gabot3.enums.SparseSignalType;
+import gabot3.models.SparseSignal;
+import gabot3.utils.*;
 
 
-import static defensivebot2.utils.Constants.UNITS_AVAILABLE;
+import static gabot3.utils.Constants.UNITS_AVAILABLE;
 
 public class Archon extends Robot{
 
@@ -31,11 +31,11 @@ public class Archon extends Robot{
 
 	//soldier threshold, distance to marked archon,distance to enemy,distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-    private double[] soldierWeights = {-1.03,0.54,-2.75,-1.42,5.55,-0.12,2.5,2.88,-0.73};
+    private double[] soldierWeights ={-1.03,-1.5,-0.92,-1.42,5.77,-2.98,-1.72,6.07,1.03};
 
 	//miner threshold, distance to marked archon, distance to enemy, distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-    private double[] minerWeights ={5.61,-5.7,2.98,4.97,-2.89,2.72,7.29,3.9,-4.75};
+    private double[] minerWeights ={7.64,-6.4,6.63,0.17,-1.73,4.38,-0.79,6.98,-6.78};
 
     MapLocation nearestCorner;
     
