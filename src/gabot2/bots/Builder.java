@@ -1,4 +1,4 @@
-package defensivebot2.bots;
+package gabot2.bots;
 
 import battlecode.common.AnomalyScheduleEntry;
 import battlecode.common.AnomalyType;
@@ -9,14 +9,14 @@ import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
-import defensivebot2.models.SparseSignal;
-//import defensivebot2.enums.DroidSubType;
-import defensivebot2.utils.Constants;
+import gabot2.models.SparseSignal;
+//import gabot2.enums.DroidSubType;
+import gabot2.utils.Constants;
 
-import static defensivebot2.bots.Archon.rng;
-import static defensivebot2.utils.Constants.directions;
-import static defensivebot2.utils.LogUtils.printDebugLog;
-import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
+import static gabot2.bots.Archon.rng;
+import static gabot2.utils.Constants.directions;
+import static gabot2.utils.LogUtils.printDebugLog;
+import static gabot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
 import java.util.Random;
 

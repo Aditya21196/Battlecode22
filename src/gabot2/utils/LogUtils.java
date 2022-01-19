@@ -1,8 +1,8 @@
-package defensivebot2.utils;
+package gabot2.utils;
 
 import battlecode.common.RobotController;
 
-import static defensivebot2.bots.Robot.turnCount;
+import static gabot2.bots.Robot.turnCount;
 
 public class LogUtils {
 
