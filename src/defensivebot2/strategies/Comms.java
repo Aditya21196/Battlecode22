@@ -32,6 +32,7 @@ public class Comms {
     private LinkedList<SparseSignal> orderedSparseSignals;
     boolean denseUpdateAllowed=false;
     private final int exploreDir;
+    private LocalInfo localInfo;
 
 
     public boolean isSignalArrayFull = false;
@@ -41,6 +42,10 @@ public class Comms {
     private int lastSignalBeginsHere;
 
     private int readDataTime=-1,querySignalDataTime=-1,readDenseUpdateAllowedTime=-1;
+
+    public void setLocalInfo(LocalInfo localInfo){
+        this.localInfo = localInfo;
+    }
 
     public Comms(RobotController rc) throws GameActionException {
         this.rc = rc;
@@ -481,6 +486,20 @@ public class Comms {
         }
         return closestArchonSignal;
     }
+
+    public void updateArchonLocations() throws GameActionException {
+        querySparseSignals();
+        localInfo.resetArchonLocations();
+        sparseSignals.initIteration();
+        SparseSignal signal = sparseSignals.next();
+        while (signal != null){
+            // check if archon needs to be defended
+            if(signal.type==SparseSignalType.ARCHON_LOCATION){
+                localInfo.addArchon(signal.target,signal.fixedBitsVal % 2 == 0);
+            }
+            signal = sparseSignals.next();
+        }
+    }
     
     public SparseSignal getClosestArchon() throws GameActionException {
         querySparseSignals();
@@ -489,6 +508,7 @@ public class Comms {
         MapLocation loc = rc.getLocation();
         int minDist = Integer.MAX_VALUE;
         SparseSignal closestArchonSignal = null;
+        localInfo.resetArchonLocations();
         while (signal != null){
             // check if archon needs to be defended
             if(signal.type==SparseSignalType.ARCHON_LOCATION){
