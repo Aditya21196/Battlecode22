@@ -31,11 +31,11 @@ public class Archon extends Robot{
 
 	//soldier threshold, distance to marked archon,distance to enemy,distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-    private double[] soldierWeights ={-9.24,-1.07,-3.5,2.1,5.23,3.22,8.01,7.6,-1.1};
+	private double[] soldierWeights ={-1.03,-1.85,6.66,-1.72,0.53,-0.57,3.18,8.65,-4.58};
 
 	//miner threshold, distance to marked archon, distance to enemy, distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-    private double[] minerWeights ={6.62,-5.7,-1.88,-3.33,3.27,3.15,5.01,-0.39,-6.28};
+	private double[] minerWeights ={2.66,-4.26,-3.18,-7.49,-1.35,-3.98,1.12,-0.97,2.61};
 
     MapLocation nearestCorner;
     
@@ -86,7 +86,6 @@ public class Archon extends Robot{
         }
 
 
-        // TODO: test this
         if(!reportedCurrentLocation){
             comms.queueSparseSignalUpdate(
                     new SparseSignal(
@@ -282,6 +281,8 @@ public class Archon extends Robot{
 
     private void tryBuild(RobotType rt) throws GameActionException {
     	if(!rc.isActionReady()) return;
+
+		if(buildDir == Direction.CENTER)buildDir = Direction.NORTH;
     	
     	for(int i = 8; i-- >= 0;) {
     		if (rc.canBuildRobot(rt, buildDir)) {

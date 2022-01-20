@@ -13,7 +13,7 @@ import static gabot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 public class Soldier extends Robot{
 	
 	private MapLocation taskLoc = null;
-	private boolean isMapExplored = false;//TODO:reset this to false every 100 rounds or so
+	private boolean isMapExplored = false;
 	private boolean tryTargetFromComms = true;
 	//private CustomSet<MapLocation> discoveredArchons = new CustomSet<>(5);
 	
@@ -27,12 +27,13 @@ public class Soldier extends Robot{
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
     	
-    	if(turnCount == 100) {
+    	if(turnCount % 100 == 0) {
     		isMapExplored = false;
     	}
     	
-    	if(turnCount%20 == 0) {
+    	if(turnCount % 30 == 0) {
     		taskLoc = null;
+			tryTargetFromComms = true;
     	}
     	
     	localInfo.senseRobots(true, false, false);

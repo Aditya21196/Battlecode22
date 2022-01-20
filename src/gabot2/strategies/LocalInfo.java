@@ -525,4 +525,8 @@ public class LocalInfo {
 		if(nearestER[RobotType.LABORATORY.ordinal()] != null)return nearestER[RobotType.LABORATORY.ordinal()].location;
 		return null;
 	}
+
+    public void resetArchonLocations() {
+
+    }
 }

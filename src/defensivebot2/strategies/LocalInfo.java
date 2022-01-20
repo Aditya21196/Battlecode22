@@ -1,6 +1,7 @@
 package defensivebot2.strategies;
 
 import battlecode.common.*;
+import defensivebot2.bots.Archon;
 import defensivebot2.datasturctures.CustomSet;
 import defensivebot2.enums.CommInfoBlockType;
 import defensivebot2.enums.SparseSignalType;
@@ -61,7 +62,10 @@ public class LocalInfo {
     public MapLocation nearestGoldLoc;
     public int nearestGoldDist;
     public int numMinersInSector;
-    
+
+	public CustomSet<MapLocation> friendlyArchons;
+	public CustomSet<MapLocation> enemyArchons;
+
     //Rubble Info gathered
     //public MapLocation lowestRubbleLoc;
     //public int lowestRubble;
@@ -81,7 +85,7 @@ public class LocalInfo {
         enemyUnitCounts = new int[UNITS_AVAILABLE];
 
 
-        
+		resetArchonLocations();
         nearestEnemy = null;
         nearestEnemyDist = Integer.MAX_VALUE;
         nearestFriend = null;
@@ -524,5 +528,15 @@ public class LocalInfo {
 		if(nearestER[RobotType.MINER.ordinal()] != null)return nearestER[RobotType.MINER.ordinal()].location;
 		if(nearestER[RobotType.LABORATORY.ordinal()] != null)return nearestER[RobotType.LABORATORY.ordinal()].location;
 		return null;
+	}
+
+    public void resetArchonLocations() {
+		friendlyArchons = new CustomSet<>(4);
+		enemyArchons = new CustomSet<>(4);
+    }
+
+	public void addArchon(MapLocation target, boolean isFriendly) {
+		if(isFriendly)friendlyArchons.add(target);
+		else enemyArchons.add(target);
 	}
 }

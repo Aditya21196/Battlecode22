@@ -9,7 +9,7 @@ import gabot0.utils.*;
 
 import static gabot0.utils.Constants.EXTRA_BYTECODE_FOR_COMMS_CLEANUP;
 import static gabot0.utils.LogUtils.printVerboseLog;
-import static gabot0.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
+import static gabot0.utils.PathFindingConstants.*;
 
 public abstract class Robot {
 
@@ -34,6 +34,9 @@ public abstract class Robot {
 
 	protected Pathfinding pathfinding;
 
+	// Don't try to optimize
+	private int PATH_FINDING_BC_LIMIT;
+
 
     
 
@@ -46,6 +49,9 @@ public abstract class Robot {
         anomalyIndex = 0;
 		comms = new Comms(rc);
 		localInfo = new LocalInfo(rc,comms);
+
+		// can lead to cyclic dependency if not used properly
+		comms.setLocalInfo(localInfo);
 		turnCount = 0;
 		height = rc.getMapHeight();
 		width = rc.getMapWidth();
@@ -54,6 +60,18 @@ public abstract class Robot {
 		topLeft = new MapLocation(height-1,0);
 		topRight = new MapLocation(height-1,width-1);
 		pathfinding = new Pathfinding(rc);
+
+		switch (type){
+			case SOLDIER:case SAGE:
+				PATH_FINDING_BC_LIMIT = SOLDIER_PATHFINDING_LIMIT;
+				break;
+			case MINER:
+				PATH_FINDING_BC_LIMIT = MINER_PATHFINDING_LIMIT;
+				break;
+			default:
+				PATH_FINDING_BC_LIMIT = DEFAULT_LIMIT;
+		}
+
     }
 
     // factory method for robots
@@ -131,7 +149,7 @@ public abstract class Robot {
     public void moveToward(MapLocation target) throws GameActionException {
     	if(rc.isMovementReady() && !rc.getLocation().equals(target)) {
 			int bc = Clock.getBytecodesLeft();
-			if(bc>SOLDIER_PATHFINDING_LIMIT){
+			if(bc>PATH_FINDING_BC_LIMIT){
 				pathfinding.moveTowards(target,false);rc.setIndicatorString("best task loc: "+target);
 			}else moveToward(target);rc.setIndicatorString("best task loc: "+target);
 

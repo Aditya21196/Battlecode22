@@ -14,6 +14,7 @@ import defensivebot2.models.SparseSignal;
 import defensivebot2.utils.Constants;
 
 import static defensivebot2.bots.Archon.rng;
+import static defensivebot2.utils.Constants.BUILDER_INCH_FORWARD;
 import static defensivebot2.utils.Constants.directions;
 import static defensivebot2.utils.LogUtils.printDebugLog;
 import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
@@ -24,6 +25,7 @@ public class Builder extends Robot{
 
 	private MapLocation taskLocLab = null;
 	private MapLocation taskLocWT = null;
+	private Direction enemyDir = null;
 	
 	private boolean isMapExplored = false;
 	private boolean tryLeadFromComms = true;
@@ -49,6 +51,9 @@ public class Builder extends Robot{
     	localInfo.senseRobots(false, true, false);
     	lead = rc.getTeamLeadAmount(rc.getTeam());
     	gold = rc.getTeamGoldAmount(rc.getTeam());
+
+		if(turnCount % 20 == 0)comms.updateArchonLocations();
+
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
     	AnomalyScheduleEntry  next = getNextAnomaly();
     	if(next != null && next.anomalyType == AnomalyType.CHARGE && next.roundNumber - rc.getRoundNum() < Constants.RUN_ROUNDS_BEFORE_CHARGE) {
@@ -132,6 +137,12 @@ public class Builder extends Robot{
 		if(taskLocWT != null) {
 			//arrived at task
 			if(rc.getLocation().isWithinDistanceSquared(taskLocWT, Constants.CLOSE_RADIUS)) {
+				// check if there are watchtowers around and less enemies. If yes, go a bit further
+				if(localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]>3){
+					taskLocWT = taskLocWT.translate(enemyDir.dx*BUILDER_INCH_FORWARD,enemyDir.dy*BUILDER_INCH_FORWARD);
+					return;
+				}
+
 				//build WT
 				MapLocation best = getBuildLoc();
 				if(best != null) {
@@ -169,6 +180,10 @@ public class Builder extends Robot{
     	
     	if(lead < RobotType.WATCHTOWER.buildCostLead)
 			return;
+
+		// find ideal WT spot: between the closest friendly and enemy archon
+
+
     	
     	//fixedBits == 0b00 || == 0b10 means friendly archon
 		if(signal != null && (signal.fixedBitsVal == 0 || signal.fixedBitsVal == 2)){
@@ -177,6 +192,9 @@ public class Builder extends Robot{
 			if(enemyLoc != null) {
 				taskLocWT = new MapLocation(signal.target.x + (int)((enemyLoc.x-signal.target.x)*Constants.BUILDER_WATCHTOWER_FRACTION), 
 										signal.target.y + (int)((enemyLoc.y-signal.target.y)*Constants.BUILDER_WATCHTOWER_FRACTION));
+				if(localInfo.homeArchon != null){
+					enemyDir = signal.target.directionTo(enemyLoc);
+				}
 				//System.out.println("I should build a watch tower at: "+taskLocWT);
 			}
 		}
