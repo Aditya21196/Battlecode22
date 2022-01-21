@@ -5,6 +5,8 @@ package defensivebot2.bots;
 import battlecode.common.*;
 import defensivebot2.models.SparseSignal;
 import defensivebot2.datasturctures.CustomSet;
+import defensivebot2.strategies.Comms;
+import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.Constants;
 
 import static defensivebot2.utils.LogUtils.printDebugLog;
@@ -101,21 +103,21 @@ public class Soldier extends Robot{
   		
   		//got target from comms last time you checked, therefore try again
   		if(tryTargetFromComms) {
-  			SparseSignal signal = comms.getClosestArchonMarked();
-  			if(signal != null){
-				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
-					comms.markArchonLocationSafe(signal);
+  			MapLocation target = Comms2.getClosestArchon(false);
+  			if(target != null){
+				if(rc.getLocation().isWithinDistanceSquared(target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
+					Comms2.markLocationSafe(target);
 				} 
-				taskLoc = signal.target;
+				taskLoc = target;
 			}
-  			tryTargetFromComms = signal != null;
+  			tryTargetFromComms = target != null;
   		}
   		
   		//did not get target from comms last time, try to get an exploration task
   		else if(!isMapExplored) {
   			//reset lead found state to look for lead next time
   			tryTargetFromComms = true;
-  			taskLoc = comms.getNearbyUnexplored();
+  			taskLoc = Comms2.getNearbyUnexplored();
   			if(taskLoc == null) {
   				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
   			}
