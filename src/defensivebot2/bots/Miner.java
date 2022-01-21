@@ -2,6 +2,7 @@ package defensivebot2.bots;
 
 
 import battlecode.common.*;
+import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.Constants;
 
 public class Miner extends Robot{
@@ -94,7 +95,7 @@ public class Miner extends Robot{
 		
 		//got lead from comms last time you check, therefore try again
 		if(tryLeadFromComms) {
-			taskLoc = comms.getNearestLeadLoc();
+			taskLoc = Comms2.getNearestLeadLoc();
 			tryLeadFromComms = taskLoc != null;
 		}
 		
@@ -102,7 +103,7 @@ public class Miner extends Robot{
 		else if(!isMapExplored) {
 			//reset lead found state to look for lead next time
 			tryLeadFromComms = true;
-			taskLoc = comms.getNearbyUnexplored();
+			taskLoc = Comms2.getNearbyUnexplored();
 			if(taskLoc == null) {
 				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
 			}
@@ -159,7 +160,6 @@ public class Miner extends Robot{
 			}
 			moveToward(best);rc.setIndicatorString("best lead loc: "+best);
 		}
-		
 	}
    
     

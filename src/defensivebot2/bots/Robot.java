@@ -2,6 +2,7 @@ package defensivebot2.bots;
 
 import battlecode.common.*;
 import defensivebot2.strategies.Comms;
+import defensivebot2.strategies.Comms2;
 import defensivebot2.strategies.LocalInfo;
 import defensivebot2.strategies.Pathfinding;
 import defensivebot2.utils.*;
@@ -21,7 +22,6 @@ public abstract class Robot {
     public MapLocation currentLocation;
     public static int turnCount;
 	protected LocalInfo localInfo;
-	protected Comms comms;
 	MapLocation bottomLeft;
 	MapLocation bottomRight;
 	MapLocation topLeft;
@@ -47,11 +47,9 @@ public abstract class Robot {
 		type = rc.getType();
         anomalies = rc.getAnomalySchedule();
         anomalyIndex = 0;
-		comms = new Comms(rc);
-		localInfo = new LocalInfo(rc,comms);
 
-		// can lead to cyclic dependency if not used properly
-		comms.setLocalInfo(localInfo);
+		localInfo = new LocalInfo(rc);
+		Comms2.init(localInfo,rc);
 		turnCount = 0;
 		height = rc.getMapHeight();
 		width = rc.getMapWidth();
@@ -93,6 +91,7 @@ public abstract class Robot {
         turnCount++;
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
+		Comms2.initTurn();
 
 		executeRole();
 		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
@@ -102,8 +101,8 @@ public abstract class Robot {
 		localInfo.checkExploration();
 //		localInfo.checkEnemySpotted();
 
-		localInfo.checkArchonSpotted();
-		comms.processUpdateQueues();
+		Comms2.registerEnemyArchon();
+		Comms2.processUpdateQueues();
 
 		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
 
