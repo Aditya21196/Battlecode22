@@ -52,7 +52,7 @@ public class Builder extends Robot{
     	lead = rc.getTeamLeadAmount(rc.getTeam());
     	gold = rc.getTeamGoldAmount(rc.getTeam());
 
-		if(turnCount % 20 == 0)comms.updateArchonLocations();
+//		if(turnCount % 20 == 0)comms.updateArchonLocations();
 
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
     	AnomalyScheduleEntry  next = getNextAnomaly();
@@ -138,7 +138,7 @@ public class Builder extends Robot{
 			//arrived at task
 			if(rc.getLocation().isWithinDistanceSquared(taskLocWT, Constants.CLOSE_RADIUS)) {
 				// check if there are watchtowers around and less enemies. If yes, go a bit further
-				if(localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]>3){
+				if(localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]>2){
 					taskLocWT = taskLocWT.translate(enemyDir.dx*BUILDER_INCH_FORWARD,enemyDir.dy*BUILDER_INCH_FORWARD);
 					return;
 				}

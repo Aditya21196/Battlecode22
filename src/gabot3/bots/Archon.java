@@ -31,11 +31,11 @@ public class Archon extends Robot{
 
 	//soldier threshold, distance to marked archon,distance to enemy,distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-	private double[] soldierWeights ={-1.03,-1.85,6.66,-1.72,0.53,-0.57,3.18,8.65,-4.58};
+	private double[] soldierWeights ={-4.23,1.46,-0.49,2.54,2.53,-3.04,-3.04,1.29,0.52};
 
 	//miner threshold, distance to marked archon, distance to enemy, distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-	private double[] minerWeights ={2.66,-4.26,-3.18,-7.49,-1.35,-3.98,1.12,-0.97,2.61};
+	private double[] minerWeights ={-2.06,-2.34,4.7,1.68,0.89,-3.08,2.16,-3.53,-1.72};
 
     MapLocation nearestCorner;
     

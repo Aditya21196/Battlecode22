@@ -211,7 +211,7 @@ public class Comms {
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
             int val = readInfo(commInfoBlockType,checkX,checkY);
-            if(val == 1){
+            if(val == 2){
                 return getCenterOfSector(checkX,checkY);
             }
         }
@@ -486,6 +486,20 @@ public class Comms {
         }
         return closestArchonSignal;
     }
+
+    public void updateArchonLocations() throws GameActionException {
+        querySparseSignals();
+        localInfo.resetArchonLocations();
+        sparseSignals.initIteration();
+        SparseSignal signal = sparseSignals.next();
+        while (signal != null){
+            // check if archon needs to be defended
+            if(signal.type==SparseSignalType.ARCHON_LOCATION){
+                localInfo.addArchon(signal.target,signal.fixedBitsVal % 2 == 0);
+            }
+            signal = sparseSignals.next();
+        }
+    }
     
     public SparseSignal getClosestArchon() throws GameActionException {
         querySparseSignals();
@@ -503,13 +517,7 @@ public class Comms {
                     minDist = d;
                     closestArchonSignal = signal;
                 }
-
-
-
             }
-
-
-
             signal = sparseSignals.next();
         }
         return closestArchonSignal;

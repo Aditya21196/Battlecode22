@@ -7,6 +7,7 @@ import defensivebot2.datasturctures.HashMapNodeVal;
 import defensivebot2.datasturctures.LinkedList;
 import defensivebot2.enums.CommInfoBlockType;
 import defensivebot2.enums.SparseSignalType;
+import defensivebot2.models.CommDenseMatrixUpdate;
 import defensivebot2.models.SparseSignal;
 
 import java.util.Map;
@@ -211,7 +212,7 @@ public class Comms {
             // check if sector is valid
             if(checkX<0 || checkX>=xSectors || checkY<0 || checkY>=ySectors)continue;
             int val = readInfo(commInfoBlockType,checkX,checkY);
-            if(val == 1){
+            if(val == 2){
                 return getCenterOfSector(checkX,checkY);
             }
         }
@@ -418,14 +419,7 @@ public class Comms {
         queueSparseSignalUpdate(signal);
     }
 
-    static class CommDenseMatrixUpdate{
-        int val;
-        CommInfoBlockType commInfoBlockType;
-        CommDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
-            this.val=val;
-            this.commInfoBlockType = commInfoBlockType;
-        }
-    }
+
 
     public int[][] checkMap(CommInfoBlockType commInfoBlockType) throws GameActionException{
         readSharedData();

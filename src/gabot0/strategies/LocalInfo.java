@@ -1,6 +1,7 @@
 package gabot0.strategies;
 
 import battlecode.common.*;
+import gabot0.bots.Archon;
 import gabot0.datasturctures.CustomSet;
 import gabot0.enums.CommInfoBlockType;
 import gabot0.enums.SparseSignalType;
@@ -61,7 +62,10 @@ public class LocalInfo {
     public MapLocation nearestGoldLoc;
     public int nearestGoldDist;
     public int numMinersInSector;
-    
+
+	public CustomSet<MapLocation> friendlyArchons;
+	public CustomSet<MapLocation> enemyArchons;
+
     //Rubble Info gathered
     //public MapLocation lowestRubbleLoc;
     //public int lowestRubble;
@@ -81,7 +85,7 @@ public class LocalInfo {
         enemyUnitCounts = new int[UNITS_AVAILABLE];
 
 
-        
+		resetArchonLocations();
         nearestEnemy = null;
         nearestEnemyDist = Integer.MAX_VALUE;
         nearestFriend = null;
@@ -527,6 +531,12 @@ public class LocalInfo {
 	}
 
     public void resetArchonLocations() {
-
+		friendlyArchons = new CustomSet<>(4);
+		enemyArchons = new CustomSet<>(4);
     }
+
+	public void addArchon(MapLocation target, boolean isFriendly) {
+		if(isFriendly)friendlyArchons.add(target);
+		else enemyArchons.add(target);
+	}
 }
