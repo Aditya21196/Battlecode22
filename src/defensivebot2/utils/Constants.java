@@ -97,5 +97,9 @@ public class Constants {
 
     public static final int BUILDER_INCH_FORWARD =10;
 
+	public static final int ARCHON_LOW_RUBBLE = 10;
+
+	public static final int ARCHON_CLOSE_RADIUS = 34;
+
 
 }
