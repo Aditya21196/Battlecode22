@@ -6,8 +6,7 @@ import defensivebot2.enums.CommInfoBlockType;
 import defensivebot2.enums.FixedDataSignalType;
 import defensivebot2.models.CommDenseMatrixUpdate;
 import static defensivebot2.utils.Constants.*;
-import static defensivebot2.utils.CustomMath.ceilDivision;
-import static defensivebot2.utils.CustomMath.writeBits;
+import static defensivebot2.utils.CustomMath.*;
 
 public class Comms2 {
 
@@ -35,7 +34,7 @@ public class Comms2 {
 
     static MapLocation firstGatherPoint = null, secondGatherPoint = null;
 
-    private MapLocation getMapLocationFromSectorInfo(int mapSector){
+    private static MapLocation getMapLocationFromSectorInfo(int mapSector){
         return getCenterOfSector(mapSector/ySectors,mapSector%ySectors);
     }
 
@@ -229,16 +228,24 @@ public class Comms2 {
             // remove this gather point from comms
             removeData(FixedDataSignalType.SECOND_GATHER_POINT);
         }
+        // also remove from comms
+        if(location == enemyArchons[0]){
+            removeData(FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX);
+        }
     }
 
-    private static void removeData(FixedDataSignalType firstGatherPoint) {
+    private static void removeData(FixedDataSignalType fixedDataSignalType) throws GameActionException {
+        rc.writeSharedArray(fixedDataSignalType.arrayIdx,0);
+        int newAvailability = modifyBit(data[AVAILAIBILITY_IDX],fixedDataSignalType.availabilityIdx,0);
+        data[AVAILAIBILITY_IDX] = newAvailability;
+        rc.writeSharedArray(AVAILAIBILITY_IDX,newAvailability);
     }
 
-    private MapLocation getClosestTarget(){
+    public static MapLocation getClosestTarget(){
         return firstGatherPoint != null ? firstGatherPoint:secondGatherPoint;
     }
 
-    public void updateCommsInfo(){
+    public static void updateCommsInfo(){
         if((data[AVAILAIBILITY_IDX] |  1) >0){
             // first archon available
             int val = data[FixedDataSignalType.FIRST_FRIENDLY_ARCHON_IDX.arrayIdx];
@@ -333,7 +340,11 @@ public class Comms2 {
 
     private static void writeData(int val, FixedDataSignalType fixedDataSignalType) throws GameActionException {
         rc.writeSharedArray(fixedDataSignalType.arrayIdx, val);
-        rc.writeSharedArray(AVAILAIBILITY_IDX,data[AVAILAIBILITY_IDX] | 1<< fixedDataSignalType.availabilityIdx);
+        int newAvail = data[AVAILAIBILITY_IDX] | 1<< fixedDataSignalType.availabilityIdx;
+        rc.writeSharedArray(AVAILAIBILITY_IDX,newAvail);
+        data[fixedDataSignalType.arrayIdx] = val;
+        data[AVAILAIBILITY_IDX] = newAvail;
+
     }
 
     public static int registerFriendlyArchon(MapLocation location) throws GameActionException {

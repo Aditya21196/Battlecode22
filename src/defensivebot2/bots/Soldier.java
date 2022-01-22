@@ -5,10 +5,12 @@ package defensivebot2.bots;
 import battlecode.common.*;
 import defensivebot2.models.SparseSignal;
 import defensivebot2.datasturctures.CustomSet;
+import defensivebot2.models.Task;
 import defensivebot2.strategies.Comms;
 import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.Constants;
 
+import static defensivebot2.bots.Archon.rng;
 import static defensivebot2.utils.LogUtils.printDebugLog;
 import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
@@ -18,6 +20,7 @@ public class Soldier extends Robot{
 	private boolean isMapExplored = false;
 	private boolean tryTargetFromComms = true;
 	//private CustomSet<MapLocation> discoveredArchons = new CustomSet<>(5);
+	private Task task;
 	
 	
     public Soldier(RobotController rc) throws GameActionException  {
@@ -28,8 +31,11 @@ public class Soldier extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
-    	
-    	if(turnCount % 100 == 0) {
+
+		if(rc.getID()==13615 && roundNum >= 314){
+			System.out.println("");
+		}
+    	if(turnCount % 20 == 0) {
     		isMapExplored = false;
     	}
     	
@@ -70,6 +76,14 @@ public class Soldier extends Robot{
     	//TODO: movement priority for after tasks (repel FArchons?)
     	
     	trySenseResources();
+
+		// If movement cooldown wasn't used and attack cooldown wasn't used, move to random location
+		if(rc.getMovementCooldownTurns() == 0 && rc.getActionCooldownTurns() == 0){
+			taskLoc = new MapLocation(rng.nextInt(width),rng.nextInt(height));
+//			printDebugLog("new task loc: "+taskLoc);
+//			printDebugLog("distance from center: "+taskLoc.distanceSquaredTo(new MapLocation(width/2,height/2)));
+		}
+		tryMoveOnTask();
     }
 
     private void tryMoveRepelFriends() throws GameActionException {
@@ -103,7 +117,7 @@ public class Soldier extends Robot{
   		
   		//got target from comms last time you checked, therefore try again
   		if(tryTargetFromComms) {
-  			MapLocation target = Comms2.getClosestArchon(false);
+  			MapLocation target = Comms2.getClosestTarget();
   			if(target != null){
 				if(rc.getLocation().isWithinDistanceSquared(target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
 					Comms2.markLocationSafe(target);

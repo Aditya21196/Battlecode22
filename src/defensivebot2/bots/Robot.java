@@ -92,6 +92,7 @@ public abstract class Robot {
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
 		Comms2.initTurn();
+		Comms2.updateCommsInfo();
 
 		executeRole();
 		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());

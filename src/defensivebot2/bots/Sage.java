@@ -11,6 +11,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 import defensivebot2.models.SparseSignal;
+import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.Constants;
 
 public class Sage extends Robot{
@@ -115,21 +116,21 @@ public class Sage extends Robot{
   		
   		//got target from comms last time you checked, therefore try again
   		if(tryTargetFromComms) {
-  			SparseSignal signal = comms.getClosestArchonMarked();
-  			if(signal != null){
-				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
-					comms.markArchonLocationSafe(signal);
+  			MapLocation loc = Comms2.getClosestTarget();
+  			if(loc != null){
+				if(rc.getLocation().isWithinDistanceSquared(loc, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
+					Comms2.markLocationSafe(loc);
 				} 
-				taskLoc = signal.target;
+				taskLoc = loc;
 			}
-  			tryTargetFromComms = signal != null;
+  			tryTargetFromComms = loc != null;
   		}
   		
   		//did not get target from comms last time, try to get an exploration task
   		else if(!isMapExplored) {
   			//reset lead found state to look for lead next time
   			tryTargetFromComms = true;
-  			taskLoc = comms.getNearbyUnexplored();
+  			taskLoc = Comms2.getNearbyUnexplored();
   			if(taskLoc == null) {
   				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
   			}

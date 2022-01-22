@@ -111,6 +111,11 @@ public class Archon extends Robot{
             Comms2.markLocationSafe(currentLocation);
             reportedDangerFlag = false;
         }
+
+		MapLocation loc = Comms2.getNearestEnemyLoc();
+		if(loc != null){
+			Comms2.registerGatherPoint(loc);
+		}
         
         tryBuildLocal();
         
@@ -118,11 +123,11 @@ public class Archon extends Robot{
         
         tryBuildFromComms();
 
-        tryTransformPortable();
-        
-        tryTransformTurret();
-        
-        tryMove();
+//        tryTransformPortable();
+//
+//        tryTransformTurret();
+//
+//        tryMove();
 
         
         
@@ -352,7 +357,7 @@ public class Archon extends Robot{
     
     /**
      *
-     * @param RobotType rt
+     * @param  rt
      * @return boolean buildSucceed
      * @throws GameActionException
      */

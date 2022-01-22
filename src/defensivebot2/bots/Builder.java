@@ -11,6 +11,8 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 import defensivebot2.models.SparseSignal;
 //import defensivebot2.enums.DroidSubType;
+import defensivebot2.strategies.Comms;
+import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.Constants;
 
 import static defensivebot2.bots.Archon.rng;
@@ -167,12 +169,12 @@ public class Builder extends Robot{
     	
     	//System.out.println("loking for job");
     	
-    	SparseSignal signal = comms.getClosestArchon();
+    	MapLocation loc = Comms2.getClosestArchon(true);
     	//check if this builder thinks the team currently has a lab
     	if(roundsWithoutProducingGold > 20) {
     		//fixedBits == 0 means friendly archon not in threat (could be dead)
-  			if(signal != null && signal.fixedBitsVal == 0){
-				taskLocLab = getNearestCorner(signal.target);
+  			if(loc != null){
+				taskLocLab = getNearestCorner(loc);
 				return;
 			}
     		
@@ -184,16 +186,16 @@ public class Builder extends Robot{
 		// find ideal WT spot: between the closest friendly and enemy archon
 
 
-    	
+
     	//fixedBits == 0b00 || == 0b10 means friendly archon
-		if(signal != null && (signal.fixedBitsVal == 0 || signal.fixedBitsVal == 2)){
-			MapLocation enemyLoc = comms.getNearestEnemyLoc();
+		if(loc != null){
+			MapLocation enemyLoc = Comms2.getNearestEnemyLoc();
 			//System.out.println(enemyLoc);
 			if(enemyLoc != null) {
-				taskLocWT = new MapLocation(signal.target.x + (int)((enemyLoc.x-signal.target.x)*Constants.BUILDER_WATCHTOWER_FRACTION), 
-										signal.target.y + (int)((enemyLoc.y-signal.target.y)*Constants.BUILDER_WATCHTOWER_FRACTION));
+				taskLocWT = new MapLocation(loc.x + (int)((enemyLoc.x-loc.x)*Constants.BUILDER_WATCHTOWER_FRACTION),
+										loc.y + (int)((enemyLoc.y-loc.y)*Constants.BUILDER_WATCHTOWER_FRACTION));
 				if(localInfo.homeArchon != null){
-					enemyDir = signal.target.directionTo(enemyLoc);
+					enemyDir = loc.directionTo(enemyLoc);
 				}
 				//System.out.println("I should build a watch tower at: "+taskLocWT);
 			}
