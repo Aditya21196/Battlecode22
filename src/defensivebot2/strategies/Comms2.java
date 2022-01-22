@@ -6,8 +6,7 @@ import defensivebot2.enums.CommInfoBlockType;
 import defensivebot2.enums.FixedDataSignalType;
 import defensivebot2.models.CommDenseMatrixUpdate;
 import static defensivebot2.utils.Constants.*;
-import static defensivebot2.utils.CustomMath.ceilDivision;
-import static defensivebot2.utils.CustomMath.writeBits;
+import static defensivebot2.utils.CustomMath.*;
 
 public class Comms2 {
 
@@ -35,7 +34,7 @@ public class Comms2 {
 
     static MapLocation firstGatherPoint = null, secondGatherPoint = null;
 
-    private MapLocation getMapLocationFromSectorInfo(int mapSector){
+    private static MapLocation getMapLocationFromSectorInfo(int mapSector){
         return getCenterOfSector(mapSector/ySectors,mapSector%ySectors);
     }
 
@@ -133,7 +132,7 @@ public class Comms2 {
         return true;
     }
 
-    public MapLocation getNearestLeadLoc() throws GameActionException {
+    public static MapLocation getNearestLeadLoc() throws GameActionException {
         MapLocation loc = rc.getLocation();
 
         CommInfoBlockType commInfoBlockType = CommInfoBlockType.LEAD_MAP;
@@ -151,7 +150,7 @@ public class Comms2 {
     }
 
     // Only returns enemy locations with low threat which needs to be chipped off. High threat areas are left alone
-    public MapLocation getNearestEnemyLoc() throws GameActionException {
+    public static MapLocation getNearestEnemyLoc() throws GameActionException {
         MapLocation loc = rc.getLocation();
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
 
@@ -170,7 +169,7 @@ public class Comms2 {
     }
 
 
-    public MapLocation getNearbyUnexplored() throws GameActionException {
+    public static MapLocation getNearbyUnexplored() throws GameActionException {
         MapLocation loc = rc.getLocation();
         int curSectorX = loc.x/xSectorSize,curSectorY = loc.y/ySectorSize;
 
@@ -191,7 +190,7 @@ public class Comms2 {
         return null;
     }
 
-    private MapLocation getCenterOfSector(int sectorX,int sectorY){
+    private static MapLocation getCenterOfSector(int sectorX, int sectorY){
         int x = sectorX*xSectorSize+xSectorSize/2;
         int y = sectorY*ySectorSize+ySectorSize/2;
         if(x>=w)x = w-1;
@@ -199,11 +198,11 @@ public class Comms2 {
         return new MapLocation(x,y);
     }
 
-    private int readInfo(CommInfoBlockType commInfoBlockType, int sectorX, int sectorY) throws GameActionException {
+    private static int readInfo(CommInfoBlockType commInfoBlockType, int sectorX, int sectorY) throws GameActionException {
         return readBits(data,getCommOffset(commInfoBlockType,sectorX,sectorY), commInfoBlockType.blockSize);
     }
 
-    private int readBits(int[] arr,int offset,int num) {
+    private static int readBits(int[] arr, int offset, int num) {
         int val=0;
         for(int j=num;--j>=0;){
             // read (offset + j) th bit
@@ -229,16 +228,24 @@ public class Comms2 {
             // remove this gather point from comms
             removeData(FixedDataSignalType.SECOND_GATHER_POINT);
         }
+        // also remove from comms
+        if(location == enemyArchons[0]){
+            removeData(FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX);
+        }
     }
 
-    private static void removeData(FixedDataSignalType firstGatherPoint) {
+    private static void removeData(FixedDataSignalType fixedDataSignalType) throws GameActionException {
+        rc.writeSharedArray(fixedDataSignalType.arrayIdx,0);
+        int newAvailability = modifyBit(data[AVAILAIBILITY_IDX],fixedDataSignalType.availabilityIdx,0);
+        data[AVAILAIBILITY_IDX] = newAvailability;
+        rc.writeSharedArray(AVAILAIBILITY_IDX,newAvailability);
     }
 
-    private MapLocation getClosestTarget(){
+    public static MapLocation getClosestTarget(){
         return firstGatherPoint != null ? firstGatherPoint:secondGatherPoint;
     }
 
-    public void updateCommsInfo(){
+    public static void updateCommsInfo(){
         if((data[AVAILAIBILITY_IDX] |  1) >0){
             // first archon available
             int val = data[FixedDataSignalType.FIRST_FRIENDLY_ARCHON_IDX.arrayIdx];
@@ -316,12 +323,31 @@ public class Comms2 {
         }
     }
 
-    private static void writeData(int val, FixedDataSignalType fixedDataSignalType) throws GameActionException {
-        rc.writeSharedArray(fixedDataSignalType.arrayIdx, val);
-        rc.writeSharedArray(AVAILAIBILITY_IDX,data[AVAILAIBILITY_IDX] | 1<< fixedDataSignalType.availabilityIdx);
+    public static void registerGatherPoint(MapLocation location) throws GameActionException {
+        if(firstGatherPoint == null){
+            writeData(locToSectorInfo(location),FixedDataSignalType.FIRST_GATHER_POINT);
+        }else if(secondGatherPoint == null){
+            writeData(locToSectorInfo(location),FixedDataSignalType.SECOND_GATHER_POINT);
+        }
     }
 
-    public int registerFriendlyArchon(MapLocation location) throws GameActionException {
+    public static int getNumGatherPoints(){
+        int count = 0;
+        if(firstGatherPoint != null)count++;
+        if(secondGatherPoint != null)count++;
+        return count;
+    }
+
+    private static void writeData(int val, FixedDataSignalType fixedDataSignalType) throws GameActionException {
+        rc.writeSharedArray(fixedDataSignalType.arrayIdx, val);
+        int newAvail = data[AVAILAIBILITY_IDX] | 1<< fixedDataSignalType.availabilityIdx;
+        rc.writeSharedArray(AVAILAIBILITY_IDX,newAvail);
+        data[fixedDataSignalType.arrayIdx] = val;
+        data[AVAILAIBILITY_IDX] = newAvail;
+
+    }
+
+    public static int registerFriendlyArchon(MapLocation location) throws GameActionException {
         int val = locToSectorInfo(location);
         if(friendlyArchons[0] != null){
             writeData(val,FixedDataSignalType.FIRST_FRIENDLY_ARCHON_IDX);
@@ -345,7 +371,7 @@ public class Comms2 {
         return xSector*ySectors + ySector;
     }
 
-    public MapLocation getClosestArchon(boolean friendly){
+    public static MapLocation getClosestArchon(boolean friendly){
         MapLocation[] search = friendly? friendlyArchons:enemyArchons;
         int d = Integer.MAX_VALUE;
         MapLocation out = null;

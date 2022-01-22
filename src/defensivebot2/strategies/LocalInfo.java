@@ -16,7 +16,6 @@ import static defensivebot2.utils.LogUtils.printDebugLog;
 public class LocalInfo {
 
     private final RobotController rc;
-    private final Comms comms;
     private final int MIN_LEAD_PASSIVE = 6;
 	public RobotType selfType;
     
@@ -72,9 +71,8 @@ public class LocalInfo {
     //public int lowestRubble;
     
     
-    public LocalInfo(RobotController rc,Comms comms){
+    public LocalInfo(RobotController rc){
         this.rc=rc;
-        this.comms=comms;
 		selfType=rc.getType();
     }
 
@@ -136,8 +134,8 @@ public class LocalInfo {
 
 
 		MapLocation loc = rc.getLocation();
-		int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
-		boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
+		int xSector = loc.x/Comms2.xSectorSize, ySector = loc.y/Comms2.ySectorSize;
+		boolean isDenseUpdateAllowed = Comms2.denseUpdateAllowed;
 
 		RobotInfo[] nearbyRobots = getRobots(forAttack);
 
@@ -166,8 +164,8 @@ public class LocalInfo {
                 }
 				if(
 						typeOrdinal == RobotType.MINER.ordinal() &&
-						isDenseUpdateAllowed && robLoc.x/comms.xSectorSize == xSector &&
-								robLoc.y/comms.ySectorSize == ySector
+						isDenseUpdateAllowed && robLoc.x/Comms2.xSectorSize == xSector &&
+								robLoc.y/Comms2.ySectorSize == ySector
 				)numMinersInSector++;
 
 
@@ -201,13 +199,13 @@ public class LocalInfo {
                 }
             }
         }
-		if(Clock.getBytecodesLeft()>5000 && comms.isDenseUpdateAllowed()){
+		if(Clock.getBytecodesLeft()>5000 && Comms2.denseUpdateAllowed){
 			int ed = getEnemyDamagerCount();
 			int val=0;
 			if(ed>3)val = 3;
 			else if(ed > 1)val = 2;
 			else if(ed == 1)val = 1;
-			comms.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS);
+			Comms2.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS);
 		}
     }
 
@@ -231,15 +229,15 @@ public class LocalInfo {
         MapLocation[] locations = getLeadLocations(forPassive);
         
         int totalLeadInSector=0;
-        int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
+        int xSector = loc.x/Comms2.xSectorSize, ySector = loc.y/Comms2.ySectorSize;
         
-        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
+        boolean isDenseUpdateAllowed = Comms2.denseUpdateAllowed;
         for(int i = locations.length; --i >= 0;){
         	//we should consider not counting lead at all, just deposits
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
         	totalLeadDeposits++;
-            if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
+            if(isDenseUpdateAllowed && locations[i].x/Comms2.xSectorSize == xSector && locations[i].y/Comms2.ySectorSize == ySector)
                 totalLeadInSector += lead;
 
 
@@ -255,7 +253,7 @@ public class LocalInfo {
 
 
 		if(robotsSensedLastRound == turnCount)totalLeadInSector /= (numMinersInSector+1);
-        if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
+        if(isDenseUpdateAllowed)Comms2.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
     }
 
     
@@ -277,31 +275,13 @@ public class LocalInfo {
     
     public void checkExploration(){
         // if lead was checked, we mark as explored
-        if(!comms.isDenseUpdateAllowed())return;
+        if(!Comms2.denseUpdateAllowed)return;
         if(turnCount == leadSensedLastRound){
-            comms.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION);
+			Comms2.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION);
         }
     }
 
-    
-//    public void checkEnemySpotted(){
-//        if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
-//            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
-//        }
-//    }
-    
-    public void checkArchonSpotted() {
-        if(turnCount == robotsSensedLastRound && nearestER[RobotType.ARCHON.ordinal()] != null){
-            comms.queueSparseSignalUpdate(
-                    new SparseSignal(
-                            SparseSignalType.ARCHON_LOCATION,
-                            nearestER[RobotType.ARCHON.ordinal()].location,
-                            -1,
-                            3// first bit is on - means enemy archon. 2nd bit means its alive
-                    )
-            );
-        }
-    }
+
     
 	/*
 	 * returns a surrounding, lowest rubble, and unoccupied location in action range of target

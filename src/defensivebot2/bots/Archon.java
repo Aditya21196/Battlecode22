@@ -6,6 +6,7 @@ import battlecode.common.*;
 import defensivebot2.datasturctures.CustomSet;
 import defensivebot2.enums.SparseSignalType;
 import defensivebot2.models.SparseSignal;
+import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.*;
 
 
@@ -24,6 +25,7 @@ public class Archon extends Robot{
 
     private Direction buildDir = Direction.NORTH;
     private MapLocation nearDamager;
+	private int archonIdx=-1;
     
     //comms locations
     MapLocation[] near = new MapLocation[4];
@@ -82,30 +84,19 @@ public class Archon extends Robot{
         
         //TODO replace with new comms?
         if(turnCount%4 == 0) {
-        	SparseSignal ss = comms.getClosestArchonMarked();
-        	if(ss != null) {
-        		near[0] = ss.target;
-        	}
-        	
+			near[0] = Comms2.getClosestArchon(false);
         }else if(turnCount%4 == 1) {
-        	near[1] = comms.getNearestEnemyLoc();
+        	near[1] = Comms2.getNearestEnemyLoc();
         }else if(turnCount%4 == 2) {
-        	near[2] = comms.getNearestLeadLoc();
+        	near[2] = Comms2.getNearestLeadLoc();
         }else if(turnCount%4 == 3) {
-        	near[3] = comms.getNearbyUnexplored();
+        	near[3] = Comms2.getNearbyUnexplored();
         }
 
         
         //self report location
         if(!reportedCurrentLocation){
-            comms.queueSparseSignalUpdate(
-                    new SparseSignal(
-                            SparseSignalType.ARCHON_LOCATION,
-                            currentLocation,
-                            -1,
-                            0
-                    )
-            );
+            archonIdx = Comms2.registerFriendlyArchon(currentLocation);
             reportedCurrentLocation = true;
         }
 
@@ -113,27 +104,18 @@ public class Archon extends Robot{
 
         if(nearDamager != null && !reportedDangerFlag){
             // signal for danger
-            comms.queueSparseSignalUpdate(
-                    new SparseSignal(
-                            SparseSignalType.ARCHON_LOCATION,
-                            currentLocation,
-                            -1,
-                            2
-                    )
-            );
+            Comms2.registerGatherPoint(currentLocation);
             reportedDangerFlag = true;
         }else if(nearDamager == null && reportedDangerFlag){
             // signal I am okay
-            comms.queueSparseSignalUpdate(
-                    new SparseSignal(
-                            SparseSignalType.ARCHON_LOCATION,
-                            currentLocation,
-                            -1,
-                            0
-                    )
-            );
+            Comms2.markLocationSafe(currentLocation);
             reportedDangerFlag = false;
         }
+
+		MapLocation loc = Comms2.getNearestEnemyLoc();
+		if(loc != null){
+			Comms2.registerGatherPoint(loc);
+		}
         
         tryBuildLocal();
         
@@ -141,11 +123,11 @@ public class Archon extends Robot{
         
         tryBuildFromComms();
 
-        tryTransformPortable();
-        
-        tryTransformTurret();
-        
-        tryMove();
+//        tryTransformPortable();
+//
+//        tryTransformTurret();
+//
+//        tryMove();
 
         
         
@@ -375,7 +357,7 @@ public class Archon extends Robot{
     
     /**
      *
-     * @param RobotType rt
+     * @param  rt
      * @return boolean buildSucceed
      * @throws GameActionException
      */

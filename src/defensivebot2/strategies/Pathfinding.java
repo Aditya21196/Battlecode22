@@ -30,7 +30,11 @@ public class Pathfinding {
 
         if(!rc.canSenseLocation(target)){
 
-            if(target == prevTarget && prevResponse != null && rc.canSenseLocation(prevResponse)){
+            if(
+                    target == prevTarget && prevResponse != null
+                            && !currentLocation.equals(prevResponse)
+                            && prevResponse.distanceSquaredTo(target) < currentLocation.distanceSquaredTo(target)
+            ){
                 localTarget = prevResponse;
             }else{
                 // find angle to target. Then, find corresponding index in array
@@ -87,8 +91,10 @@ public class Pathfinding {
 //        int curD = 0;
         int curD = currentLocation.distanceSquaredTo(target);
         if(curD<=5){
-            if(rc.canMove(dir))rc.move(dir);
-            return;
+            if(rc.canMove(dir)){
+                rc.move(dir);
+                return;
+            }
         }
         // check the direction
         if(rc.canMove(dir)){
@@ -152,6 +158,12 @@ public class Pathfinding {
             else {
                 // bugging in this direction has failed. change bug direction
                 bugRight = !bugRight;
+                Direction[] directions = Direction.allDirections();
+                for(int i=8;--i>=0;){
+                    if(rc.canMove(directions[i])){
+                        rc.move(directions[i]);
+                    }
+                }
             }
         }
     }
@@ -171,7 +183,6 @@ public class Pathfinding {
                 if(dir == dirFrom)continue;
                 MapLocation adjacent = target.add(dir);
                 if (!rc.canSenseLocation(adjacent))continue;
-                int d=adjacent.distanceSquaredTo(loc);
                 double cost = RUBBLE_SCORE_LOCAL_MULTIPLIER*rc.senseRubble(adjacent) + adjacent.distanceSquaredTo(loc);
                 if (cost<bestCost) {
                     bestDir = dir;
