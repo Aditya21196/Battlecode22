@@ -66,10 +66,7 @@ public class Builder extends Robot{
     	tryMoveAndRepair();
     	tryRepair();
     	
-    	//movement priority 2: run from danger in area
-    	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
-    		tryMoveInDanger();
-    	}
+    	
     	
     	//movement priority 3: move for mutation. currently not trying to mutate laboratories
     	tryMoveForMutate();
@@ -83,6 +80,8 @@ public class Builder extends Robot{
     	//movement priority 5: 
     	tryMoveTowardBuildings();
     	
+    	//movement priority 2: run from danger in area
+    	tryMoveInDanger();
     	
     	
     	
@@ -112,6 +111,11 @@ public class Builder extends Robot{
 			}
 		}
 		
+		if(Comms2.getClosestArchon(true) != null) {
+			pathfinding.moveTowards(Comms2.getClosestArchon(true), false); rc.setIndicatorString("toward building Archon");
+			return;
+		}
+		
 	}
 
 
@@ -139,11 +143,7 @@ public class Builder extends Robot{
 		if(taskLocWT != null) {
 			//arrived at task
 			if(rc.getLocation().isWithinDistanceSquared(taskLocWT, Constants.CLOSE_RADIUS)) {
-				// check if there are watchtowers around and less enemies. If yes, go a bit further
-				if(localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]>2){
-					taskLocWT = taskLocWT.translate(enemyDir.dx*BUILDER_INCH_FORWARD,enemyDir.dy*BUILDER_INCH_FORWARD);
-					return;
-				}
+				
 
 				//build WT
 				MapLocation best = getBuildLoc();
@@ -183,21 +183,21 @@ public class Builder extends Robot{
     	if(lead < RobotType.WATCHTOWER.buildCostLead)
 			return;
 
-		// find ideal WT spot: between the closest friendly and enemy archon
+		// find ideal WT spot: build it soon a distance from friendly archons
 
 
+    	if(lead > 1000) {
+    		taskLocWT = rc.getLocation();
+    		return;
+    	}
 
     	//fixedBits == 0b00 || == 0b10 means friendly archon
 		if(loc != null){
-			MapLocation enemyLoc = Comms2.getNearestEnemyLoc();
-			//System.out.println(enemyLoc);
+			MapLocation enemyLoc = Comms2.getClosestArchon(false);
 			if(enemyLoc != null) {
 				taskLocWT = new MapLocation(loc.x + (int)((enemyLoc.x-loc.x)*Constants.BUILDER_WATCHTOWER_FRACTION),
 										loc.y + (int)((enemyLoc.y-loc.y)*Constants.BUILDER_WATCHTOWER_FRACTION));
-				if(localInfo.homeArchon != null){
-					enemyDir = loc.directionTo(enemyLoc);
-				}
-				//System.out.println("I should build a watch tower at: "+taskLocWT);
+				return;
 			}
 		}
 		
@@ -351,7 +351,7 @@ public class Builder extends Robot{
 
 	
     private void tryMoveInDanger() throws GameActionException {
-		if(!rc.isMovementReady()) return;
+		if(!rc.isMovementReady() || localInfo.findNearestDamager() == null) return;
 		
 		moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run outnumbered");
 	}

@@ -48,7 +48,6 @@ public class Archon extends Robot{
 	private MapLocation finalTarget;
 	private int finalTargetRubble;
 
-	private boolean settled = false;
 	private int phase = 1;
     
 
@@ -117,18 +116,20 @@ public class Archon extends Robot{
             reportedDangerFlag = false;
         }
 
-		MapLocation loc = Comms2.getClosestArchon(false);
-		if(loc != null){
-			Comms2.registerGatherPoint(loc,TaskType.ATTACK_ARCHON);
-		}
+//		MapLocation loc = Comms2.getClosestArchon(false);
+//		if(loc != null){
+//			Comms2.registerGatherPoint(loc,TaskType.ATTACK_ARCHON);
+//		}
         rc.setIndicatorString(Comms2.friendlyArchons[0]+", "+Comms2.friendlyArchons[1]+", "+Comms2.friendlyArchons[2]+", "+Comms2.friendlyArchons[3]);
         tryBuildLocal();
         
         tryRepair();
         
+        tryTransformPortable();
+        
         tryBuildFromComms();
 
-        tryTransformPortable();
+        
 
         tryTransformTurret();
 
@@ -144,25 +145,49 @@ public class Archon extends Robot{
     	if(finalTarget != null && finalTarget.equals(rc.getLocation()) && rc.canTransform()) {
     		rc.transform();
     		finalTarget = null;
-    		phase++;
     		reportedCurrentLocation = false;
     	}
     	
+    	if(finalTarget == null && generalTarget == null && rc.canTransform()) {
+    		rc.transform();
+    		reportedCurrentLocation = false;
+    	}
 		
 	}
 
 	private void tryMove() throws GameActionException {
     	if(!rc.isMovementReady() || rc.getMode() == RobotMode.TURRET) return;
 		
+    	//whenever final target is set
     	if(finalTarget != null) {
     		updateFinalTarget();
     		pathfinding.moveTowards(finalTarget, false);rc.setIndicatorString("ft: "+finalTarget); 
     		return;
     	}
     	
-    	generalTarget = getNearestFriendlyArchon();
     	
-    	if(generalTarget.isWithinDistanceSquared(rc.getLocation(), Constants.CLOSE_RADIUS)) {
+    	//phase 1 set general movement
+    	if(phase == 1) {
+    		generalTarget = getFriendlyArchonMidpoint();
+    	
+	    	
+    	}
+    	
+    	
+    	//phase 2 set general movement
+    	if(phase ==2) {
+    		//stop general movement if enemy is nearby
+    		if(localInfo.getEnemyDamagerCount() > 0) {
+    			updateFinalTarget();
+    			Comms2.registerGatherPoint(rc.getLocation(),TaskType.DEFEND_ARCHON);
+    			return;
+    		}
+    		generalTarget = Comms2.getClosestArchon(false);
+    	}
+    	
+    	
+    	//move toward general targets
+    	if(generalTarget != null && generalTarget.isWithinDistanceSquared(rc.getLocation(), Constants.CLOSE_RADIUS)) {
     		updateFinalTarget();
     		return;
     	}
@@ -172,7 +197,6 @@ public class Archon extends Robot{
     		pathfinding.moveTowards(generalTarget, false);
     		return;
     	}
-    	
     	
 	}
 
@@ -214,30 +238,49 @@ public class Archon extends Robot{
 	private void tryTransformPortable() throws GameActionException {
     	if(!rc.isActionReady() || rc.getMode() == RobotMode.PORTABLE) return;
 		
+    	if(phase== 1 && teamAdvanceToPhase2()) {
+    		phase++;
+    	}
     	//move for phase 1 : move farthest archon to nearest archon
-    	if(phase == 1) {
-    		if(rc.getArchonCount() == 1) {
-    			phase++;
-    		}else if(isFarthestFriendlyArchon()) {
-	    		MapLocation nearestFriendlyArchon = getNearestFriendlyArchon();
-	        	if(nearestFriendlyArchon != null) {
-	        		if(!nearestFriendlyArchon.isWithinDistanceSquared(rc.getLocation(), Constants.ARCHON_CLOSE_RADIUS) && rc.canTransform()) {
-		        		rc.transform();
-		        		generalTarget = nearestFriendlyArchon;
-	        		}else {
-	        			//proceed to next phase
-	        			phase++;
-	        		}
-	        		
-	        	}
-	    		
-	    	}
+    	if(phase == 1 && isFarthestFriendlyArchon()&& rc.canTransform()) {
+    		generalTarget = getFriendlyArchonMidpoint();
+    		rc.transform();
     	}
 
-
+    	//move for phase 2 : move toward rally point
+    	
+    	if(phase == 2 && localInfo.getEnemyDamagerCount() == 0) {
+    		MapLocation target = Comms2.getClosestArchon(false);
+    		if(target != null && rc.canTransform()) {
+        		rc.transform();
+        		generalTarget = target;
+        		Comms2.registerGatherPoint(target,TaskType.ATTACK_ARCHON);
+        	}
+    	}
     	
 	}
 	
+	private boolean teamAdvanceToPhase2() {
+		if(rc.getArchonCount() == 1) return true;
+		
+		for(int i = 0; i < Comms2.friendlyArchons.length; i++) {
+			if(Comms2.friendlyArchons[i] == null) continue;
+			boolean archonGood = false;
+			for(int j = 0; j < Comms2.friendlyArchons.length; j++) {
+				if(i==j || Comms2.friendlyArchons[j] == null) continue;
+				
+	    		if(Comms2.friendlyArchons[i].isWithinDistanceSquared(Comms2.friendlyArchons[j], Constants.ARCHON_CLOSE_RADIUS)){
+	    			archonGood = true;
+	    			break;
+	    		}
+	    	}
+			
+			if(!archonGood) return false;
+    	}
+		
+		return true;
+	}
+
 	private boolean isFarthestFriendlyArchon() {
 		int highestDist = 0;
 		int highestDistArchonIndex = -1;
@@ -254,23 +297,22 @@ public class Archon extends Robot{
 				highestDistArchonIndex = i;
 			}
     	}
-		System.out.println(highestDistArchonIndex);
+		
 		return highestDistArchonIndex == archonIdx;
 	}
 
-    //return MapLocation of nearest friendly archon (not including self)
-	private MapLocation getNearestFriendlyArchon() {
-		int d = Integer.MAX_VALUE;
-        MapLocation out = null;
+    //return MapLocation of midpoint of other archons (not including self)
+	private MapLocation getFriendlyArchonMidpoint() {
+		int x=0,y=0,a = 0;
         for(int i=4;--i>=0;){
             if(i == archonIdx || Comms2.friendlyArchons[i] == null)continue;
-            int query = rc.getLocation().distanceSquaredTo(Comms2.friendlyArchons[i]);
-            if(query<d){
-                d = query;
-                out = Comms2.friendlyArchons[i];
-            }
+            x+=Comms2.friendlyArchons[i].x;
+            y+=Comms2.friendlyArchons[i].y;
+            a++;
         }
-        return out;
+        if(a==0) return null;
+        
+        return new MapLocation(x/a,y/a);
 	}
 
 	private void tryBuildFromComms() throws GameActionException {
@@ -402,6 +444,10 @@ public class Archon extends Robot{
         	buildDir = rc.getLocation().directionTo(localInfo.nearestLeadLoc).rotateRight();
         	failedBuildAttempt = !tryBuild(RobotType.MINER);
     		return;
+        }
+        
+        if(rc.getTeamLeadAmount(rc.getTeam()) > 1000) {
+        	failedBuildAttempt = !tryBuild(RobotType.BUILDER);
         }
     }
     

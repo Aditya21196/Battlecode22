@@ -100,10 +100,10 @@ public abstract class Robot {
 		//verbose("lead count: "+rc.getTeamLeadAmount(team));
 
 		//TODO move to localInfo
-		//localInfo.checkExploration();
+		localInfo.checkExploration();
 //		localInfo.checkEnemySpotted();
 
-		//Comms2.registerEnemyArchon();
+		Comms2.registerEnemyArchon();
 		Comms2.processUpdateQueues();
 
 		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
