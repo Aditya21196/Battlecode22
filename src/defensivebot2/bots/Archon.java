@@ -254,7 +254,6 @@ public class Archon extends Robot{
 				highestDistArchonIndex = i;
 			}
     	}
-		System.out.println(highestDistArchonIndex);
 		return highestDistArchonIndex == archonIdx;
 	}
 
