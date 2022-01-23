@@ -33,8 +33,8 @@ public class Comms2 {
 
     private static final int AVAILAIBILITY_IDX = 63;
 
-    static MapLocation[] friendlyArchons = new MapLocation[4];
-    static MapLocation[] enemyArchons = new MapLocation[4];
+    public static MapLocation[] friendlyArchons = new MapLocation[4];
+    public static MapLocation[] enemyArchons = new MapLocation[4];
 
     static Task firstTask = null, secondTask = null;
 
@@ -276,49 +276,49 @@ public class Comms2 {
             friendlyArchons[0] = getMapLocationFromSectorInfo(val);
         }
 
-        if((data[AVAILAIBILITY_IDX] & (1 << 1)) >0){
+        if((data[AVAILAIBILITY_IDX] &  (1 << 1)) >0){
             // 2nd archon available
             int val = data[FixedDataSignalType.SECOND_FRIENDLY_ARCHON_IDX.arrayIdx];
             friendlyArchons[1] = getMapLocationFromSectorInfo(val);
         }
 
-        if((data[AVAILAIBILITY_IDX] & (1 << 2)) >0){
+        if((data[AVAILAIBILITY_IDX] &  (1 << 2)) >0){
             // 3rd archon available
             int val = data[FixedDataSignalType.THIRD_FRIENDLY_ARCHON_IDX.arrayIdx];
             friendlyArchons[2] = getMapLocationFromSectorInfo(val);
         }
 
-        if((data[AVAILAIBILITY_IDX] & (1 << 3)) >0){
+        if((data[AVAILAIBILITY_IDX] &  (1 << 3)) >0){
             // 4th archon available
             int val = data[FixedDataSignalType.FOURTH_FRIENDLY_ARCHON_IDX.arrayIdx];
             friendlyArchons[3] = getMapLocationFromSectorInfo(val);
         }
 
-        if((data[AVAILAIBILITY_IDX] & (1 << 4)) >0){
+        if((data[AVAILAIBILITY_IDX] &  (1 << 4)) >0){
             // first enemy archon available
             int val = data[FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX.arrayIdx];
             enemyArchons[0] = getMapLocationFromSectorInfo(val);
         }
 
-        if((data[AVAILAIBILITY_IDX] & (1 << 5)) >0){
+        if((data[AVAILAIBILITY_IDX] &  (1 << 5)) >0){
             // 2nd enemy archon available
             int val = data[FixedDataSignalType.SECOND_ENEMY_ARCHON_IDX.arrayIdx];
             enemyArchons[1] = getMapLocationFromSectorInfo(val);
         }
 
-        if((data[AVAILAIBILITY_IDX] & (1 << 6)) >0){
+        if((data[AVAILAIBILITY_IDX] &  (1 << 6)) >0){
             // 3rd enemy archon available
             int val = data[FixedDataSignalType.THRID_ENEMY_ARCHON_IDX.arrayIdx];
             enemyArchons[2] = getMapLocationFromSectorInfo(val);
         }
 
-        if((data[AVAILAIBILITY_IDX] & (1 << 7)) >0){
+        if((data[AVAILAIBILITY_IDX] &  (1 << 7)) >0){
             // 3rd enemy archon available
             int val = data[FixedDataSignalType.FOURTH_ENEMY_ARCHON_IDX.arrayIdx];
             enemyArchons[3] = getMapLocationFromSectorInfo(val);
         }
 
-        if((data[AVAILAIBILITY_IDX] & (1 << 8)) >0){
+        if((data[AVAILAIBILITY_IDX] &  (1 << 8)) >0){
             // 1st gather point available
             int val = data[FixedDataSignalType.FIRST_GATHER_POINT.arrayIdx];
             int taskType = val & 3;
@@ -402,6 +402,19 @@ public class Comms2 {
         }
         // TODO: what to do here?
         return -1;
+    }
+    
+    public static void updateFriendlyArchon(int archonIdx, MapLocation location) throws GameActionException {
+        int val = locToSectorInfo(location);
+        if(archonIdx == 0){
+            writeData(val,FixedDataSignalType.FIRST_FRIENDLY_ARCHON_IDX);
+        }else if(archonIdx == 1){
+            writeData(val,FixedDataSignalType.SECOND_FRIENDLY_ARCHON_IDX);
+        }else if(archonIdx == 2){
+            writeData(val,FixedDataSignalType.THIRD_FRIENDLY_ARCHON_IDX);
+        }else if(archonIdx == 3){
+            writeData(val,FixedDataSignalType.FOURTH_FRIENDLY_ARCHON_IDX);
+        }
     }
 
     public static int locToSectorInfo(MapLocation location){
