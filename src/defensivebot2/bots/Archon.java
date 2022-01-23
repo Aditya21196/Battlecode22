@@ -96,8 +96,11 @@ public class Archon extends Robot{
 
         
         //self report location
-        if(!reportedCurrentLocation){
+        if(!reportedCurrentLocation && archonIdx == -1){
             archonIdx = Comms2.registerFriendlyArchon(rc.getLocation());
+            reportedCurrentLocation = true;
+        }else if(!reportedCurrentLocation) {
+        	Comms2.updateFriendlyArchon(archonIdx, rc.getLocation());
             reportedCurrentLocation = true;
         }
 
@@ -141,6 +144,7 @@ public class Archon extends Robot{
     		rc.transform();
     		finalTarget = null;
     		phase++;
+    		reportedCurrentLocation = false;
     	}
     	
 		

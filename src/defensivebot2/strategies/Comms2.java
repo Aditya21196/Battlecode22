@@ -365,6 +365,19 @@ public class Comms2 {
         // TODO: what to do here?
         return -1;
     }
+    
+    public static void updateFriendlyArchon(int archonIdx, MapLocation location) throws GameActionException {
+        int val = locToSectorInfo(location);
+        if(archonIdx == 0){
+            writeData(val,FixedDataSignalType.FIRST_FRIENDLY_ARCHON_IDX);
+        }else if(archonIdx == 1){
+            writeData(val,FixedDataSignalType.SECOND_FRIENDLY_ARCHON_IDX);
+        }else if(archonIdx == 2){
+            writeData(val,FixedDataSignalType.THIRD_FRIENDLY_ARCHON_IDX);
+        }else if(archonIdx == 3){
+            writeData(val,FixedDataSignalType.FOURTH_FRIENDLY_ARCHON_IDX);
+        }
+    }
 
     public static int locToSectorInfo(MapLocation location){
         int xSector = location.x/xSectorSize, ySector = location.y/ySectorSize;
