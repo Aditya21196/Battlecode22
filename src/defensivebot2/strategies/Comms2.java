@@ -257,6 +257,29 @@ public class Comms2 {
         }
 
     }
+    
+    public static void updateEnemyArchons(MapLocation loc) throws GameActionException {
+        MapLocation center = getMapLocationFromSectorInfo(locToSectorInfo(loc));
+    	if(center != null){
+            if(enemyArchons[0]!=null && enemyArchons[0].equals(center)){
+                removeData(FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX);
+                enemyArchons[0] = null;
+            }
+            if(enemyArchons[1]!=null && enemyArchons[1].equals(center)){
+                removeData(FixedDataSignalType.SECOND_ENEMY_ARCHON_IDX);
+                enemyArchons[1] = null;
+            }
+            if(enemyArchons[2]!=null && enemyArchons[2].equals(center)){
+                removeData(FixedDataSignalType.THRID_ENEMY_ARCHON_IDX);
+                enemyArchons[2] = null;
+            }
+            if(enemyArchons[3]!=null && enemyArchons[3].equals(center)){
+                removeData(FixedDataSignalType.FOURTH_ENEMY_ARCHON_IDX);
+                enemyArchons[3] = null;
+            }
+        }
+
+    }
 
     private static void removeData(FixedDataSignalType fixedDataSignalType) throws GameActionException {
         rc.writeSharedArray(fixedDataSignalType.arrayIdx,0);

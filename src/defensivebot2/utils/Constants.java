@@ -99,7 +99,9 @@ public class Constants {
 
 	public static final int ARCHON_LOW_RUBBLE = 10;
 
-	public static final int ARCHON_CLOSE_RADIUS = 34;
+	public static final int ARCHON_CLOSE_RADIUS = 100;
+
+    public static final int LEAD_MOVE_THRESHOLD=100;
 
 
 }
