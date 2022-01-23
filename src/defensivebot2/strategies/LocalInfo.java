@@ -76,15 +76,15 @@ public class LocalInfo {
 		selfType=rc.getType();
     }
 
-	private static int getBestSectorSize(int dimension){
-//        if(dimension%6 == 0)return 6;
-//        return 5;
-		int dim7 = (int)Math.ceil(1.0*dimension/7);
-		int dim8 = (int)Math.ceil(1.0*dimension/8);
-		if(dim7 == dim8)return 7;
-		// more bits saved if we choose 8
-		return 8;
-	}
+//	private static int getBestSectorSize(int dimension){
+////        if(dimension%6 == 0)return 6;
+////        return 5;
+//		int dim7 = (int)Math.ceil(1.0*dimension/7);
+//		int dim8 = (int)Math.ceil(1.0*dimension/8);
+//		if(dim7 == dim8)return 7;
+//		// more bits saved if we choose 8
+//		return 8;
+//	}
     
     public void senseRobots(boolean forAttack, boolean forRepair, boolean forAnomaly) throws GameActionException{
 
