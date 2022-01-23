@@ -5,6 +5,7 @@ import java.util.Random;
 import battlecode.common.*;
 import defensivebot2.datasturctures.CustomSet;
 import defensivebot2.enums.SparseSignalType;
+import defensivebot2.enums.TaskType;
 import defensivebot2.models.SparseSignal;
 import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.*;
@@ -104,17 +105,17 @@ public class Archon extends Robot{
 
         if(nearDamager != null && !reportedDangerFlag){
             // signal for danger
-            Comms2.registerGatherPoint(currentLocation);
+            Comms2.registerGatherPoint(currentLocation, TaskType.DEFEND_ARCHON);
             reportedDangerFlag = true;
         }else if(nearDamager == null && reportedDangerFlag){
             // signal I am okay
-            Comms2.markLocationSafe(currentLocation);
+//            Comms2.markLocationSafe(currentLocation);
             reportedDangerFlag = false;
         }
 
-		MapLocation loc = Comms2.getNearestEnemyLoc();
+		MapLocation loc = Comms2.getClosestArchon(false);
 		if(loc != null){
-			Comms2.registerGatherPoint(loc);
+			Comms2.registerGatherPoint(loc,TaskType.ATTACK_ARCHON);
 		}
         
         tryBuildLocal();

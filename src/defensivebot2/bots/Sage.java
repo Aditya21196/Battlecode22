@@ -115,16 +115,16 @@ public class Sage extends Robot{
   		if(!rc.isMovementReady()) return;
   		
   		//got target from comms last time you checked, therefore try again
-  		if(tryTargetFromComms) {
-  			MapLocation loc = Comms2.getClosestTarget();
-  			if(loc != null){
-				if(rc.getLocation().isWithinDistanceSquared(loc, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
-					Comms2.markLocationSafe(loc);
-				} 
-				taskLoc = loc;
-			}
-  			tryTargetFromComms = loc != null;
-  		}
+//  		if(tryTargetFromComms) {
+//  			MapLocation loc = Comms2.getClosestTarget();
+//  			if(loc != null){
+//				if(rc.getLocation().isWithinDistanceSquared(loc, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
+//					Comms2.markLocationSafe(loc);
+//				}
+//				taskLoc = loc;
+//			}
+//  			tryTargetFromComms = loc != null;
+//  		}
   		
   		//did not get target from comms last time, try to get an exploration task
   		else if(!isMapExplored) {
