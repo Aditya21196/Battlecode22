@@ -32,8 +32,8 @@ public class Soldier extends Robot{
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
 
-		if(rc.getID()==10202 && roundNum >= 517){
-			System.out.println("");
+		if(rc.getID()==10202 && roundNum >= 516){
+			rc.getType();
 		}
     	if(turnCount % 20 == 0) {
     		isMapExplored = false;
@@ -101,6 +101,7 @@ public class Soldier extends Robot{
 				case EXPLORE:
 					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.CLOSE_RADIUS)){
 						task = null;
+						tryTargetFromComms = true;
 						return;
 					}
 					break;
@@ -112,6 +113,7 @@ public class Soldier extends Robot{
 						}else if(localInfo.nearestEnemy == null){
 							Comms2.markTaskDone(task);
 							task = null;
+							tryTargetFromComms = true;
 							return;
 						}
 					}
@@ -122,6 +124,7 @@ public class Soldier extends Robot{
 						if(eArchon == null){
 							Comms2.markTaskDone(task);
 							task = null;
+							tryTargetFromComms = true;
 							return;
 						}
 					}
