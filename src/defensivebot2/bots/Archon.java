@@ -48,7 +48,6 @@ public class Archon extends Robot{
 	private MapLocation finalTarget;
 	private int finalTargetRubble;
 
-	private boolean settled = false;
 	private int phase = 1;
     
 
@@ -117,18 +116,20 @@ public class Archon extends Robot{
             reportedDangerFlag = false;
         }
 
-		MapLocation loc = Comms2.getClosestArchon(false);
-		if(loc != null){
-			Comms2.registerGatherPoint(loc,TaskType.ATTACK_ARCHON);
-		}
+//		MapLocation loc = Comms2.getClosestArchon(false);
+//		if(loc != null){
+//			Comms2.registerGatherPoint(loc,TaskType.ATTACK_ARCHON);
+//		}
         rc.setIndicatorString(Comms2.friendlyArchons[0]+", "+Comms2.friendlyArchons[1]+", "+Comms2.friendlyArchons[2]+", "+Comms2.friendlyArchons[3]);
         tryBuildLocal();
         
         tryRepair();
         
+        tryTransformPortable();
+        
         tryBuildFromComms();
 
-        tryTransformPortable();
+        
 
         tryTransformTurret();
 
@@ -147,6 +148,10 @@ public class Archon extends Robot{
     		reportedCurrentLocation = false;
     	}
     	
+    	if(finalTarget == null && generalTarget == null && rc.canTransform()) {
+    		rc.transform();
+    		reportedCurrentLocation = false;
+    	}
 		
 	}
 
@@ -174,6 +179,7 @@ public class Archon extends Robot{
     		//stop general movement if enemy is nearby
     		if(localInfo.getEnemyDamagerCount() > 0) {
     			updateFinalTarget();
+    			Comms2.registerGatherPoint(rc.getLocation(),TaskType.DEFEND_ARCHON);
     			return;
     		}
     		generalTarget = Comms2.getClosestArchon(false);
@@ -237,6 +243,7 @@ public class Archon extends Robot{
     	}
     	//move for phase 1 : move farthest archon to nearest archon
     	if(phase == 1 && isFarthestFriendlyArchon()&& rc.canTransform()) {
+    		generalTarget = getFriendlyArchonMidpoint();
     		rc.transform();
     	}
 
@@ -247,7 +254,7 @@ public class Archon extends Robot{
     		if(target != null && rc.canTransform()) {
         		rc.transform();
         		generalTarget = target;
-        		
+        		Comms2.registerGatherPoint(target,TaskType.ATTACK_ARCHON);
         	}
     	}
     	
@@ -437,6 +444,10 @@ public class Archon extends Robot{
         	buildDir = rc.getLocation().directionTo(localInfo.nearestLeadLoc).rotateRight();
         	failedBuildAttempt = !tryBuild(RobotType.MINER);
     		return;
+        }
+        
+        if(rc.getTeamLeadAmount(rc.getTeam()) > 1000) {
+        	failedBuildAttempt = !tryBuild(RobotType.BUILDER);
         }
     }
     
