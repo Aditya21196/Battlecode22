@@ -48,6 +48,7 @@ public class Archon extends Robot{
 	private int finalTargetRubble;
 
 	private boolean settled = false;
+	private int phase = 1;
     
 
     public Archon(RobotController rc) throws GameActionException  {
@@ -96,7 +97,7 @@ public class Archon extends Robot{
         
         //self report location
         if(!reportedCurrentLocation){
-            archonIdx = Comms2.registerFriendlyArchon(currentLocation);
+            archonIdx = Comms2.registerFriendlyArchon(rc.getLocation());
             reportedCurrentLocation = true;
         }
 
@@ -116,18 +117,18 @@ public class Archon extends Robot{
 		if(loc != null){
 			Comms2.registerGatherPoint(loc);
 		}
-        
+        rc.setIndicatorString(Comms2.friendlyArchons[0]+", "+Comms2.friendlyArchons[1]+", "+Comms2.friendlyArchons[2]+", "+Comms2.friendlyArchons[3]);
         tryBuildLocal();
         
         tryRepair();
         
         tryBuildFromComms();
 
-//        tryTransformPortable();
-//
-//        tryTransformTurret();
-//
-//        tryMove();
+        tryTransformPortable();
+
+        tryTransformTurret();
+
+        tryMove();
 
         
         
@@ -138,7 +139,8 @@ public class Archon extends Robot{
     	
     	if(finalTarget != null && finalTarget.equals(rc.getLocation()) && rc.canTransform()) {
     		rc.transform();
-    		settled = true;
+    		finalTarget = null;
+    		phase++;
     	}
     	
 		
@@ -205,22 +207,65 @@ public class Archon extends Robot{
 	}
 
 	private void tryTransformPortable() throws GameActionException {
-    	if(!rc.isActionReady() || rc.getMode() == RobotMode.PORTABLE || settled ) return;
+    	if(!rc.isActionReady() || rc.getMode() == RobotMode.PORTABLE) return;
 		
-    	//start moving archons together
-        if(rc.getArchonCount() > 1 && failedBuildAttempt) {
-        	MapLocation nearestFriendlyArchon = getNearestFriendlyArchon();
-        	if(nearestFriendlyArchon != null && !nearestFriendlyArchon.isWithinDistanceSquared(rc.getLocation(), Constants.ARCHON_CLOSE_RADIUS) && rc.canTransform()) {
-        		rc.transform();
-        		generalTarget = nearestFriendlyArchon;
-        	}
-        }
-        
+    	//move for phase 1 : move farthest archon to nearest archon
+    	if(phase == 1) {
+    		if(rc.getArchonCount() == 1) {
+    			phase++;
+    		}else if(isFarthestFriendlyArchon()) {
+	    		MapLocation nearestFriendlyArchon = getNearestFriendlyArchon();
+	        	if(nearestFriendlyArchon != null) {
+	        		if(!nearestFriendlyArchon.isWithinDistanceSquared(rc.getLocation(), Constants.ARCHON_CLOSE_RADIUS) && rc.canTransform()) {
+		        		rc.transform();
+		        		generalTarget = nearestFriendlyArchon;
+	        		}else {
+	        			//proceed to next phase
+	        			phase++;
+	        		}
+	        		
+	        	}
+	    		
+	    	}
+    	}
+
+
+    	
+	}
+	
+	private boolean isFarthestFriendlyArchon() {
+		int highestDist = 0;
+		int highestDistArchonIndex = -1;
+		for(int i = 0; i < Comms2.friendlyArchons.length; i++) {
+			if(Comms2.friendlyArchons[i] == null) continue;
+			int tempDist = 0;
+			for(int j = 0; j < Comms2.friendlyArchons.length; j++) {
+				if(i==j || Comms2.friendlyArchons[j] == null) continue;
+				
+	    		tempDist += Comms2.friendlyArchons[i].distanceSquaredTo(Comms2.friendlyArchons[j]);
+	    	}
+			if(tempDist > highestDist) {
+				highestDist = tempDist;
+				highestDistArchonIndex = i;
+			}
+    	}
+		System.out.println(highestDistArchonIndex);
+		return highestDistArchonIndex == archonIdx;
 	}
 
     //return MapLocation of nearest friendly archon (not including self)
 	private MapLocation getNearestFriendlyArchon() {
-		return new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
+		int d = Integer.MAX_VALUE;
+        MapLocation out = null;
+        for(int i=4;--i>=0;){
+            if(i == archonIdx || Comms2.friendlyArchons[i] == null)continue;
+            int query = rc.getLocation().distanceSquaredTo(Comms2.friendlyArchons[i]);
+            if(query<d){
+                d = query;
+                out = Comms2.friendlyArchons[i];
+            }
+        }
+        return out;
 	}
 
 	private void tryBuildFromComms() throws GameActionException {
