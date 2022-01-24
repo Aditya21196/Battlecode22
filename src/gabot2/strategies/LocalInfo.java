@@ -12,7 +12,7 @@ import static gabot2.bots.Archon.rng;
 import static gabot2.bots.Robot.roundNum;
 import static gabot2.bots.Robot.turnCount;
 import static gabot2.utils.Constants.*;
-import static gabot2.utils.LogUtils.printDebugLog;
+
 
 public class LocalInfo {
 

@@ -34,18 +34,18 @@ public class Archon extends Robot{
 
 	//soldier threshold, distance to marked archon,distance to enemy,distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-	private double[] soldierWeights ={-8.36,-2.66,1.5,-1.44,1.04,-1.26,-4.64,-1.35,-2.45};
+	private double[] soldierWeights ={-3.46,-5.35,-2.9,-1.5,-1.62,-1.77,-3.35,3.37,2.04};
 
 	//miner threshold, distance to marked archon, distance to enemy, distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-	private double[] minerWeights ={1.03,-1.18,-1.51,4.79,-1.31,1.1,5.37,-4.74,-2.21};
+	private double[] minerWeights ={-3.39,-3.17,-1.8,6.15,-0.09,3.08,4.59,-1.75,0.92};
 
 
 	// closest enemy archon, nearest enemy loc, robot count, non damagers, team lead, team gold
 	// enemy team lead
-	private final double[] phaseTwoWeights ={-4.2,2.9,-0.73,0.97,2.44,-0.51,2.88};
+	private final double[] phaseTwoWeights ={1.03,-4.66,6.64,-0.97,5.03,0.9,3.4};
 
-	private final int randomMarkUnexplored=53;
+	private final int randomMarkUnexplored=48;
 
     MapLocation nearestCorner;
     

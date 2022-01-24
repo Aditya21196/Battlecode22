@@ -95,7 +95,7 @@ public abstract class Robot {
 		Comms2.updateCommsInfo();
 
 		executeRole();
-		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
+//		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
 
 		//verbose("lead count: "+rc.getTeamLeadAmount(team));
 
@@ -106,7 +106,7 @@ public abstract class Robot {
 		Comms2.registerEnemyArchon();
 		Comms2.processUpdateQueues();
 
-		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
+//		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
 
 		// TODO: decide byte code limit for cleaning dynamically?
 		//if(comms.isSignalArrayFull && Clock.getBytecodesLeft()<EXTRA_BYTECODE_FOR_COMMS_CLEANUP)comms.cleanComms();

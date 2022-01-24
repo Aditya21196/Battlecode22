@@ -17,8 +17,6 @@ import gabot2.utils.Constants;
 
 import static gabot2.bots.Archon.rng;
 import static gabot2.utils.Constants.*;
-import static gabot2.utils.LogUtils.printDebugLog;
-import static gabot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
 import java.util.Random;
 
@@ -166,7 +164,7 @@ public class Builder extends Robot{
     	if(lead < RobotType.LABORATORY.buildCostLead)
 			return;
     	
-    	//System.out.println("loking for job");
+
     	
     	MapLocation loc = Comms2.getClosestArchon(true);
     	//check if this builder thinks the team currently has a lab
@@ -218,7 +216,7 @@ public class Builder extends Robot{
 				((lead > RobotType.ARCHON.getLeadMutateCost(2)+RobotType.ARCHON.getGoldMutateCost(2) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 1) ||
 				(gold > RobotType.ARCHON.getLeadMutateCost(3)+RobotType.ARCHON.getGoldMutateCost(3) && localInfo.nearestFR[RobotType.ARCHON.ordinal()].getLevel() == 2)) ) {
 			moveToward(localInfo.nearestFR[RobotType.ARCHON.ordinal()].location);rc.setIndicatorString("toward for mutation");
-			//System.out.println(RobotType.ARCHON.getLeadMutateCost(3)+RobotType.ARCHON.getGoldMutateCost(3));
+
 			return;
 			
 		}

@@ -39,7 +39,7 @@ public class Miner extends Robot{
 			tryMoveRepelFriends();
     	}
     	
-		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+//		verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
 
     	//movement priority 1: run from danger in area (in this case we should mine first if able)
     	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {

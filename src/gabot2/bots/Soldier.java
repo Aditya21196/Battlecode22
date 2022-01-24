@@ -42,7 +42,7 @@ public class Soldier extends Robot{
     		tryMoveRepelFriends();
     	}
     	
-    	verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
+//    	verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
     	//movement priority 1: run from danger in area if out numbered (in this case we should attack first if able)
 
 

@@ -18,7 +18,7 @@ import static gabot2.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
 import static gabot2.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
 import static gabot2.utils.Constants.*;
 import static gabot2.utils.CustomMath.ceilDivision;
-import static gabot2.utils.LogUtils.printDebugLog;
+
 
 public class Comms {
 
@@ -391,7 +391,7 @@ public class Comms {
     * */
     public void cleanComms() throws GameActionException {
         querySparseSignals();
-        printDebugLog("Comms clean up!");
+//        printDebugLog("Comms clean up!");
 
         // only these messages should remain now
         int lenRemaining = orderedSparseSignals.size/INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE;

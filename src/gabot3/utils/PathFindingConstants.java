@@ -5,18 +5,18 @@ public class PathFindingConstants {
     // granularity- 32. For 180 degrees vision, look left by 8 and right by 8
     public static final int[][] BORDER20 = new int[][]{{4 , 0 },{ 4 , 1 },{ 4 , 2 },{ 3 , 2 },{ 3 , 3 },{ 2 , 3 },{ 2 , 4 },{ 1 , 4 },{ 0 , 4 },{ -1 , 4 },{ -2 , 4 },{ -2 , 3 },{ -3 , 3 },{ -3 , 2 },{ -4 , 2 },{ -4 , 1 },{ -4 , 0 },{ -4 , -1 },{ -4 , -2 },{ -3 , -2 },{ -3 , -3 },{ -2 , -3 },{ -2 , -4 },{ -1 , -4 },{ 0 , -4 },{ 1 , -4 },{ 2 , -4 },{ 2 , -3 },{ 3 , -3 },{ 3 , -2 },{ 4 , -2 },{ 4 , -1 }};
 
-    public static final double RUBBLE_SCORE_MULTIPLIER =9.17;
-    public static final double RUBBLE_SCORE_LOCAL_MULTIPLIER =6.0;
+    public static final double RUBBLE_SCORE_MULTIPLIER =5.29;
+    public static final double RUBBLE_SCORE_LOCAL_MULTIPLIER =8.6;
 
-    public static final int MIN_AFFORD_PATH_OPT =3500;
-    public static final int NUM_BETTER_LOC_ITERATIONS =3;
-    public static final int SOLDIER_PATHFINDING_LIMIT =3216;
-    public static final int MINER_PATHFINDING_LIMIT =2640;
-    public static final int DEFAULT_LIMIT =2380;
-    public static final int CACHING_RUBBLE_LIMIT=32;
+    public static final int MIN_AFFORD_PATH_OPT =3490;
+    public static final int NUM_BETTER_LOC_ITERATIONS =4;
+    public static final int SOLDIER_PATHFINDING_LIMIT =2466;
+    public static final int MINER_PATHFINDING_LIMIT =1540;
+    public static final int DEFAULT_LIMIT =1800;
+    public static final int CACHING_RUBBLE_LIMIT=34;
     // 8 means 180 degrees
     public static final int VISION_RADIUS=6;
     // bias towards 1 direction
-    public static final int VISION_BIAS=1;
+    public static final int VISION_BIAS=-2;
 
 }
