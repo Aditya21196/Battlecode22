@@ -62,8 +62,8 @@ public class Constants {
     public static final int LEAD_UPPER_THRESHOLD_FOR_SENSING =23;
 
     //set to best case for miners (0 rubble means miners can mine 5 times)
-    public static final double MINES_PER_ROUND =19.0;
-    public static final int CLOSE_RADIUS =4;
+    public static final double MINES_PER_ROUND =12.44;
+    public static final int CLOSE_RADIUS =2;
 
     public static final int ROUNDS_PER_ACTION =4;
 
@@ -75,27 +75,27 @@ public class Constants {
     // comms cleanup
     public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP =7200;
 
-    public static final int DENSE_COMMS_UPDATE_LIMIT =1;
+    public static final int DENSE_COMMS_UPDATE_LIMIT =3;
 
     // only say archon is dead if you are very close to center of sector
-    public static final int ARCHON_DEATH_CONFIRMATION =3;
+    public static final int ARCHON_DEATH_CONFIRMATION =4;
 
     public static final int RUN_ROUNDS_BEFORE_CHARGE =12;
 
     // greater than half equals closer to enemies.
-    public static final double BUILDER_WATCHTOWER_FRACTION =0.55;
+    public static final double BUILDER_WATCHTOWER_FRACTION =0.62;
 
-    public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING =14;
+    public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING =13;
 
-    public static final int BUILDER_INCH_FORWARD =10;
+    public static final int BUILDER_INCH_FORWARD =12;
 
 	public static final int ARCHON_LOW_RUBBLE = 10;
 
-	public static final int ARCHON_CLOSE_RADIUS =75;
+	public static final int ARCHON_CLOSE_RADIUS =91;
 
-    public static final int LEAD_MOVE_THRESHOLD=98;
+    public static final int LEAD_MOVE_THRESHOLD=110;
 
-    public static final int LEAD_WORTH_PURSUING=16;
+    public static final int LEAD_WORTH_PURSUING=8;
 
     // 1- 10 (for genetic algo to adjust)
     public static final int CHOOSE_SECTOR_GA=4;

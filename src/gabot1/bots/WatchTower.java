@@ -52,7 +52,11 @@ public class WatchTower extends Robot{
     	
     	if(
 				(finalTarget != null && finalTarget.equals(rc.getLocation()) && rc.canTransform())
-				|| (localInfo.nearestEnemy != null && rc.canTransform())
+				|| (
+						localInfo.nearestEnemy != null
+								&& currentLocation.isWithinDistanceSquared(localInfo.nearestEnemy.location,RobotType.WATCHTOWER.actionRadiusSquared)
+								&& rc.canTransform()
+				)
 		) {
     		rc.transform();
     		finalTarget = null;

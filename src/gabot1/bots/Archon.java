@@ -34,18 +34,18 @@ public class Archon extends Robot{
 
 	//soldier threshold, distance to marked archon,distance to enemy,distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-	private double[] soldierWeights ={-7.1,-7.71,-0.54,-5.5,3.53,-2.47,-6.05,3.84,-1.69};
+	private double[] soldierWeights ={-7.08,4.72,-0.54,-5.5,1.64,-1.13,-0.24,6.97,-2.46};
 
 	//miner threshold, distance to marked archon, distance to enemy, distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-	private double[] minerWeights ={2.25,-3.0,-5.69,0.59,-1.02,-5.59,1.41,-6.25,-0.83};
+	private double[] minerWeights ={4.0,-2.96,0.31,-4.56,-3.33,-4.19,-0.25,-2.1,-0.79};
 
 
 	// closest enemy archon, nearest enemy loc, robot count, non damagers, team lead, team gold
 	// enemy team lead
-	private final double[] phaseTwoWeights ={-6.78,-3.49,1.02,4.93,1.98,-2.84,-2.72};
+	private final double[] phaseTwoWeights ={-1.99,-3.46,1.74,-3.86,1.67,-3.28,-1.94};
 
-	private final int randomMarkUnexplored=53;
+	private final int randomMarkUnexplored=21;
 
     MapLocation nearestCorner;
     
@@ -54,6 +54,7 @@ public class Archon extends Robot{
 	private MapLocation generalTarget = null;
 	private MapLocation finalTarget;
 	private int finalTargetRubble;
+	private int lastTransformTurret=-100;
 
 	private int phase = 1;
     
@@ -158,6 +159,7 @@ public class Archon extends Robot{
 						&& rc.senseRubble(currentLocation)<ARCHON_LOW_RUBBLE
 		){
 			rc.transform();
+			lastTransformTurret = roundNum;
 			finalTarget = null;
 			generalTarget = null;
 			reportedCurrentLocation = false;
@@ -166,12 +168,14 @@ public class Archon extends Robot{
     	
     	if(finalTarget != null && finalTarget.equals(rc.getLocation()) && rc.canTransform()) {
     		rc.transform();
+			lastTransformTurret = roundNum;
     		finalTarget = null;
     		reportedCurrentLocation = false;
     	}
     	
     	if(finalTarget == null && generalTarget == null && rc.canTransform()) {
     		rc.transform();
+			lastTransformTurret = roundNum;
     		reportedCurrentLocation = false;
     	}
 		
@@ -266,6 +270,7 @@ public class Archon extends Robot{
 				!rc.isActionReady()
 						|| rc.getMode() == RobotMode.PORTABLE
 						|| localInfo.nearestEnemy != null
+				|| roundNum - lastTransformTurret < 50
 		) return;
 
 		if(localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null){
