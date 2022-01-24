@@ -2,22 +2,17 @@ package defensivebot2.bots;
 
 import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
-import battlecode.common.AnomalyScheduleEntry;
-import battlecode.common.AnomalyType;
-import battlecode.common.Clock;
-import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
+import defensivebot2.enums.TaskType;
 import defensivebot2.models.SparseSignal;
+import defensivebot2.models.Task;
 import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.Constants;
 
 public class Sage extends Robot{
-    private MapLocation taskLoc = null;
 	private boolean isMapExplored = false;//TODO:reset this to false every 100 rounds or so
 	private boolean tryTargetFromComms = true;
+	private Task task=null;
 	
 	public Sage(RobotController rc) throws GameActionException  {
         super(rc);
@@ -93,57 +88,81 @@ public class Sage extends Robot{
 	}
     
     private void tryMoveOnTask() throws GameActionException {
-		if(!rc.isMovementReady() || taskLoc == null) return;
-		//arrived at task
-		if(rc.getLocation().isWithinDistanceSquared(taskLoc, Constants.CLOSE_RADIUS)) {
-			taskLoc = null;
-			return;
+		if(!rc.isMovementReady() || task == null) return;
+
+		if(task.target != null){
+			switch (task.type){
+				case EXPLORE:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.CLOSE_RADIUS)){
+						task = null;
+						tryTargetFromComms = true;
+						return;
+					}
+					break;
+				case DEFEND_ARCHON:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.ARCHON_DEATH_CONFIRMATION)){
+						RobotInfo fArchon = localInfo.nearestFR[RobotType.ARCHON.ordinal()];
+						if(fArchon != null && !fArchon.location.equals(task.target)){
+							task.target = fArchon.location;
+						}else if(localInfo.nearestEnemy == null){
+							Comms2.markTaskDone(task);
+							task = null;
+							tryTargetFromComms = true;
+							return;
+						}
+					}
+					break;
+				case ATTACK_ARCHON:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.ARCHON_DEATH_CONFIRMATION)){
+						RobotInfo eArchon = localInfo.nearestER[RobotType.ARCHON.ordinal()];
+						if(eArchon == null){
+							Comms2.markTaskDone(task);
+							task = null;
+							tryTargetFromComms = true;
+							return;
+						}
+					}
+			}
+
 		}
-		// TODO: if bc<250, don't move. just attack
+
 		int bc = Clock.getBytecodesLeft();
 		if(bc>SOLDIER_PATHFINDING_LIMIT){
-			pathfinding.moveTowards(taskLoc,false);rc.setIndicatorString("best task loc: "+taskLoc);
-		}else moveToward(taskLoc);rc.setIndicatorString("best task loc: "+taskLoc);
+			pathfinding.moveTowards(task.target,false);rc.setIndicatorString("best task loc: "+task.target);
+		}else moveToward(task.target);rc.setIndicatorString("best task loc: "+task.target);
 
 		if(rc.isMovementReady()) {
-			taskLoc = null;
+			task = null;
 		}
 	}
-    
-    //strategy is to only read from comms one piece of info per turn
-  	private void tryMoveNewTask() throws GameActionException {
-  		if(!rc.isMovementReady()) return;
-  		
-  		//got target from comms last time you checked, therefore try again
-//  		if(tryTargetFromComms) {
-//  			MapLocation loc = Comms2.getClosestTarget();
-//  			if(loc != null){
-//				if(rc.getLocation().isWithinDistanceSquared(loc, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
-//					Comms2.markLocationSafe(loc);
-//				}
-//				taskLoc = loc;
-//			}
-//  			tryTargetFromComms = loc != null;
-//  		}
-  		
-  		//did not get target from comms last time, try to get an exploration task
-  		else if(!isMapExplored) {
-  			//reset lead found state to look for lead next time
-  			tryTargetFromComms = true;
-  			taskLoc = Comms2.getNearbyUnexplored();
-  			if(taskLoc == null) {
-  				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
-  			}
-  		}
-  		
-  		else {
-  			//reset lead found state to look for lead next time
-  			tryTargetFromComms = true;
 
-  		}
-  		
-  		tryMoveOnTask();
-  	}
+	//strategy is to only read from comms one piece of info per turn
+	private void tryMoveNewTask() throws GameActionException {
+		if(!rc.isMovementReady()) return;
+
+		//got target from comms last time you checked, therefore try again
+		if(tryTargetFromComms) {
+			task = Comms2.getAttackTask();
+			tryTargetFromComms = task != null;
+		}
+
+		//did not get target from comms last time, try to get an exploration task
+		else if(!isMapExplored) {
+			//reset lead found state to look for lead next time
+			tryTargetFromComms = true;
+			MapLocation loc = Comms2.getNearbyUnexplored();
+			if(loc == null) {
+				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
+			}else task = new Task(TaskType.EXPLORE,loc);
+		}
+
+		else {
+			//reset found state to look for lead next time
+			tryTargetFromComms = true;
+		}
+
+		tryMoveOnTask();
+	}
     
     private void tryMoveInDanger() throws GameActionException {
 		if(!rc.isMovementReady()) return;
