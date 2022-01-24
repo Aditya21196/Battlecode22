@@ -1,18 +1,12 @@
 package defensivebot2.bots;
 
-//import static defensivebot.utils.Constants.ARCHON_DEATH_CONFIRMATION;
 
 import battlecode.common.*;
 import defensivebot2.enums.TaskType;
-import defensivebot2.models.SparseSignal;
-import defensivebot2.datasturctures.CustomSet;
 import defensivebot2.models.Task;
-import defensivebot2.strategies.Comms;
 import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.Constants;
 
-import static defensivebot2.bots.Archon.rng;
-import static defensivebot2.utils.LogUtils.printDebugLog;
 import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
 public class Soldier extends Robot{
@@ -32,9 +26,6 @@ public class Soldier extends Robot{
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
 
-		if(rc.getID()==10202 && roundNum >= 516){
-			rc.getType();
-		}
     	if(turnCount % 20 == 0) {
     		isMapExplored = false;
     	}
@@ -179,7 +170,7 @@ public class Soldier extends Robot{
 
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 3000) {
-			localInfo.senseLead(false);
+			localInfo.senseLead(false,false);
 		}
 		if(Clock.getBytecodesLeft() > 2000) {
 			localInfo.senseGold();
@@ -425,12 +416,9 @@ public class Soldier extends Robot{
 			pathfinding.moveTowards(best,false);rc.setIndicatorString("best task loc: "+best);
 		}else moveToward(best);rc.setIndicatorString("best task loc: "+best);
 
-
 		if(!rc.isActionReady())
 			return;
-		
 		tryAttack(target);
-		
 	}
 
 	

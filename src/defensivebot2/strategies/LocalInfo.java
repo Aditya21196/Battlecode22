@@ -26,6 +26,9 @@ public class LocalInfo {
     public int[] nearestERDist; //nearest enemy robots' distances(of each type)
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
+	public int[] leadInDirection;
+	public MapLocation[] leadLocInDirection;
+	public int[] minersInDirection;
     
     public RobotInfo nearestEnemy;
     public int nearestEnemyDist;
@@ -91,6 +94,12 @@ public class LocalInfo {
         if(robotsSensedLastRound == turnCount)return;
         else robotsSensedLastRound = turnCount;
 
+		RobotType unitType = rc.getType();
+
+		if(unitType == RobotType.MINER){
+			minersInDirection = new int[9];
+		}
+
     	friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
 
@@ -138,12 +147,18 @@ public class LocalInfo {
 		boolean isDenseUpdateAllowed = Comms2.denseUpdateAllowed;
 
 		RobotInfo[] nearbyRobots = getRobots(forAttack);
-
+		Team team = rc.getTeam();
         for(int i = nearbyRobots.length; --i>=0;){
         	MapLocation robLoc = nearbyRobots[i].getLocation();
             int distToMe = loc.distanceSquaredTo(robLoc);
             int typeOrdinal = nearbyRobots[i].getType().ordinal();
-            if(nearbyRobots[i].getTeam() == rc.getTeam()){
+            if(nearbyRobots[i].getTeam() == team){
+
+				if(selfType == RobotType.MINER){
+					Direction direction = loc.directionTo(robLoc);
+					minersInDirection[direction.ordinal()]++;
+				}
+
             	if(nearestFriendDist>distToMe){
             		nearestFriendDist = distToMe;
                     nearestFriend = nearbyRobots[i];
@@ -219,10 +234,15 @@ public class LocalInfo {
 
     
     
-    public void senseLead(boolean forPassive) throws GameActionException {
+    public void senseLead(boolean forPassive,boolean forMining) throws GameActionException {
 
         if(leadSensedLastRound == turnCount)return;
         else leadSensedLastRound = turnCount;
+
+		if(forMining){
+			leadInDirection = new int[9];
+			leadLocInDirection = new MapLocation[9];
+		}
 
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
@@ -255,9 +275,13 @@ public class LocalInfo {
             	nearestLeadDist = distToMe;
             }
 
+			if(forMining){
+				Direction direction = loc.directionTo(locations[i]);
+				leadInDirection[direction.ordinal()] += lead;
+				// can improve to best location
+				leadLocInDirection[direction.ordinal()] = locations[i];
+			}
         }
-
-
 
 		if(robotsSensedLastRound == turnCount)totalLeadInSector /= (numMinersInSector+1);
         if(isDenseUpdateAllowed)Comms2.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
@@ -537,5 +561,21 @@ public class LocalInfo {
 	public void addArchon(MapLocation target, boolean isFriendly) {
 		if(isFriendly)friendlyArchons.add(target);
 		else enemyArchons.add(target);
+	}
+
+	public MapLocation getBestLead() {
+		int bestDir = -1;
+		double bestLeadPerMiner = 0;
+		for(int i=9;--i>=0;){
+			int leadPerMiner = leadInDirection[i]/(minersInDirection[i]+1);
+			if(leadPerMiner>bestLeadPerMiner){
+				bestDir = i;
+				bestLeadPerMiner = leadPerMiner;
+			}
+		}
+		if(bestLeadPerMiner > LEAD_WORTH_PURSUING){
+			return leadLocInDirection[bestDir];
+		}
+		return null;
 	}
 }

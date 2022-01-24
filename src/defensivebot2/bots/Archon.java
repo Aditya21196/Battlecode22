@@ -96,13 +96,10 @@ public class Archon extends Robot{
     @Override
     public void executeRole() throws GameActionException {
 
-		if(rc.getID() == 9 && rc.getRoundNum()>=66){
-			rc.getID();
-		}
         
     	//sense
     	localInfo.senseRobots(false,true,false);
-        localInfo.senseLead(true);
+        localInfo.senseLead(true,false);
 
 		teamLead = rc.getTeamLeadAmount(team);
         
@@ -286,7 +283,7 @@ public class Archon extends Robot{
 
     	//move for phase 2 : move toward rally point
     	
-    	if(phase == 2 && localInfo.getEnemyDamagerCount() == 0) {
+    	if(phase == 2 && shouldMovePhaseTwo()) {
     		MapLocation target = Comms2.getClosestArchon(false);
     		if(target != null && rc.canTransform()) {
         		rc.transform();

@@ -158,7 +158,7 @@ public class WatchTower extends Robot{
 
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 4000) {
-			localInfo.senseLead(false);
+			localInfo.senseLead(false,false);
 		}
 		if(Clock.getBytecodesLeft() > 3000) {
 			localInfo.senseGold();
