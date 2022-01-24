@@ -58,6 +58,8 @@ public class Archon extends Robot{
 	// enemy team lead
 	private final double[] phaseTwoWeights ={6.62,-5.7,-1.88,-3.33,3.27,3.15,5.01,-0.39};
 
+	private final int randomMarkUnexplored=20;
+
     MapLocation nearestCorner;
     
     private boolean failedBuildAttempt = false;
@@ -96,6 +98,13 @@ public class Archon extends Robot{
     @Override
     public void executeRole() throws GameActionException {
 
+		if(roundNum % randomMarkUnexplored == 0){
+			Comms2.markRandomSectorUnexplored();
+		}
+
+		if(rc.getID() == 3 && roundNum>=62){
+			rc.getID();
+		}
         
     	//sense
     	localInfo.senseRobots(false,true,false);
@@ -270,7 +279,11 @@ public class Archon extends Robot{
 	}
 
 	private void tryTransformPortable() throws GameActionException {
-    	if(!rc.isActionReady() || rc.getMode() == RobotMode.PORTABLE) return;
+    	if(
+				!rc.isActionReady()
+						|| rc.getMode() == RobotMode.PORTABLE
+						|| localInfo.nearestEnemy != null
+		) return;
 		
     	if(phase== 1 && teamAdvanceToPhase2()) {
     		phase++;

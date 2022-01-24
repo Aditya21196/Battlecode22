@@ -8,6 +8,7 @@ import defensivebot2.enums.TaskType;
 import defensivebot2.models.CommDenseMatrixUpdate;
 import defensivebot2.models.Task;
 
+import static defensivebot2.bots.Archon.rng;
 import static defensivebot2.utils.Constants.*;
 import static defensivebot2.utils.CustomMath.*;
 import static defensivebot2.utils.LogUtils.printDebugLog;
@@ -99,7 +100,12 @@ public class Comms2 {
     private static void processDenseSignalUpdates(int[] updatedCommsValues){
         while(commUpdateLinkedList.size>0){
             CommDenseMatrixUpdate update = commUpdateLinkedList.dequeue().val;
-            int offset = getCommOffset(update.commInfoBlockType,curSectorX,curSectorY);
+            int secX = curSectorX,secY = curSectorY;
+            if(update.targetOverride != null){
+                secX = update.targetOverride.x/xSectorSize;
+                secY = update.targetOverride.y/ySectorSize;
+            }
+            int offset = getCommOffset(update.commInfoBlockType,secX,secY);
             writeBits(updatedCommsValues,offset,update.commInfoBlockType.getStoreVal(update.val),update.commInfoBlockType.blockSize);
         }
     }
@@ -220,8 +226,8 @@ public class Comms2 {
         return val;
     }
 
-    public static void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
-        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType));
+    public static void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType,MapLocation location){
+        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType,location));
     }
 
     public static void markTaskDone(Task task) throws GameActionException {
@@ -460,5 +466,11 @@ public class Comms2 {
             }
         }
         return out;
+    }
+
+    public static void markRandomSectorUnexplored() {
+        int x = rng.nextInt(w);
+        int y = rng.nextInt(h);
+        queueDenseMatrixUpdate(0,CommInfoBlockType.EXPLORATION,new MapLocation(x,y));
     }
 }

@@ -8,6 +8,7 @@ import defensivebot2.enums.SparseSignalType;
 import defensivebot2.models.SparseSignal;
 import defensivebot2.utils.Constants;
 
+import static defensivebot2.bots.Archon.rng;
 import static defensivebot2.bots.Robot.roundNum;
 import static defensivebot2.bots.Robot.turnCount;
 import static defensivebot2.utils.Constants.*;
@@ -220,7 +221,7 @@ public class LocalInfo {
 			if(ed>3)val = 3;
 			else if(ed > 1)val = 2;
 			else if(ed == 1)val = 1;
-			Comms2.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS);
+			Comms2.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS,null);
 		}
 
 		// we no longer need this!
@@ -284,7 +285,7 @@ public class LocalInfo {
         }
 
 		if(robotsSensedLastRound == turnCount)totalLeadInSector /= (numMinersInSector+1);
-        if(isDenseUpdateAllowed)Comms2.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
+        if(isDenseUpdateAllowed)Comms2.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP,null);
     }
 
     
@@ -308,7 +309,7 @@ public class LocalInfo {
         // if lead was checked, we mark as explored
         if(!Comms2.denseUpdateAllowed)return;
         if(turnCount == leadSensedLastRound){
-			Comms2.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION);
+			Comms2.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION,null);
         }
     }
 

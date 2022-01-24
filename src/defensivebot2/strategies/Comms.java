@@ -277,7 +277,7 @@ public class Comms {
     }
 
     public void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
-        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType));
+        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType,null));
     }
 
     public void queueSparseSignalUpdate(SparseSignal sparseSignal){
