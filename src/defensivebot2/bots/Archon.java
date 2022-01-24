@@ -273,10 +273,6 @@ public class Archon extends Robot{
 				|| roundNum - lastTransformTurret < 50
 		) return;
 
-		if(localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null){
-			// randomly skip transformation if archons are near
-			if(rng.nextInt(4) != 1)return;
-		}
 		
     	if(phase== 1 && teamAdvanceToPhase2()) {
     		phase++;
@@ -284,7 +280,7 @@ public class Archon extends Robot{
     	//move for phase 1 : move farthest archon to nearest archon
     	if(
 				phase == 1 && teamLead<LEAD_MOVE_THRESHOLD && isFarthestFriendlyArchon()&& rc.canTransform()
-				&& localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null
+				&& localInfo.nearestFR[RobotType.ARCHON.ordinal()] == null
 		) {
     		generalTarget = getFriendlyArchonMidpoint();
     		rc.transform();
