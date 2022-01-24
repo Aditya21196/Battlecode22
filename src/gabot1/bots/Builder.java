@@ -11,11 +11,12 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 import gabot1.models.SparseSignal;
 //import gabot1.enums.DroidSubType;
+import gabot1.strategies.Comms;
+import gabot1.strategies.Comms2;
 import gabot1.utils.Constants;
 
 import static gabot1.bots.Archon.rng;
-import static gabot1.utils.Constants.BUILDER_INCH_FORWARD;
-import static gabot1.utils.Constants.directions;
+import static gabot1.utils.Constants.*;
 import static gabot1.utils.LogUtils.printDebugLog;
 import static gabot1.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
@@ -64,10 +65,7 @@ public class Builder extends Robot{
     	tryMoveAndRepair();
     	tryRepair();
     	
-    	//movement priority 2: run from danger in area
-    	if(localInfo.getEnemyDamagerCount() > localInfo.getFriendlyDamagerCount()) {
-    		tryMoveInDanger();
-    	}
+    	
     	
     	//movement priority 3: move for mutation. currently not trying to mutate laboratories
     	tryMoveForMutate();
@@ -81,6 +79,8 @@ public class Builder extends Robot{
     	//movement priority 5: 
     	tryMoveTowardBuildings();
     	
+    	//movement priority 2: run from danger in area
+    	tryMoveInDanger();
     	
     	
     	
@@ -110,6 +110,11 @@ public class Builder extends Robot{
 			}
 		}
 		
+		if(Comms2.getClosestArchon(true) != null) {
+			pathfinding.moveTowards(Comms2.getClosestArchon(true), false); rc.setIndicatorString("toward building Archon");
+			return;
+		}
+		
 	}
 
 
@@ -137,11 +142,7 @@ public class Builder extends Robot{
 		if(taskLocWT != null) {
 			//arrived at task
 			if(rc.getLocation().isWithinDistanceSquared(taskLocWT, Constants.CLOSE_RADIUS)) {
-				// check if there are watchtowers around and less enemies. If yes, go a bit further
-				if(localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]>2){
-					taskLocWT = taskLocWT.translate(enemyDir.dx*BUILDER_INCH_FORWARD,enemyDir.dy*BUILDER_INCH_FORWARD);
-					return;
-				}
+				
 
 				//build WT
 				MapLocation best = getBuildLoc();
@@ -167,12 +168,12 @@ public class Builder extends Robot{
     	
     	//System.out.println("loking for job");
     	
-    	SparseSignal signal = comms.getClosestArchon();
+    	MapLocation loc = Comms2.getClosestArchon(true);
     	//check if this builder thinks the team currently has a lab
     	if(roundsWithoutProducingGold > 20) {
     		//fixedBits == 0 means friendly archon not in threat (could be dead)
-  			if(signal != null && signal.fixedBitsVal == 0){
-				taskLocLab = getNearestCorner(signal.target);
+  			if(loc != null){
+				taskLocLab = getNearestCorner(loc);
 				return;
 			}
     		
@@ -181,21 +182,21 @@ public class Builder extends Robot{
     	if(lead < RobotType.WATCHTOWER.buildCostLead)
 			return;
 
-		// find ideal WT spot: between the closest friendly and enemy archon
+		// find ideal WT spot: build it soon a distance from friendly archons
 
 
-    	
+    	if(lead > BUILDER_LEAD_THRESH) {
+    		taskLocWT = rc.getLocation();
+    		return;
+    	}
+
     	//fixedBits == 0b00 || == 0b10 means friendly archon
-		if(signal != null && (signal.fixedBitsVal == 0 || signal.fixedBitsVal == 2)){
-			MapLocation enemyLoc = comms.getNearestEnemyLoc();
-			//System.out.println(enemyLoc);
+		if(loc != null){
+			MapLocation enemyLoc = Comms2.getClosestArchon(false);
 			if(enemyLoc != null) {
-				taskLocWT = new MapLocation(signal.target.x + (int)((enemyLoc.x-signal.target.x)*Constants.BUILDER_WATCHTOWER_FRACTION), 
-										signal.target.y + (int)((enemyLoc.y-signal.target.y)*Constants.BUILDER_WATCHTOWER_FRACTION));
-				if(localInfo.homeArchon != null){
-					enemyDir = signal.target.directionTo(enemyLoc);
-				}
-				//System.out.println("I should build a watch tower at: "+taskLocWT);
+				taskLocWT = new MapLocation(loc.x + (int)((enemyLoc.x-loc.x)*Constants.BUILDER_WATCHTOWER_FRACTION),
+										loc.y + (int)((enemyLoc.y-loc.y)*Constants.BUILDER_WATCHTOWER_FRACTION));
+				return;
 			}
 		}
 		
@@ -349,7 +350,7 @@ public class Builder extends Robot{
 
 	
     private void tryMoveInDanger() throws GameActionException {
-		if(!rc.isMovementReady()) return;
+		if(!rc.isMovementReady() || localInfo.findNearestDamager() == null) return;
 		
 		moveAway(localInfo.findNearestDamager());rc.setIndicatorString("run outnumbered");
 	}

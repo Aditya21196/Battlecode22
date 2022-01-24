@@ -13,6 +13,7 @@ public class Lab extends Robot{
 
     @Override
     public void executeRole() throws GameActionException {
+    	//localInfo.sense
     	int lead = rc.getTeamLeadAmount(rc.getTeam());
     	int rate = rc.getTransmutationRate();
     	if(rc.canTransmute() && (rate < GOOD_RATE || roundsSinceLastTransmute > 10)) {

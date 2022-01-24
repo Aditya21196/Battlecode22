@@ -8,6 +8,7 @@ import gabot4.enums.SparseSignalType;
 import gabot4.models.SparseSignal;
 import gabot4.utils.Constants;
 
+import static gabot4.bots.Archon.rng;
 import static gabot4.bots.Robot.roundNum;
 import static gabot4.bots.Robot.turnCount;
 import static gabot4.utils.Constants.*;
@@ -16,8 +17,8 @@ import static gabot4.utils.LogUtils.printDebugLog;
 public class LocalInfo {
 
     private final RobotController rc;
-    private final Comms comms;
     private final int MIN_LEAD_PASSIVE = 6;
+	public RobotType selfType;
     
     //Robot Info gathered
     public RobotInfo[] nearestFR; //nearest friendly robots of each type
@@ -26,6 +27,9 @@ public class LocalInfo {
     public int[] nearestERDist; //nearest enemy robots' distances(of each type)
     public int[] friendlyUnitCounts;
     public int[] enemyUnitCounts;
+	public int[] leadInDirection;
+	public MapLocation[] leadLocInDirection;
+	public int[] minersInDirection;
     
     public RobotInfo nearestEnemy;
     public int nearestEnemyDist;
@@ -71,15 +75,31 @@ public class LocalInfo {
     //public int lowestRubble;
     
     
-    public LocalInfo(RobotController rc,Comms comms){
+    public LocalInfo(RobotController rc){
         this.rc=rc;
-        this.comms=comms;
+		selfType=rc.getType();
     }
+
+//	private static int getBestSectorSize(int dimension){
+////        if(dimension%6 == 0)return 6;
+////        return 5;
+//		int dim7 = (int)Math.ceil(1.0*dimension/7);
+//		int dim8 = (int)Math.ceil(1.0*dimension/8);
+//		if(dim7 == dim8)return 7;
+//		// more bits saved if we choose 8
+//		return 8;
+//	}
     
     public void senseRobots(boolean forAttack, boolean forRepair, boolean forAnomaly) throws GameActionException{
 
         if(robotsSensedLastRound == turnCount)return;
         else robotsSensedLastRound = turnCount;
+
+		RobotType unitType = rc.getType();
+
+		if(unitType == RobotType.MINER){
+			minersInDirection = new int[9];
+		}
 
     	friendlyUnitCounts = new int[UNITS_AVAILABLE]; 
         enemyUnitCounts = new int[UNITS_AVAILABLE];
@@ -124,16 +144,22 @@ public class LocalInfo {
 
 
 		MapLocation loc = rc.getLocation();
-		int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
-		boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
+		int xSector = loc.x/Comms2.xSectorSize, ySector = loc.y/Comms2.ySectorSize;
+		boolean isDenseUpdateAllowed = Comms2.denseUpdateAllowed;
 
 		RobotInfo[] nearbyRobots = getRobots(forAttack);
-
+		Team team = rc.getTeam();
         for(int i = nearbyRobots.length; --i>=0;){
         	MapLocation robLoc = nearbyRobots[i].getLocation();
             int distToMe = loc.distanceSquaredTo(robLoc);
             int typeOrdinal = nearbyRobots[i].getType().ordinal();
-            if(nearbyRobots[i].getTeam() == rc.getTeam()){
+            if(nearbyRobots[i].getTeam() == team){
+
+				if(selfType == RobotType.MINER){
+					Direction direction = loc.directionTo(robLoc);
+					minersInDirection[direction.ordinal()]++;
+				}
+
             	if(nearestFriendDist>distToMe){
             		nearestFriendDist = distToMe;
                     nearestFriend = nearbyRobots[i];
@@ -154,8 +180,8 @@ public class LocalInfo {
                 }
 				if(
 						typeOrdinal == RobotType.MINER.ordinal() &&
-						isDenseUpdateAllowed && robLoc.x/comms.xSectorSize == xSector &&
-								robLoc.y/comms.ySectorSize == ySector
+						isDenseUpdateAllowed && robLoc.x/Comms2.xSectorSize == xSector &&
+								robLoc.y/Comms2.ySectorSize == ySector
 				)numMinersInSector++;
 
 
@@ -189,23 +215,35 @@ public class LocalInfo {
                 }
             }
         }
-		if(Clock.getBytecodesLeft()>5000 && comms.isDenseUpdateAllowed()){
+		if(Clock.getBytecodesLeft()>5000 && Comms2.denseUpdateAllowed){
 			int ed = getEnemyDamagerCount();
 			int val=0;
 			if(ed>3)val = 3;
 			else if(ed > 1)val = 2;
 			else if(ed == 1)val = 1;
-			comms.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS);
+			Comms2.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS,null);
 		}
+
+		// we no longer need this!
+//		if(nearestER[RobotType.ARCHON.ordinal()] == null) {
+//			Comms2.updateEnemyArchons(rc.getLocation());
+//		}
+		
+		
     }
 
 
     
     
-    public void senseLead(boolean forPassive) throws GameActionException {
+    public void senseLead(boolean forPassive,boolean forMining) throws GameActionException {
 
         if(leadSensedLastRound == turnCount)return;
         else leadSensedLastRound = turnCount;
+
+		if(forMining){
+			leadInDirection = new int[9];
+			leadLocInDirection = new MapLocation[9];
+		}
 
     	nearestLeadDist = Integer.MAX_VALUE;
     	nearestLeadLoc = null;
@@ -219,15 +257,15 @@ public class LocalInfo {
         MapLocation[] locations = getLeadLocations(forPassive);
         
         int totalLeadInSector=0;
-        int xSector = loc.x/comms.xSectorSize, ySector = loc.y/comms.ySectorSize;
+        int xSector = loc.x/Comms2.xSectorSize, ySector = loc.y/Comms2.ySectorSize;
         
-        boolean isDenseUpdateAllowed = comms.isDenseUpdateAllowed();
+        boolean isDenseUpdateAllowed = Comms2.denseUpdateAllowed;
         for(int i = locations.length; --i >= 0;){
         	//we should consider not counting lead at all, just deposits
         	int lead = rc.senseLead(locations[i]);
         	totalLead += lead;
         	totalLeadDeposits++;
-            if(isDenseUpdateAllowed && locations[i].x/comms.xSectorSize == xSector && locations[i].y/comms.ySectorSize == ySector)
+            if(isDenseUpdateAllowed && locations[i].x/Comms2.xSectorSize == xSector && locations[i].y/Comms2.ySectorSize == ySector)
                 totalLeadInSector += lead;
 
 
@@ -238,12 +276,16 @@ public class LocalInfo {
             	nearestLeadDist = distToMe;
             }
 
+			if(forMining){
+				Direction direction = loc.directionTo(locations[i]);
+				leadInDirection[direction.ordinal()] += lead;
+				// can improve to best location
+				leadLocInDirection[direction.ordinal()] = locations[i];
+			}
         }
 
-
-
 		if(robotsSensedLastRound == turnCount)totalLeadInSector /= (numMinersInSector+1);
-        if(isDenseUpdateAllowed)comms.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP);
+        if(isDenseUpdateAllowed)Comms2.queueDenseMatrixUpdate(totalLeadInSector, CommInfoBlockType.LEAD_MAP,null);
     }
 
     
@@ -265,31 +307,13 @@ public class LocalInfo {
     
     public void checkExploration(){
         // if lead was checked, we mark as explored
-        if(!comms.isDenseUpdateAllowed())return;
+        if(!Comms2.denseUpdateAllowed)return;
         if(turnCount == leadSensedLastRound){
-            comms.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION);
+			Comms2.queueDenseMatrixUpdate( 1, CommInfoBlockType.EXPLORATION,null);
         }
     }
 
-    
-//    public void checkEnemySpotted(){
-//        if(turnCount == robotsSensedLastRound && nearestEnemy!=null && roundNum<1000){
-//            comms.queueSparseSignalUpdate(new SparseSignal(SparseSignalType.ENEMY_SPOTTED,null,-1));
-//        }
-//    }
-    
-    public void checkArchonSpotted() {
-        if(turnCount == robotsSensedLastRound && nearestER[RobotType.ARCHON.ordinal()] != null){
-            comms.queueSparseSignalUpdate(
-                    new SparseSignal(
-                            SparseSignalType.ARCHON_LOCATION,
-                            nearestER[RobotType.ARCHON.ordinal()].location,
-                            -1,
-                            3// first bit is on - means enemy archon. 2nd bit means its alive
-                    )
-            );
-        }
-    }
+
     
 	/*
 	 * returns a surrounding, lowest rubble, and unoccupied location in action range of target
@@ -538,5 +562,21 @@ public class LocalInfo {
 	public void addArchon(MapLocation target, boolean isFriendly) {
 		if(isFriendly)friendlyArchons.add(target);
 		else enemyArchons.add(target);
+	}
+
+	public MapLocation getBestLead() {
+		int bestDir = -1;
+		double bestLeadPerMiner = 0;
+		for(int i=9;--i>=0;){
+			int leadPerMiner = leadInDirection[i]/(minersInDirection[i]+1);
+			if(leadPerMiner>bestLeadPerMiner){
+				bestDir = i;
+				bestLeadPerMiner = leadPerMiner;
+			}
+		}
+		if(bestLeadPerMiner > LEAD_WORTH_PURSUING){
+			return leadLocInDirection[bestDir];
+		}
+		return null;
 	}
 }

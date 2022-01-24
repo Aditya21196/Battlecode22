@@ -7,6 +7,7 @@ import gabot4.datasturctures.HashMapNodeVal;
 import gabot4.datasturctures.LinkedList;
 import gabot4.enums.CommInfoBlockType;
 import gabot4.enums.SparseSignalType;
+import gabot4.models.CommDenseMatrixUpdate;
 import gabot4.models.SparseSignal;
 
 import java.util.Map;
@@ -276,7 +277,7 @@ public class Comms {
     }
 
     public void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
-        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType));
+        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType,null));
     }
 
     public void queueSparseSignalUpdate(SparseSignal sparseSignal){
@@ -418,14 +419,7 @@ public class Comms {
         queueSparseSignalUpdate(signal);
     }
 
-    static class CommDenseMatrixUpdate{
-        int val;
-        CommInfoBlockType commInfoBlockType;
-        CommDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
-            this.val=val;
-            this.commInfoBlockType = commInfoBlockType;
-        }
-    }
+
 
     public int[][] checkMap(CommInfoBlockType commInfoBlockType) throws GameActionException{
         readSharedData();

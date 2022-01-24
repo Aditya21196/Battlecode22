@@ -40,23 +40,10 @@ public class Archon extends Robot{
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
 	private double[] minerWeights ={6.62,-5.7,-1.88,-3.33,3.27,3.15,5.01,-0.39,-6.28};
 
-//	double weight = phaseTwoWeights[2]*rc.getRobotCount() +
-//			phaseTwoWeights[3]*localInfo.getFriendlyNonDamagerCount() +
-//			phaseTwoWeights[4]*teamLead +
-//			phaseTwoWeights[5]*rc.getTeamGoldAmount(team) +
-//			phaseTwoWeights[6]*rc.getTeamLeadAmount(enemyTeam);
-//
-//
-//		if(near[0]!=null) {
-//		weight += phaseTwoWeights[1]*(1-(near[0].distanceSquaredTo(rc.getLocation())/distFar));
-//	}
-//		if(near[1]!=null) {
-//		weight += phaseTwoWeights[2]*(1-(near[1].distanceSquaredTo(rc.getLocation())/distFar));
-//	}
 
 	// closest enemy archon, nearest enemy loc, robot count, non damagers, team lead, team gold
 	// enemy team lead
-	private final double[] phaseTwoWeights ={6.62,-5.7,-1.88,-3.33,3.27,3.15,5.01,-0.39};
+	private final double[] phaseTwoWeights ={6.62,-5.7,-1.88,-3.33,3.27,3.15,5.01};
 
 	private final int randomMarkUnexplored=20;
 
@@ -100,10 +87,6 @@ public class Archon extends Robot{
 
 		if(roundNum % randomMarkUnexplored == 0){
 			Comms2.markRandomSectorUnexplored();
-		}
-
-		if(rc.getID() == 3 && roundNum>=62){
-			rc.getID();
 		}
         
     	//sense
@@ -284,12 +267,20 @@ public class Archon extends Robot{
 						|| rc.getMode() == RobotMode.PORTABLE
 						|| localInfo.nearestEnemy != null
 		) return;
+
+		if(localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null){
+			// randomly skip transformation if archons are near
+			if(rng.nextInt(4) != 1)return;
+		}
 		
     	if(phase== 1 && teamAdvanceToPhase2()) {
     		phase++;
     	}
     	//move for phase 1 : move farthest archon to nearest archon
-    	if(phase == 1 && teamLead<LEAD_MOVE_THRESHOLD && isFarthestFriendlyArchon()&& rc.canTransform()) {
+    	if(
+				phase == 1 && teamLead<LEAD_MOVE_THRESHOLD && isFarthestFriendlyArchon()&& rc.canTransform()
+				&& localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null
+		) {
     		generalTarget = getFriendlyArchonMidpoint();
     		rc.transform();
     	}
@@ -318,10 +309,10 @@ public class Archon extends Robot{
 
 
 		if(near[0]!=null) {
-			weight += phaseTwoWeights[1]*(1-(near[0].distanceSquaredTo(rc.getLocation())/distFar));
+			weight += phaseTwoWeights[0]*(1-(near[0].distanceSquaredTo(rc.getLocation())/distFar));
 		}
 		if(near[1]!=null) {
-			weight += phaseTwoWeights[2]*(1-(near[1].distanceSquaredTo(rc.getLocation())/distFar));
+			weight += phaseTwoWeights[1]*(1-(near[1].distanceSquaredTo(rc.getLocation())/distFar));
 		}
 
 		return weight>0;
@@ -513,7 +504,7 @@ public class Archon extends Robot{
     		return;
         }
         
-        if(rc.getTeamLeadAmount(rc.getTeam()) > 1000) {
+        if(rc.getTeamLeadAmount(rc.getTeam()) > BUILDER_LEAD_THRESH) {
         	failedBuildAttempt = !tryBuild(RobotType.BUILDER);
         }
     }

@@ -67,11 +67,7 @@ public class Constants {
 
     public static final int ROUNDS_PER_ACTION =3;
 
-    public static final int MAX_MAP_SIZE=60;
     public static final int UNITS_AVAILABLE=7;
-
-    // maximum 4 unit types for droid
-    public static final int UNIT_TYPE_SIGNAL_BITS=2;
 
     // meaning 1/3 of messages will be removed from comms
     public static final int INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE = 3;
@@ -89,10 +85,6 @@ public class Constants {
     // greater than half equals closer to enemies.
     public static final double BUILDER_WATCHTOWER_FRACTION =0.82;
 
-
-    public static final int LEAD_IMPORTANCE = 4;
-    public static final int LEAD_SCORE_THRESHOLD = 5;
-
     public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING =10;
 
     public static final int BUILDER_INCH_FORWARD =10;
@@ -104,6 +96,11 @@ public class Constants {
     public static final int LEAD_MOVE_THRESHOLD=100;
 
     public static final int LEAD_WORTH_PURSUING=10;
+
+    // 1- 10 (for genetic algo to adjust)
+    public static final int CHOOSE_SECTOR_GA=4;
+
+    public static final int BUILDER_LEAD_THRESH=500;
 
 
 }

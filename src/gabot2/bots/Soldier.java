@@ -1,21 +1,20 @@
 package gabot2.bots;
 
-//import static defensivebot.utils.Constants.ARCHON_DEATH_CONFIRMATION;
 
 import battlecode.common.*;
-import gabot2.models.SparseSignal;
-import gabot2.datasturctures.CustomSet;
+import gabot2.enums.TaskType;
+import gabot2.models.Task;
+import gabot2.strategies.Comms2;
 import gabot2.utils.Constants;
 
-import static gabot2.utils.LogUtils.printDebugLog;
 import static gabot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
 public class Soldier extends Robot{
-	
-	private MapLocation taskLoc = null;
+
 	private boolean isMapExplored = false;
 	private boolean tryTargetFromComms = true;
 	//private CustomSet<MapLocation> discoveredArchons = new CustomSet<>(5);
+	private Task task=null;
 	
 	
     public Soldier(RobotController rc) throws GameActionException  {
@@ -26,13 +25,12 @@ public class Soldier extends Robot{
     @Override
     public void executeRole() throws GameActionException {
         //sense robots, track lowest hp by type as well
-    	
-    	if(turnCount % 100 == 0) {
+
+    	if(turnCount % 20 == 0) {
     		isMapExplored = false;
     	}
     	
     	if(turnCount % 30 == 0) {
-    		taskLoc = null;
 			tryTargetFromComms = true;
     	}
     	
@@ -68,6 +66,14 @@ public class Soldier extends Robot{
     	//TODO: movement priority for after tasks (repel FArchons?)
     	
     	trySenseResources();
+
+		// If movement cooldown wasn't used and attack cooldown wasn't used, move to random location
+		if(rc.getMovementCooldownTurns() == 0 && rc.getActionCooldownTurns() == 0){
+//			taskLoc = new MapLocation(rng.nextInt(width),rng.nextInt(height));
+//			printDebugLog("new task loc: "+taskLoc);
+//			printDebugLog("distance from center: "+taskLoc.distanceSquaredTo(new MapLocation(width/2,height/2)));
+		}
+		tryMoveOnTask();
     }
 
     private void tryMoveRepelFriends() throws GameActionException {
@@ -78,21 +84,54 @@ public class Soldier extends Robot{
 	}
     
     private void tryMoveOnTask() throws GameActionException {
-		if(!rc.isMovementReady() || taskLoc == null) return;
+		if(!rc.isMovementReady() || task == null) return;
 		//arrived at task
-		if(rc.getLocation().isWithinDistanceSquared(taskLoc, Constants.CLOSE_RADIUS)) {
-			taskLoc = null;
-			return;
+
+		if(task.target != null){
+			switch (task.type){
+				case EXPLORE:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.CLOSE_RADIUS)){
+						task = null;
+						tryTargetFromComms = true;
+						return;
+					}
+					break;
+				case DEFEND_ARCHON:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.ARCHON_DEATH_CONFIRMATION)){
+						RobotInfo fArchon = localInfo.nearestFR[RobotType.ARCHON.ordinal()];
+						if(fArchon != null && !fArchon.location.equals(task.target)){
+							task.target = fArchon.location;
+						}else if(localInfo.nearestEnemy == null){
+							Comms2.markTaskDone(task);
+							task = null;
+							tryTargetFromComms = true;
+							return;
+						}
+					}
+					break;
+				case ATTACK_ARCHON:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.ARCHON_DEATH_CONFIRMATION)){
+						RobotInfo eArchon = localInfo.nearestER[RobotType.ARCHON.ordinal()];
+						if(eArchon == null){
+							Comms2.markTaskDone(task);
+							task = null;
+							tryTargetFromComms = true;
+							return;
+						}
+					}
+			}
+
 		}
-		// TODO: if bc<250, don't move. just attack
+
+//		if(rc.getLocation().isWithinDistanceSquared(taskLoc, Constants.CLOSE_RADIUS)) {
+//			taskLoc = null;
+//			return;
+//		}
 		int bc = Clock.getBytecodesLeft();
 		if(bc>SOLDIER_PATHFINDING_LIMIT){
-			pathfinding.moveTowards(taskLoc,false);rc.setIndicatorString("best task loc: "+taskLoc);
-		}else moveToward(taskLoc);rc.setIndicatorString("best task loc: "+taskLoc);
+			pathfinding.moveTowards(task.target,false);rc.setIndicatorString("best task loc: "+task.target);
+		}else moveToward(task.target);rc.setIndicatorString("best task loc: "+task.target);
 
-		if(rc.isMovementReady()) {
-			taskLoc = null;
-		}
 	}
     
     //strategy is to only read from comms one piece of info per turn
@@ -101,30 +140,23 @@ public class Soldier extends Robot{
   		
   		//got target from comms last time you checked, therefore try again
   		if(tryTargetFromComms) {
-  			SparseSignal signal = comms.getClosestArchonMarked();
-  			if(signal != null){
-				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
-					comms.markArchonLocationSafe(signal);
-				} 
-				taskLoc = signal.target;
-			}
-  			tryTargetFromComms = signal != null;
+  			task = Comms2.getAttackTask();
+  			tryTargetFromComms = task != null;
   		}
   		
   		//did not get target from comms last time, try to get an exploration task
   		else if(!isMapExplored) {
   			//reset lead found state to look for lead next time
   			tryTargetFromComms = true;
-  			taskLoc = comms.getNearbyUnexplored();
-  			if(taskLoc == null) {
+  			MapLocation loc = Comms2.getNearbyUnexplored();
+  			if(loc == null) {
   				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
-  			}
+  			}else task = new Task(TaskType.EXPLORE,loc);
   		}
   		
   		else {
   			//reset found state to look for lead next time
   			tryTargetFromComms = true;
-
   		}
   		
   		tryMoveOnTask();
@@ -138,7 +170,7 @@ public class Soldier extends Robot{
 
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 3000) {
-			localInfo.senseLead(false);
+			localInfo.senseLead(false,false);
 		}
 		if(Clock.getBytecodesLeft() > 2000) {
 			localInfo.senseGold();
@@ -384,12 +416,9 @@ public class Soldier extends Robot{
 			pathfinding.moveTowards(best,false);rc.setIndicatorString("best task loc: "+best);
 		}else moveToward(best);rc.setIndicatorString("best task loc: "+best);
 
-
 		if(!rc.isActionReady())
 			return;
-		
 		tryAttack(target);
-		
 	}
 
 	
