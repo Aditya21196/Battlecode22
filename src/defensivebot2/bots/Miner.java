@@ -14,8 +14,6 @@ public class Miner extends Robot{
 	public Miner(RobotController rc) throws GameActionException  {
         super(rc);
     }
-    
-	
 
     @Override
     public void executeRole() throws GameActionException {
@@ -31,7 +29,7 @@ public class Miner extends Robot{
     	
     	localInfo.senseRobots(false, false, false);
     	localInfo.senseGold();
-    	localInfo.senseLead(true);
+    	localInfo.senseLead(true,true);
 
     	//movement priority 0: repel friends before charge anomaly (maybe if enemy sage is in range later)
     	AnomalyScheduleEntry  next = getNextAnomaly();
@@ -152,14 +150,18 @@ public class Miner extends Robot{
 	
 	private void tryMoveToLead() throws GameActionException {
 		if(!rc.isMovementReady()) return;
-		
-		if(localInfo.nearestLeadLoc != null) {
-			MapLocation best = localInfo.getBestLocInRange(localInfo.nearestLeadLoc);
-			if(best == null) {
-				best = localInfo.nearestLeadLoc;
-			}
-			moveToward(best);rc.setIndicatorString("best lead loc: "+best);
-		}
+
+		MapLocation best = localInfo.getBestLead();
+
+
+//		if(best == null && localInfo.nearestLeadLoc != null) {
+//			best = localInfo.getBestLocInRange(localInfo.nearestLeadLoc);
+//			if(best == null) {
+//				best = localInfo.nearestLeadLoc;
+//			}
+//		}
+
+		if(best != null)moveToward(best);rc.setIndicatorString("best lead loc: "+best);
 	}
    
     

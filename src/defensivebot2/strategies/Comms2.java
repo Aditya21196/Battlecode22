@@ -8,6 +8,7 @@ import defensivebot2.enums.TaskType;
 import defensivebot2.models.CommDenseMatrixUpdate;
 import defensivebot2.models.Task;
 
+import static defensivebot2.bots.Archon.rng;
 import static defensivebot2.utils.Constants.*;
 import static defensivebot2.utils.CustomMath.*;
 import static defensivebot2.utils.LogUtils.printDebugLog;
@@ -99,7 +100,12 @@ public class Comms2 {
     private static void processDenseSignalUpdates(int[] updatedCommsValues){
         while(commUpdateLinkedList.size>0){
             CommDenseMatrixUpdate update = commUpdateLinkedList.dequeue().val;
-            int offset = getCommOffset(update.commInfoBlockType,curSectorX,curSectorY);
+            int secX = curSectorX,secY = curSectorY;
+            if(update.targetOverride != null){
+                secX = update.targetOverride.x/xSectorSize;
+                secY = update.targetOverride.y/ySectorSize;
+            }
+            int offset = getCommOffset(update.commInfoBlockType,secX,secY);
             writeBits(updatedCommsValues,offset,update.commInfoBlockType.getStoreVal(update.val),update.commInfoBlockType.blockSize);
         }
     }
@@ -220,8 +226,8 @@ public class Comms2 {
         return val;
     }
 
-    public static void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
-        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType));
+    public static void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType,MapLocation location){
+        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType,location));
     }
 
     public static void markTaskDone(Task task) throws GameActionException {
@@ -282,6 +288,9 @@ public class Comms2 {
     }
 
     private static void removeData(FixedDataSignalType fixedDataSignalType) throws GameActionException {
+        if(fixedDataSignalType == FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX){
+            rc.getID();
+        }
         rc.writeSharedArray(fixedDataSignalType.arrayIdx,0);
         int newAvailability = modifyBit(data[AVAILAIBILITY_IDX],fixedDataSignalType.availabilityIdx,0);
         data[AVAILAIBILITY_IDX] = newAvailability;
@@ -297,64 +306,63 @@ public class Comms2 {
             // first archon available
             int val = data[FixedDataSignalType.FIRST_FRIENDLY_ARCHON_IDX.arrayIdx];
             friendlyArchons[0] = getMapLocationFromSectorInfo(val);
-        }
+        }else friendlyArchons[0] = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 1)) >0){
             // 2nd archon available
             int val = data[FixedDataSignalType.SECOND_FRIENDLY_ARCHON_IDX.arrayIdx];
             friendlyArchons[1] = getMapLocationFromSectorInfo(val);
-        }
+        }else friendlyArchons[1] = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 2)) >0){
             // 3rd archon available
             int val = data[FixedDataSignalType.THIRD_FRIENDLY_ARCHON_IDX.arrayIdx];
             friendlyArchons[2] = getMapLocationFromSectorInfo(val);
-        }
+        }else friendlyArchons[2] = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 3)) >0){
             // 4th archon available
             int val = data[FixedDataSignalType.FOURTH_FRIENDLY_ARCHON_IDX.arrayIdx];
             friendlyArchons[3] = getMapLocationFromSectorInfo(val);
-        }
+        }else friendlyArchons[3] = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 4)) >0){
             // first enemy archon available
             int val = data[FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX.arrayIdx];
             enemyArchons[0] = getMapLocationFromSectorInfo(val);
-        }
+        }else enemyArchons[0] = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 5)) >0){
             // 2nd enemy archon available
             int val = data[FixedDataSignalType.SECOND_ENEMY_ARCHON_IDX.arrayIdx];
             enemyArchons[1] = getMapLocationFromSectorInfo(val);
-        }
+        }else enemyArchons[1] = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 6)) >0){
             // 3rd enemy archon available
             int val = data[FixedDataSignalType.THRID_ENEMY_ARCHON_IDX.arrayIdx];
             enemyArchons[2] = getMapLocationFromSectorInfo(val);
-        }
+        }else enemyArchons[2] = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 7)) >0){
             // 3rd enemy archon available
             int val = data[FixedDataSignalType.FOURTH_ENEMY_ARCHON_IDX.arrayIdx];
             enemyArchons[3] = getMapLocationFromSectorInfo(val);
-        }
+        }else enemyArchons[3] = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 8)) >0){
             // 1st gather point available
             int val = data[FixedDataSignalType.FIRST_GATHER_POINT.arrayIdx];
             int taskType = val & 3;
             firstTask = new Task(TaskType.values()[taskType],getMapLocationFromSectorInfo(val >> 2));
-
-        }
+        }else firstTask = null;
 
         if((data[AVAILAIBILITY_IDX] &  (1 << 9)) >0){
             // 2nd gather point available
             int val = data[FixedDataSignalType.SECOND_GATHER_POINT.arrayIdx];
             int taskType = val & 3;
             secondTask = new Task(TaskType.values()[taskType],getMapLocationFromSectorInfo(val >> 2));
-        }
+        }else secondTask = null;
     }
 
     public static void registerEnemyArchon() throws GameActionException {
@@ -458,5 +466,11 @@ public class Comms2 {
             }
         }
         return out;
+    }
+
+    public static void markRandomSectorUnexplored() {
+        int x = rng.nextInt(w);
+        int y = rng.nextInt(h);
+        queueDenseMatrixUpdate(0,CommInfoBlockType.EXPLORATION,new MapLocation(x,y));
     }
 }

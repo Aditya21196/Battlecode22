@@ -101,5 +101,9 @@ public class Constants {
 
 	public static final int ARCHON_CLOSE_RADIUS = 100;
 
+    public static final int LEAD_MOVE_THRESHOLD=100;
+
+    public static final int LEAD_WORTH_PURSUING=10;
+
 
 }
