@@ -282,6 +282,9 @@ public class Comms2 {
     }
 
     private static void removeData(FixedDataSignalType fixedDataSignalType) throws GameActionException {
+        if(fixedDataSignalType == FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX){
+            rc.getID();
+        }
         rc.writeSharedArray(fixedDataSignalType.arrayIdx,0);
         int newAvailability = modifyBit(data[AVAILAIBILITY_IDX],fixedDataSignalType.availabilityIdx,0);
         data[AVAILAIBILITY_IDX] = newAvailability;

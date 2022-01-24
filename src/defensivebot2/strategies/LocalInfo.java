@@ -207,10 +207,11 @@ public class LocalInfo {
 			else if(ed == 1)val = 1;
 			Comms2.queueDenseMatrixUpdate(val,CommInfoBlockType.ENEMY_UNITS);
 		}
-		
-		if(nearestER[RobotType.ARCHON.ordinal()] == null) {
-			Comms2.updateEnemyArchons(rc.getLocation());
-		}
+
+		// we no longer need this!
+//		if(nearestER[RobotType.ARCHON.ordinal()] == null) {
+//			Comms2.updateEnemyArchons(rc.getLocation());
+//		}
 		
 		
     }
