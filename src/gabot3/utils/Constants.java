@@ -59,13 +59,13 @@ public class Constants {
             { -1, 3 }, { 0, 4 }, { 1, 3 }, { 2, 2 }, { 3, 1 }, { 4, -1 }, { 3, -2 }, { 2, -3 }, { 1, -4 }, { -1, -4 }};
 
     public static final int LEAD_LOWER_THRESHOLD_FOR_SENSING =9;
-    public static final int LEAD_UPPER_THRESHOLD_FOR_SENSING =26;
+    public static final int LEAD_UPPER_THRESHOLD_FOR_SENSING =21;
 
     //set to best case for miners (0 rubble means miners can mine 5 times)
-    public static final double MINES_PER_ROUND =4.84;
-    public static final int CLOSE_RADIUS =4;
+    public static final double MINES_PER_ROUND =13.0;
+    public static final int CLOSE_RADIUS =5;
 
-    public static final int ROUNDS_PER_ACTION =2;
+    public static final int ROUNDS_PER_ACTION =3;
 
     public static final int UNITS_AVAILABLE=7;
 
@@ -75,32 +75,32 @@ public class Constants {
     // comms cleanup
     public static final int EXTRA_BYTECODE_FOR_COMMS_CLEANUP =7200;
 
-    public static final int DENSE_COMMS_UPDATE_LIMIT =1;
+    public static final int DENSE_COMMS_UPDATE_LIMIT =3;
 
     // only say archon is dead if you are very close to center of sector
-    public static final int ARCHON_DEATH_CONFIRMATION =4;
+    public static final int ARCHON_DEATH_CONFIRMATION =2;
 
-    public static final int RUN_ROUNDS_BEFORE_CHARGE =10;
+    public static final int RUN_ROUNDS_BEFORE_CHARGE =7;
 
     // greater than half equals closer to enemies.
-    public static final double BUILDER_WATCHTOWER_FRACTION =0.35;
+    public static final double BUILDER_WATCHTOWER_FRACTION =0.94;
 
-    public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING =11;
+    public static final int ROBOTS_UPPER_THRESHOLD_FOR_SENSING =10;
 
-    public static final int BUILDER_INCH_FORWARD =7;
+    public static final int BUILDER_INCH_FORWARD =10;
 
 	public static final int ARCHON_LOW_RUBBLE = 10;
 
-	public static final int ARCHON_CLOSE_RADIUS =95;
+	public static final int ARCHON_CLOSE_RADIUS =116;
 
-    public static final int LEAD_MOVE_THRESHOLD=67;
+    public static final int LEAD_MOVE_THRESHOLD=100;
 
-    public static final int LEAD_WORTH_PURSUING=5;
+    public static final int LEAD_WORTH_PURSUING=10;
 
     // 1- 10 (for genetic algo to adjust)
     public static final int CHOOSE_SECTOR_GA=4;
 
-    public static final int BUILDER_LEAD_THRESH=500;
+    public static final int BUILDER_LEAD_THRESH=660;
 
 
 }

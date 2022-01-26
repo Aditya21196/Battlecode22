@@ -34,18 +34,18 @@ public class Archon extends Robot{
 
 	//soldier threshold, distance to marked archon,distance to enemy,distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-	private double[] soldierWeights ={-7.08,-3.74,5.1,-8.5,1.02,-1.13,0.64,5.5,-2.46};
+	private double[] soldierWeights ={9.46,-1.07,-3.5,8.64,5.23,3.22,-1.35,2.9,-5.91};
 
 	//miner threshold, distance to marked archon, distance to enemy, distance to lead
 	// distance to unexplored, soldier count, miner count, team lead, nearestCorner
-	private double[] minerWeights ={4.0,-2.96,6.32,1.4,-1.13,-4.29,0.29,-5.75,-0.81};
+	private double[] minerWeights ={6.62,-2.16,-1.88,-3.33,-1.5,3.15,-5.81,-0.39,8.92};
 
 
 	// closest enemy archon, nearest enemy loc, robot count, non damagers, team lead, team gold
 	// enemy team lead
-	private final double[] phaseTwoWeights ={-1.99,-3.46,1.49,3.24,1.17,-3.42,-1.42};
+	private final double[] phaseTwoWeights ={6.62,-2.7,-1.88,-3.33,0.52,3.15,5.01};
 
-	private final int randomMarkUnexplored=67;
+	private final int randomMarkUnexplored=16;
 
     MapLocation nearestCorner;
     
@@ -273,10 +273,6 @@ public class Archon extends Robot{
 				|| roundNum - lastTransformTurret < 50
 		) return;
 
-		if(localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null){
-			// randomly skip transformation if archons are near
-			if(rng.nextInt(4) != 1)return;
-		}
 		
     	if(phase== 1 && teamAdvanceToPhase2()) {
     		phase++;
@@ -284,7 +280,7 @@ public class Archon extends Robot{
     	//move for phase 1 : move farthest archon to nearest archon
     	if(
 				phase == 1 && teamLead<LEAD_MOVE_THRESHOLD && isFarthestFriendlyArchon()&& rc.canTransform()
-				&& localInfo.nearestFR[RobotType.ARCHON.ordinal()] != null
+				&& localInfo.nearestFR[RobotType.ARCHON.ordinal()] == null
 		) {
     		generalTarget = getFriendlyArchonMidpoint();
     		rc.transform();

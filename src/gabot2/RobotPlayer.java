@@ -11,7 +11,7 @@ public strictfp class RobotPlayer {
 
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
-
+//        System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
 
         // You can also use indicators to save debug notes in replays.
 //        rc.setIndicatorString("Hello world!");
@@ -32,7 +32,7 @@ public strictfp class RobotPlayer {
                 System.out.println(rc.getType() + " Exception. Fix!");
                 e.printStackTrace();
             } finally {
-
+//                System.out.println("Bytecode: "+Clock.getBytecodesLeft()+" unit: "+rc.getType());
                 Clock.yield();
             }
         }
