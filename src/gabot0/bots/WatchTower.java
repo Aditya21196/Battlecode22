@@ -9,13 +9,19 @@ import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+import battlecode.common.RobotMode;
 import battlecode.common.RobotType;
 import gabot0.models.SparseSignal;
+import gabot0.strategies.Comms2;
 import gabot0.utils.Constants;
 
 public class WatchTower extends Robot{
 	
-	private MapLocation taskLoc = null;
+	private MapLocation finalTarget;
+	private MapLocation generalTarget;
+	
+	private int roundsUseless = 0;
+	private int finalTargetRubble;
 	
     public WatchTower(RobotController rc) throws GameActionException  {
         super(rc);
@@ -26,30 +32,142 @@ public class WatchTower extends Robot{
         //sense robots, track lowest hp by type as well
 
     	localInfo.senseRobots(true, false, false);
-    	
-//    	//movement priority 0: WatchTower might want to transform and move during fury
-//    	AnomalyScheduleEntry  next = getNextAnomaly();
-//    	if(next != null && next.anomalyType == AnomalyType.CHARGE && next.roundNumber - rc.getRoundNum() < Constants.RUN_ROUNDS_BEFORE_CHARGE) {
-//    		tryMoveRepelFriends();
-//    	}
-    	
-    	verbose("bytecode remaining after sensing: "+ Clock.getBytecodesLeft());
-    	//movement priority 1: run from danger in area if out numbered (in this case we should attack first if able)
+
 
     	tryAttackBestTarget();
     	
     	tryAttack();
     	
+    	tryTransformPortable();
+
+        tryTransformTurret();
+
+        tryMove();
+    	
     	trySenseResources();
     }
 
-    
+    private void tryTransformTurret() throws GameActionException {
+    	if(!rc.isMovementReady() || rc.getMode() == RobotMode.TURRET) return;
+    	
+    	if(
+				(finalTarget != null && finalTarget.equals(rc.getLocation()) && rc.canTransform())
+				|| (
+						localInfo.nearestEnemy != null
+								&& currentLocation.isWithinDistanceSquared(localInfo.nearestEnemy.location,RobotType.WATCHTOWER.actionRadiusSquared)
+								&& rc.canTransform()
+				)
+		) {
+    		rc.transform();
+    		finalTarget = null;
+    	}
+    	
+		
+	}
+
+	private void tryMove() throws GameActionException {
+    	if(!rc.isMovementReady() || rc.getMode() == RobotMode.TURRET) return;
+		
+    	//whenever final target is set
+    	if(finalTarget != null) {
+    		updateFinalTarget();
+    		pathfinding.moveTowards(finalTarget, false);rc.setIndicatorString("ft: "+finalTarget); 
+    		return;
+    	}
+    	
+    	if(localInfo.getEnemyDamagerCount() > 0) {
+			updateFinalTarget();
+			return;
+		}
+    	
+    	generalTarget = Comms2.getClosestArchon(false);
+    	
+    	//move toward general targets
+    	if(generalTarget != null && generalTarget.isWithinDistanceSquared(rc.getLocation(), Constants.CLOSE_RADIUS)) {
+    		updateFinalTarget();
+    		return;
+    	}
+    		
+    	
+    	if(generalTarget != null) {
+    		pathfinding.moveTowards(generalTarget, false);
+    		return;
+    	}
+    	
+	}
+
+	private void updateFinalTarget() throws GameActionException {
+		//final target is still good keep it
+		if(finalTarget != null && !rc.canSenseRobotAtLocation(finalTarget) && finalTargetRubble < Constants.ARCHON_LOW_RUBBLE) {
+			return;
+		}
+		
+		//finalTarget is compromised or hasn't been searched for
+		int lowRubble = Integer.MAX_VALUE;
+		MapLocation lowLoc = null;
+		
+		MapLocation[] visable = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(), rc.getType().visionRadiusSquared);
+		
+		int tempRubble;
+		for(int i = 0; i < visable.length; i+=3) {
+			if(rc.canSenseRobotAtLocation(visable[i]))
+				continue;
+			
+			tempRubble = rc.senseRubble(visable[i]);
+			if(tempRubble < lowRubble) {
+				if(tempRubble < Constants.ARCHON_LOW_RUBBLE) {
+					finalTarget = visable[i];
+					finalTargetRubble = tempRubble;
+					return;
+				}
+				lowLoc = visable[i];
+				lowRubble = tempRubble;
+			}
+		}
+		
+		finalTarget = lowLoc;
+		finalTargetRubble = lowRubble;
+		
+		return;
+	}
+
+	private void tryTransformPortable() throws GameActionException {
+		//attacked previously
+    	if(!rc.isActionReady()) {
+    		roundsUseless = 0;
+    		return;
+    	}
+		if(rc.getMode() == RobotMode.PORTABLE) return;
+		
+		roundsUseless++;
+		
+		rc.setIndicatorString(""+roundsUseless);
+		
+    	if(roundsUseless > 20) {
+    		MapLocation target = Comms2.getClosestArchon(false);
+    		if(target != null && rc.canTransform()) {
+        		rc.transform();
+        		generalTarget = target;
+        		
+        	}
+    	}
+    	
+    	if(roundsUseless > 50) {
+    		MapLocation target = Comms2.getClosestArchon(true);
+    		if(target != null && rc.canTransform()) {
+        		rc.transform();
+        		generalTarget = new MapLocation(rc.getMapWidth() - target.x -1, rc.getMapHeight() - target.y -1);
+        		
+        	}
+    	}
+    	
+	}
 
 	private void trySenseResources() throws GameActionException {
-		if(Clock.getBytecodesLeft() > 3000) {
-			localInfo.senseLead(false);
+		if(Clock.getBytecodesLeft() > 4000) {
+			localInfo.senseLead(false,false);
 		}
-		if(Clock.getBytecodesLeft() > 2000) {
+		if(Clock.getBytecodesLeft() > 3000) {
 			localInfo.senseGold();
 		}
 	}

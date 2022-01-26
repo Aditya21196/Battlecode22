@@ -16,8 +16,7 @@ import defensivebot2.strategies.Comms2;
 import defensivebot2.utils.Constants;
 
 import static defensivebot2.bots.Archon.rng;
-import static defensivebot2.utils.Constants.BUILDER_INCH_FORWARD;
-import static defensivebot2.utils.Constants.directions;
+import static defensivebot2.utils.Constants.*;
 import static defensivebot2.utils.LogUtils.printDebugLog;
 import static defensivebot2.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
@@ -186,7 +185,7 @@ public class Builder extends Robot{
 		// find ideal WT spot: build it soon a distance from friendly archons
 
 
-    	if(lead > 1000) {
+    	if(lead > BUILDER_LEAD_THRESH) {
     		taskLocWT = rc.getLocation();
     		return;
     	}

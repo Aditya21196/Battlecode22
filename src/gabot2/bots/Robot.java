@@ -2,6 +2,7 @@ package gabot2.bots;
 
 import battlecode.common.*;
 import gabot2.strategies.Comms;
+import gabot2.strategies.Comms2;
 import gabot2.strategies.LocalInfo;
 import gabot2.strategies.Pathfinding;
 import gabot2.utils.*;
@@ -21,7 +22,6 @@ public abstract class Robot {
     public MapLocation currentLocation;
     public static int turnCount;
 	protected LocalInfo localInfo;
-	protected Comms comms;
 	MapLocation bottomLeft;
 	MapLocation bottomRight;
 	MapLocation topLeft;
@@ -47,11 +47,9 @@ public abstract class Robot {
 		type = rc.getType();
         anomalies = rc.getAnomalySchedule();
         anomalyIndex = 0;
-		comms = new Comms(rc);
-		localInfo = new LocalInfo(rc,comms);
 
-		// can lead to cyclic dependency if not used properly
-		comms.setLocalInfo(localInfo);
+		localInfo = new LocalInfo(rc);
+		Comms2.init(localInfo,rc);
 		turnCount = 0;
 		height = rc.getMapHeight();
 		width = rc.getMapWidth();
@@ -93,19 +91,22 @@ public abstract class Robot {
         turnCount++;
         roundNum = rc.getRoundNum();
         currentLocation = rc.getLocation();
+		Comms2.initTurn();
+		Comms2.updateCommsInfo();
 
 		executeRole();
-		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
+//		verbose("bytecode remaining after acting: "+ Clock.getBytecodesLeft());
 
 		//verbose("lead count: "+rc.getTeamLeadAmount(team));
 
+		//TODO move to localInfo
 		localInfo.checkExploration();
 //		localInfo.checkEnemySpotted();
 
-		localInfo.checkArchonSpotted();
-		comms.processUpdateQueues();
+		Comms2.registerEnemyArchon();
+		Comms2.processUpdateQueues();
 
-		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
+//		verbose("bytecode remaining after comms: "+ Clock.getBytecodesLeft());
 
 		// TODO: decide byte code limit for cleaning dynamically?
 		//if(comms.isSignalArrayFull && Clock.getBytecodesLeft()<EXTRA_BYTECODE_FOR_COMMS_CLEANUP)comms.cleanComms();

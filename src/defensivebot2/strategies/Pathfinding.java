@@ -43,7 +43,7 @@ public class Pathfinding {
                 MapLocation consider;
                 double dist;
                 double minDist = Double.MAX_VALUE;
-                for(int i=2*VISION_RADIUS+VISION_RADIUS_BIAS;--i>=0;){
+                for(int i=2*VISION_RADIUS+VISION_BIAS;--i>=0;){
                     if(itrIdx>=32)itrIdx -= 32;
                     consider = currentLocation.translate(BORDER20[itrIdx][0],BORDER20[itrIdx][1]);
                     // TODO: Should we ignore occupying unit? When?

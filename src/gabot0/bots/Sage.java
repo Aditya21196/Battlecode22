@@ -2,21 +2,17 @@ package gabot0.bots;
 
 import static gabot0.utils.PathFindingConstants.SOLDIER_PATHFINDING_LIMIT;
 
-import battlecode.common.AnomalyScheduleEntry;
-import battlecode.common.AnomalyType;
-import battlecode.common.Clock;
-import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
+import gabot0.enums.TaskType;
 import gabot0.models.SparseSignal;
+import gabot0.models.Task;
+import gabot0.strategies.Comms2;
 import gabot0.utils.Constants;
 
 public class Sage extends Robot{
-    private MapLocation taskLoc = null;
 	private boolean isMapExplored = false;//TODO:reset this to false every 100 rounds or so
 	private boolean tryTargetFromComms = true;
+	private Task task=null;
 	
 	public Sage(RobotController rc) throws GameActionException  {
         super(rc);
@@ -92,57 +88,81 @@ public class Sage extends Robot{
 	}
     
     private void tryMoveOnTask() throws GameActionException {
-		if(!rc.isMovementReady() || taskLoc == null) return;
-		//arrived at task
-		if(rc.getLocation().isWithinDistanceSquared(taskLoc, Constants.CLOSE_RADIUS)) {
-			taskLoc = null;
-			return;
+		if(!rc.isMovementReady() || task == null) return;
+
+		if(task.target != null){
+			switch (task.type){
+				case EXPLORE:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.CLOSE_RADIUS)){
+						task = null;
+						tryTargetFromComms = true;
+						return;
+					}
+					break;
+				case DEFEND_ARCHON:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.ARCHON_DEATH_CONFIRMATION)){
+						RobotInfo fArchon = localInfo.nearestFR[RobotType.ARCHON.ordinal()];
+						if(fArchon != null && !fArchon.location.equals(task.target)){
+							task.target = fArchon.location;
+						}else if(localInfo.nearestEnemy == null){
+							Comms2.markTaskDone(task);
+							task = null;
+							tryTargetFromComms = true;
+							return;
+						}
+					}
+					break;
+				case ATTACK_ARCHON:
+					if(rc.getLocation().isWithinDistanceSquared(task.target, Constants.ARCHON_DEATH_CONFIRMATION)){
+						RobotInfo eArchon = localInfo.nearestER[RobotType.ARCHON.ordinal()];
+						if(eArchon == null){
+							Comms2.markTaskDone(task);
+							task = null;
+							tryTargetFromComms = true;
+							return;
+						}
+					}
+			}
+
 		}
-		// TODO: if bc<250, don't move. just attack
+
 		int bc = Clock.getBytecodesLeft();
 		if(bc>SOLDIER_PATHFINDING_LIMIT){
-			pathfinding.moveTowards(taskLoc,false);rc.setIndicatorString("best task loc: "+taskLoc);
-		}else moveToward(taskLoc);rc.setIndicatorString("best task loc: "+taskLoc);
+			pathfinding.moveTowards(task.target,false);rc.setIndicatorString("best task loc: "+task.target);
+		}else moveToward(task.target);rc.setIndicatorString("best task loc: "+task.target);
 
 		if(rc.isMovementReady()) {
-			taskLoc = null;
+			task = null;
 		}
 	}
-    
-    //strategy is to only read from comms one piece of info per turn
-  	private void tryMoveNewTask() throws GameActionException {
-  		if(!rc.isMovementReady()) return;
-  		
-  		//got target from comms last time you checked, therefore try again
-  		if(tryTargetFromComms) {
-  			SparseSignal signal = comms.getClosestArchonMarked();
-  			if(signal != null){
-				if(rc.getLocation().isWithinDistanceSquared(signal.target, Constants.ARCHON_DEATH_CONFIRMATION) && localInfo.nearestEnemy == null){
-					comms.markArchonLocationSafe(signal);
-				} 
-				taskLoc = signal.target;
-			}
-  			tryTargetFromComms = signal != null;
-  		}
-  		
-  		//did not get target from comms last time, try to get an exploration task
-  		else if(!isMapExplored) {
-  			//reset lead found state to look for lead next time
-  			tryTargetFromComms = true;
-  			taskLoc = comms.getNearbyUnexplored();
-  			if(taskLoc == null) {
-  				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
-  			}
-  		}
-  		
-  		else {
-  			//reset lead found state to look for lead next time
-  			tryTargetFromComms = true;
 
-  		}
-  		
-  		tryMoveOnTask();
-  	}
+	//strategy is to only read from comms one piece of info per turn
+	private void tryMoveNewTask() throws GameActionException {
+		if(!rc.isMovementReady()) return;
+
+		//got target from comms last time you checked, therefore try again
+		if(tryTargetFromComms) {
+			task = Comms2.getAttackTask();
+			tryTargetFromComms = task != null;
+		}
+
+		//did not get target from comms last time, try to get an exploration task
+		else if(!isMapExplored) {
+			//reset lead found state to look for lead next time
+			tryTargetFromComms = true;
+			MapLocation loc = Comms2.getNearbyUnexplored();
+			if(loc == null) {
+				isMapExplored = true; // assume map is fully explored when BFS25 yields no result
+			}else task = new Task(TaskType.EXPLORE,loc);
+		}
+
+		else {
+			//reset found state to look for lead next time
+			tryTargetFromComms = true;
+		}
+
+		tryMoveOnTask();
+	}
     
     private void tryMoveInDanger() throws GameActionException {
 		if(!rc.isMovementReady()) return;
@@ -153,7 +173,7 @@ public class Sage extends Robot{
 
 	private void trySenseResources() throws GameActionException {
 		if(Clock.getBytecodesLeft() > 3000) {
-			localInfo.senseLead(false);
+			localInfo.senseLead(false,false);
 		}
 		if(Clock.getBytecodesLeft() > 2000) {
 			localInfo.senseGold();
@@ -276,10 +296,10 @@ public class Sage extends Robot{
 				localInfo.friendlyUnitCounts[RobotType.WATCHTOWER.ordinal()]*RobotType.WATCHTOWER.health/10 +
 				localInfo.friendlyUnitCounts[RobotType.LABORATORY.ordinal()]*RobotType.LABORATORY.health/10;
 			int robotDamage =
-				localInfo.friendlyUnitCounts[RobotType.SOLDIER.ordinal()]*RobotType.SOLDIER.health/10 +
-				localInfo.friendlyUnitCounts[RobotType.MINER.ordinal()]*RobotType.WATCHTOWER.health/10 +
-				localInfo.friendlyUnitCounts[RobotType.SAGE.ordinal()]*RobotType.SAGE.health/10 +
-				localInfo.friendlyUnitCounts[RobotType.BUILDER.ordinal()]*RobotType.BUILDER.health/10;
+				(int)(localInfo.friendlyUnitCounts[RobotType.SOLDIER.ordinal()]*RobotType.SOLDIER.health*0.22 +
+				localInfo.friendlyUnitCounts[RobotType.MINER.ordinal()]*RobotType.WATCHTOWER.health*0.22 +
+				localInfo.friendlyUnitCounts[RobotType.SAGE.ordinal()]*RobotType.SAGE.health*0.22 +
+				localInfo.friendlyUnitCounts[RobotType.BUILDER.ordinal()]*RobotType.BUILDER.health*0.22);
 
 			int damage = RobotType.SAGE.damage;
 			if(buildingDamage > damage)

@@ -7,6 +7,7 @@ import gabot2.datasturctures.HashMapNodeVal;
 import gabot2.datasturctures.LinkedList;
 import gabot2.enums.CommInfoBlockType;
 import gabot2.enums.SparseSignalType;
+import gabot2.models.CommDenseMatrixUpdate;
 import gabot2.models.SparseSignal;
 
 import java.util.Map;
@@ -17,7 +18,7 @@ import static gabot2.models.SparseSignal.ALL_SPARSE_SIGNAL_CODES;
 import static gabot2.models.SparseSignal.CODE_TO_SPARSE_SIGNAL;
 import static gabot2.utils.Constants.*;
 import static gabot2.utils.CustomMath.ceilDivision;
-import static gabot2.utils.LogUtils.printDebugLog;
+
 
 public class Comms {
 
@@ -276,7 +277,7 @@ public class Comms {
     }
 
     public void queueDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
-        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType));
+        commUpdateLinkedList.add(new CommDenseMatrixUpdate(val, commInfoBlockType,null));
     }
 
     public void queueSparseSignalUpdate(SparseSignal sparseSignal){
@@ -390,7 +391,7 @@ public class Comms {
     * */
     public void cleanComms() throws GameActionException {
         querySparseSignals();
-        printDebugLog("Comms clean up!");
+//        printDebugLog("Comms clean up!");
 
         // only these messages should remain now
         int lenRemaining = orderedSparseSignals.size/INVERSE_FRACTION_OF_MESSAGES_TO_LEAVE;
@@ -418,14 +419,7 @@ public class Comms {
         queueSparseSignalUpdate(signal);
     }
 
-    static class CommDenseMatrixUpdate{
-        int val;
-        CommInfoBlockType commInfoBlockType;
-        CommDenseMatrixUpdate(int val, CommInfoBlockType commInfoBlockType){
-            this.val=val;
-            this.commInfoBlockType = commInfoBlockType;
-        }
-    }
+
 
     public int[][] checkMap(CommInfoBlockType commInfoBlockType) throws GameActionException{
         readSharedData();

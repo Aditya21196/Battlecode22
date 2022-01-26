@@ -115,8 +115,11 @@ public class Comms2 {
     }
 
     private static int getBestSectorSize(int dimension){
-//        if(dimension%6 == 0)return 6;
-//        return 5;
+        if(CHOOSE_SECTOR_GA>5){
+            if(dimension%6 == 0)return 6;
+            return 5;
+        }
+
         int dim7 = (int)Math.ceil(1.0*dimension/7);
         int dim8 = (int)Math.ceil(1.0*dimension/8);
         if(dim7 == dim8)return 7;
@@ -288,9 +291,6 @@ public class Comms2 {
     }
 
     private static void removeData(FixedDataSignalType fixedDataSignalType) throws GameActionException {
-        if(fixedDataSignalType == FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX){
-            rc.getID();
-        }
         rc.writeSharedArray(fixedDataSignalType.arrayIdx,0);
         int newAvailability = modifyBit(data[AVAILAIBILITY_IDX],fixedDataSignalType.availabilityIdx,0);
         data[AVAILAIBILITY_IDX] = newAvailability;

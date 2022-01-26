@@ -20,7 +20,6 @@ build/*
 *.ipr
 *.iws
 /.idea/
-scripts
 src/benchmarkbot
 
 
