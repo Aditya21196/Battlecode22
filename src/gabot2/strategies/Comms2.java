@@ -11,7 +11,7 @@ import gabot2.models.Task;
 import static gabot2.bots.Archon.rng;
 import static gabot2.utils.Constants.*;
 import static gabot2.utils.CustomMath.*;
-
+import static gabot2.utils.LogUtils.printDebugLog;
 
 public class Comms2 {
 
@@ -238,12 +238,12 @@ public class Comms2 {
             // remove this gather point from comms
             removeData(FixedDataSignalType.FIRST_GATHER_POINT);
             firstTask = null;
-//            printDebugLog("removing 1st gather point");
+            printDebugLog("removing 1st gather point");
         }else if(task.equals(secondTask)){
             // remove this gather point from comms
             removeData(FixedDataSignalType.SECOND_GATHER_POINT);
             secondTask = null;
-//            printDebugLog("removing 2nd gather point");
+            printDebugLog("removing 2nd gather point");
         }
 
         if(task.type == TaskType.ATTACK_ARCHON){
@@ -372,16 +372,16 @@ public class Comms2 {
             int val = locToSectorInfo(location);
             if(enemyArchons[0] == null){
                 writeData(val,FixedDataSignalType.FIRST_ENEMY_ARCHON_IDX);
-//                printDebugLog("1st enemy archon found");
+                printDebugLog("1st enemy archon found");
             }else if(enemyArchons[1] == null && locToSectorInfo(enemyArchons[0])!=val){
                 writeData(val,FixedDataSignalType.SECOND_ENEMY_ARCHON_IDX);
-//                printDebugLog("2nd enemy archon found");
+                printDebugLog("2nd enemy archon found");
             }else if(enemyArchons[2] == null && locToSectorInfo(enemyArchons[0])!=val && locToSectorInfo(enemyArchons[1])!=val){
                 writeData(val,FixedDataSignalType.THRID_ENEMY_ARCHON_IDX);
-//                printDebugLog("3rd enemy archon found");
+                printDebugLog("3rd enemy archon found");
             }else if(enemyArchons[3] == null && locToSectorInfo(enemyArchons[0])!=val && locToSectorInfo(enemyArchons[1])!=val && locToSectorInfo(enemyArchons[2])!=val){
                 writeData(val,FixedDataSignalType.FOURTH_ENEMY_ARCHON_IDX);
-//                printDebugLog("4th enemy archon found");
+                printDebugLog("4th enemy archon found");
             }
         }
     }
@@ -393,10 +393,10 @@ public class Comms2 {
         Task task = new Task(taskType,location);
         if(firstTask == null){
             writeData(val,FixedDataSignalType.FIRST_GATHER_POINT);
-//            printDebugLog("adding 1st gather point at: "+location);
+            printDebugLog("adding 1st gather point at: "+location);
         }else if(!task.equals(firstTask) && secondTask == null){
             writeData(val,FixedDataSignalType.SECOND_GATHER_POINT);
-//            printDebugLog("adding 2nd gather point at: "+location);
+            printDebugLog("adding 2nd gather point at: "+location);
         }
     }
 
